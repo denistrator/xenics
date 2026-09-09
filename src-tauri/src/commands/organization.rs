@@ -68,6 +68,54 @@ pub fn list_tags(
 }
 
 #[tauri::command]
+pub fn assign_bookmark_collection(
+    state: State<'_, AppState>,
+    bookmark_id: i64,
+    collection_id: String,
+    assigned: bool,
+) -> Result<(), String> {
+    state
+        .user_db
+        .assign_collection(bookmark_id, &collection_id, assigned)
+        .map_err(|error| error.message)
+}
+
+#[tauri::command]
+pub fn assign_bookmark_tag(
+    state: State<'_, AppState>,
+    bookmark_id: i64,
+    tag_id: String,
+    assigned: bool,
+) -> Result<(), String> {
+    state
+        .user_db
+        .assign_tag(bookmark_id, &tag_id, assigned)
+        .map_err(|error| error.message)
+}
+
+#[tauri::command]
+pub fn list_bookmark_collections(
+    state: State<'_, AppState>,
+    bookmark_id: i64,
+) -> Result<Vec<String>, String> {
+    state
+        .user_db
+        .list_bookmark_collections(bookmark_id)
+        .map_err(|error| error.message)
+}
+
+#[tauri::command]
+pub fn list_bookmark_tags(
+    state: State<'_, AppState>,
+    bookmark_id: i64,
+) -> Result<Vec<String>, String> {
+    state
+        .user_db
+        .list_bookmark_tags(bookmark_id)
+        .map_err(|error| error.message)
+}
+
+#[tauri::command]
 pub fn get_settings(state: State<'_, AppState>) -> Result<Value, String> {
     state.user_db.get_settings().map_err(|error| error.message)
 }

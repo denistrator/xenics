@@ -32,6 +32,18 @@ CREATE TABLE IF NOT EXISTS tags (
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS bookmark_collections (
+    bookmark_id INTEGER NOT NULL,
+    collection_id TEXT NOT NULL,
+    PRIMARY KEY (bookmark_id, collection_id)
+);
+
+CREATE TABLE IF NOT EXISTS bookmark_tags (
+    bookmark_id INTEGER NOT NULL,
+    tag_id TEXT NOT NULL,
+    PRIMARY KEY (bookmark_id, tag_id)
+);
+
 CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY NOT NULL,
     value_json TEXT NOT NULL

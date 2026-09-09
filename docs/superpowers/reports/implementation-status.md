@@ -30,7 +30,7 @@ Updated: 2026-09-10
 - Search palette selections now open a reader tab through the application boundary, preserving source, path, match index, and native line/column location metadata.
 - Native deep-link parsing is now URL-based, validates encoded traversal and hostile authorities, and is exposed through the typed `parse_deep_link` command.
 - Durable bookmarks now support idempotent saves, anchor persistence, listing, and validated `save_bookmark`/`list_bookmarks` commands. Collections, tags, and session restoration remain.
-- Durable collections and tags now support validated, idempotent creation and listing through native commands. Assignment and session restoration remain.
+- Durable collections and tags now support validated, idempotent creation/listing and bookmark assignment through native commands. Reader session restoration is implemented; organization panels still need full application-level wiring.
 - Reader session state now has a durable native contract and the reader persists/restores validated tab targets and the active tab when running inside Tauri; browser-mode fixtures remain isolated from native storage.
 - Recovery presentation now has reusable `InlineError` and `RecoveryActions` primitives, and task failures use the same structured retry-action surface.
 - The app shell now exposes a toggleable notification panel fed by the ordered task feed, with recent phases and state summaries while detailed recovery remains in the task panel.

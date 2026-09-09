@@ -111,6 +111,32 @@ fn collections_and_tags_are_created_idempotently() {
 }
 
 #[test]
+fn bookmarks_can_be_assigned_to_collections_and_tags_idempotently() {
+    let db = UserDb::open_in_memory().unwrap();
+    let bookmark_id = db
+        .save_bookmark("react", "main", "docs/start.md", None)
+        .unwrap();
+    let collection_id = db.create_collection("Reading list").unwrap();
+    let tag_id = db.create_tag("Important").unwrap();
+
+    db.assign_collection(bookmark_id, &collection_id, true)
+        .unwrap();
+    db.assign_collection(bookmark_id, &collection_id, true)
+        .unwrap();
+    db.assign_tag(bookmark_id, &tag_id, true).unwrap();
+    assert_eq!(
+        db.list_bookmark_collections(bookmark_id).unwrap(),
+        vec![collection_id.clone()]
+    );
+    assert_eq!(
+        db.list_bookmark_tags(bookmark_id).unwrap(),
+        vec![tag_id.clone()]
+    );
+    db.assign_tag(bookmark_id, &tag_id, false).unwrap();
+    assert!(db.list_bookmark_tags(bookmark_id).unwrap().is_empty());
+}
+
+#[test]
 fn settings_are_upserted_and_read_as_json_values() {
     let db = UserDb::open_in_memory().unwrap();
 

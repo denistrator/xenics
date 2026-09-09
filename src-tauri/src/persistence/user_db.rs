@@ -121,6 +121,113 @@ impl UserDb {
         rows.collect::<Result<Vec<_>, _>>().map_err(database_error)
     }
 
+    pub fn assign_collection(
+        &self,
+        bookmark_id: i64,
+        collection_id: &str,
+        assigned: bool,
+    ) -> Result<(), XenicsError> {
+        self.assign_named_record(
+            "bookmark_collections",
+            "collections",
+            "collection_id",
+            bookmark_id,
+            collection_id,
+            assigned,
+        )
+    }
+
+    pub fn assign_tag(
+        &self,
+        bookmark_id: i64,
+        tag_id: &str,
+        assigned: bool,
+    ) -> Result<(), XenicsError> {
+        self.assign_named_record(
+            "bookmark_tags",
+            "tags",
+            "tag_id",
+            bookmark_id,
+            tag_id,
+            assigned,
+        )
+    }
+
+    pub fn list_bookmark_collections(&self, bookmark_id: i64) -> Result<Vec<String>, XenicsError> {
+        self.list_assignments("bookmark_collections", "collection_id", bookmark_id)
+    }
+
+    pub fn list_bookmark_tags(&self, bookmark_id: i64) -> Result<Vec<String>, XenicsError> {
+        self.list_assignments("bookmark_tags", "tag_id", bookmark_id)
+    }
+
+    fn assign_named_record(
+        &self,
+        join_table: &str,
+        records_table: &str,
+        record_column: &str,
+        bookmark_id: i64,
+        record_id: &str,
+        assigned: bool,
+    ) -> Result<(), XenicsError> {
+        let connection = self.connection.lock().expect("user database mutex");
+        let exists: bool = connection
+            .query_row(
+                &format!("SELECT EXISTS(SELECT 1 FROM bookmarks WHERE id = ?1)"),
+                params![bookmark_id],
+                |row| row.get(0),
+            )
+            .map_err(database_error)?;
+        if !exists {
+            return Err(invalid_user_value("bookmark does not exist"));
+        }
+        let record_exists: bool = connection
+            .query_row(
+                &format!("SELECT EXISTS(SELECT 1 FROM {records_table} WHERE id = ?1)"),
+                params![record_id],
+                |row| row.get(0),
+            )
+            .map_err(database_error)?;
+        if !record_exists {
+            return Err(invalid_user_value("organization record does not exist"));
+        }
+        if assigned {
+            connection
+                .execute(
+                    &format!("INSERT OR IGNORE INTO {join_table}(bookmark_id, {record_column}) VALUES (?1, ?2)"),
+                    params![bookmark_id, record_id],
+                )
+                .map_err(database_error)?;
+        } else {
+            connection
+                .execute(
+                    &format!(
+                        "DELETE FROM {join_table} WHERE bookmark_id = ?1 AND {record_column} = ?2"
+                    ),
+                    params![bookmark_id, record_id],
+                )
+                .map_err(database_error)?;
+        }
+        Ok(())
+    }
+
+    fn list_assignments(
+        &self,
+        join_table: &str,
+        record_column: &str,
+        bookmark_id: i64,
+    ) -> Result<Vec<String>, XenicsError> {
+        let connection = self.connection.lock().expect("user database mutex");
+        let mut statement = connection
+            .prepare(&format!("SELECT {record_column} FROM {join_table} WHERE bookmark_id = ?1 ORDER BY {record_column}"))
+            .map_err(database_error)?;
+        let rows = statement
+            .query_map(params![bookmark_id], |row| row.get(0))
+            .map_err(database_error)?;
+        rows.collect::<Result<Vec<String>, _>>()
+            .map_err(database_error)
+    }
+
     pub fn create_collection(&self, name: &str) -> Result<String, XenicsError> {
         self.create_named_record("collections", "collection", name)
     }

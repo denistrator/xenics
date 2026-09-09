@@ -56,6 +56,8 @@ pub fn run() {
             commands::organization::update_settings,
             commands::organization::get_reader_session,
             commands::organization::save_reader_session,
+            desktop::external_actions::open_external_url,
+            desktop::external_actions::open_external_folder,
             commands::tasks::get_tasks,
             commands::tasks::cancel_task,
             commands::tasks::retry_task,

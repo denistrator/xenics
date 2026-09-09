@@ -102,3 +102,7 @@ Custom local sources are canonicalized once at registration and retain their
 path as user-owned data. If the folder is a Git working copy, its configured
 remote is recorded for optional update workflows; a non-Git folder remains
 downloadable/openable but is not treated as a managed remote.
+
+External links and unsupported-source folders use dedicated native opener
+commands. URL scheme and folder existence checks run before delegation to the
+Tauri opener plugin; no shell command is constructed from user input.

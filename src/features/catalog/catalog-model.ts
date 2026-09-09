@@ -1,4 +1,17 @@
-export type Repository = { id: string; name: string; vendor: string; description: string; category: string; accent: string; status: 'Ready' | 'Not installed'; capability: 'Readable' | 'Partially readable' | 'Files only' | 'Website only' }
+export type RepositoryCapability = 'Readable' | 'Partially readable' | 'Files only' | 'Website only'
+export type RepositoryStatus = 'Ready' | 'Not installed'
+
+export type Repository = {
+  id: string
+  name: string
+  vendor: string
+  description: string
+  category: string
+  accent: string
+  status: RepositoryStatus
+  capability: RepositoryCapability
+}
+
 export const repositories: Repository[] = [
   { id: 'react', name: 'React', vendor: 'Meta', description: 'The library for web and native user interfaces.', category: 'Frontend', accent: '#b8efd9', status: 'Ready', capability: 'Readable' },
   { id: 'typescript', name: 'TypeScript', vendor: 'Microsoft', description: 'JavaScript with syntax for types.', category: 'Languages', accent: '#9bc8f3', status: 'Ready', capability: 'Readable' },

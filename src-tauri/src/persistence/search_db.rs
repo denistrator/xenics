@@ -61,4 +61,51 @@ impl SearchDb {
             .query_row("PRAGMA journal_mode", [], |row| row.get(0))
             .map_err(database_error)
     }
+
+    pub fn replace_document(
+        &self,
+        source_id: &str,
+        path: &str,
+        title: &str,
+        headings: &str,
+        prose: &str,
+        code: &str,
+        api_name: &str,
+    ) -> Result<(), XenicsError> {
+        let connection = self.connection.lock().expect("search database mutex");
+        connection
+            .execute(
+                "DELETE FROM documents WHERE source_id = ?1 AND path = ?2",
+                params![source_id, path],
+            )
+            .map_err(database_error)?;
+        connection.execute("INSERT INTO documents(source_id,path,title,headings,prose,code,metadata,api_name) VALUES (?1,?2,?3,?4,?5,?6,'',?7)", params![source_id,path,title,headings,prose,code,api_name]).map_err(database_error)?;
+        Ok(())
+    }
+
+    pub fn query_documents(&self, query: &str) -> Result<Vec<SearchHit>, XenicsError> {
+        let connection = self.connection.lock().expect("search database mutex");
+        let mut statement = connection.prepare("SELECT source_id, path, title, snippet(documents, 4, '<mark>', '</mark>', '…', 12), bm25(documents, 10.0, 6.0, 2.0, 1.0, 1.0, 8.0) FROM documents WHERE documents MATCH ?1 ORDER BY bm25(documents, 10.0, 6.0, 2.0, 1.0, 1.0, 8.0)").map_err(database_error)?;
+        let rows = statement
+            .query_map(params![query], |row| {
+                Ok(SearchHit {
+                    source_id: row.get(0)?,
+                    path: row.get(1)?,
+                    title: row.get(2)?,
+                    snippet: row.get(3)?,
+                    rank: row.get(4)?,
+                })
+            })
+            .map_err(database_error)?;
+        rows.collect::<Result<Vec<_>, _>>().map_err(database_error)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct SearchHit {
+    pub source_id: String,
+    pub path: String,
+    pub title: String,
+    pub snippet: String,
+    pub rank: f64,
 }

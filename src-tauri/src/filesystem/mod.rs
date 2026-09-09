@@ -5,7 +5,9 @@ use std::{
 };
 
 mod paths;
+pub mod reconcile;
 mod reset;
+pub mod watcher;
 
 pub use paths::{validate_managed_path, ManagedPath};
 pub use reset::{ResetPreview, ResetReport, ResetService};
@@ -34,3 +36,5 @@ pub struct MoveReport {
 
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod watcher_tests;

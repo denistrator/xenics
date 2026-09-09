@@ -11,17 +11,29 @@ impl<'a> SearchService<'a> {
         Self { database }
     }
     pub fn query(&self, query: &str) -> Result<Vec<SearchHit>, XenicsError> {
-        self.database.query_documents(&normalize_query(query))
+        let normalized = normalize_query(query);
+        if normalized.is_empty() {
+            return Ok(Vec::new());
+        }
+        self.database.query_documents(&normalized)
     }
 }
 fn normalize_query(query: &str) -> String {
     query
         .split_whitespace()
-        .map(|token| {
-            if token.chars().any(|c| ":._-".contains(c)) {
-                format!("\"{}\"", token.replace('"', ""))
+        .filter_map(|token| {
+            let token = token.replace('"', "");
+            let (value, is_prefix) = token
+                .strip_suffix('*')
+                .map_or((token.as_str(), false), |value| (value, true));
+            if value.is_empty() {
+                return None;
+            }
+
+            if is_prefix {
+                Some(format!("\"{}\"*", value))
             } else {
-                token.replace('"', "")
+                Some(format!("\"{}\"", value))
             }
         })
         .collect::<Vec<_>>()

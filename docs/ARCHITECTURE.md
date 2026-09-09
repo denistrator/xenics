@@ -26,6 +26,8 @@ is unavailable.
 
 The frontend keeps feature boundaries explicit: catalog, reader, search, organization, and task/recovery surfaces expose small model and hook modules rather than sharing ad-hoc state. Task rows use structured error codes and retry classification, so recovery actions never depend on matching human-readable error text.
 
+Search queries cross a narrow Rust-owned boundary. Blank queries return no results without touching SQLite; non-empty terms are quoted before reaching FTS5, and a trailing `*` is treated as an intentional token-prefix query. This prevents user input from injecting FTS operators while preserving identifier searches such as `std::vec*`.
+
 ## Storage separation
 
 Durable user data includes source metadata, settings, bookmarks, collections, tags, reading state, session state, and task history. Search records and other derived index data are disposable and rebuildable without changing user data.

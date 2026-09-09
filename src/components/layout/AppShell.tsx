@@ -1,5 +1,8 @@
 import { Bell, BookOpen, Command, FolderGit2, Settings2, type LucideIcon } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { SearchPalette } from '../../features/search/SearchPalette'
+import { useNativeSearch } from '../../features/search/search-hooks'
+import type { SearchResultModel } from '../../features/search/search-state'
 
 type NavigationItem = {
   label: string
@@ -41,9 +44,24 @@ function NavigationLinks({ activeHash, compact = false }: NavigationLinksProps):
 type AppShellProps = {
   children: ReactNode
   activeHash?: string
+  onSearchSelect?: (result: SearchResultModel) => void
 }
 
-export function AppShell({ children, activeHash = '#catalog' }: AppShellProps): ReactNode {
+export function AppShell({ children, activeHash = '#catalog', onSearchSelect }: AppShellProps): ReactNode {
+  const [searchOpen, setSearchOpen] = useState(false)
+  const { query, setQuery, response, isSearching } = useNativeSearch()
+
+  useEffect(() => {
+    function handleShortcut(event: KeyboardEvent): void {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault()
+        setSearchOpen(true)
+      }
+    }
+
+    window.addEventListener('keydown', handleShortcut)
+    return () => window.removeEventListener('keydown', handleShortcut)
+  }, [])
 
   return (
     <main
@@ -89,6 +107,19 @@ export function AppShell({ children, activeHash = '#catalog' }: AppShellProps): 
 
         <div className="mx-auto max-w-[1500px] px-5 py-8 md:px-10 md:py-12">{children}</div>
       </section>
+      <SearchPalette
+        open={searchOpen}
+        query={query}
+        results={response.results}
+        isSearching={isSearching}
+        error={response.error}
+        onQueryChange={setQuery}
+        onSelect={(result) => {
+          setSearchOpen(false)
+          onSearchSelect?.(result)
+        }}
+        onClose={() => setSearchOpen(false)}
+      />
     </main>
   )
 }

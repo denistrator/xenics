@@ -6,6 +6,8 @@ type SearchPaletteProps = {
   open: boolean
   query: string
   results: SearchResultModel[]
+  isSearching?: boolean
+  error?: string
   onQueryChange: (query: string) => void
   onSelect: (result: SearchResultModel) => void
   onClose: () => void
@@ -15,6 +17,8 @@ export function SearchPalette({
   open,
   query,
   results,
+  isSearching = false,
+  error,
   onQueryChange,
   onSelect,
   onClose,
@@ -55,7 +59,11 @@ export function SearchPalette({
           </span>
         </div>
 
-        {results.length > 0 ? (
+        {error ? (
+          <p role="alert" className="p-8 text-center text-sm text-x-coral">{error}</p>
+        ) : isSearching ? (
+          <p role="status" className="p-8 text-center text-sm text-x-muted">Searching…</p>
+        ) : results.length > 0 ? (
           <div className="max-h-[min(50vh,24rem)] overflow-y-auto p-2">
             {results.map((result) => (
               <button

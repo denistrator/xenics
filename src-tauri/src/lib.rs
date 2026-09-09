@@ -1,6 +1,7 @@
 mod commands;
 pub mod core;
 pub mod diagnostics;
+pub mod documents;
 pub mod filesystem;
 pub mod git;
 pub mod persistence;

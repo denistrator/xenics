@@ -34,6 +34,8 @@ Changed files can be consumed incrementally: supported paths are re-parsed and u
 
 The catalog treats the hardcoded technology list as presentation metadata and hydrates installation status from the durable native source catalog. A successful download updates the local view immediately while the database remains authoritative on the next launch.
 
+Catalog update and removal actions are thin UI adapters over native commands. Bulk update operates only on currently installed catalog IDs; destructive managed-file deletion remains an explicit native operation with canonical-root containment checks.
+
 The reader accepts only the parsed native document model. React renders text nodes and structured blocks, maps parser warnings to visible warning blocks, and resolves internal links into the active tab history; it never evaluates repository HTML or MDX as executable markup.
 
 Global search is command-backed through a deferred React query boundary. The palette presents loading and native error states, while the Rust service remains responsible for FTS normalization, ranking, and input safety.

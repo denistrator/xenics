@@ -1,4 +1,4 @@
-import { Download, Search, SlidersHorizontal } from 'lucide-react'
+import { Download, RefreshCw, Search, SlidersHorizontal } from 'lucide-react'
 import { useDeferredValue, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { repositories } from './catalog-model'
 import { RepositoryCard } from './RepositoryCard'
@@ -10,6 +10,8 @@ type DownloadState = 'idle' | 'loading' | 'success' | 'error'
 
 type CatalogPageProps = {
   onDownload?: (repositoryIds: string[]) => Promise<void> | void
+  onUpdate?: (repositoryId: string) => Promise<void> | void
+  onRemove?: (repositoryId: string) => Promise<void> | void
 }
 
 function matchesRepositoryQuery(
@@ -27,13 +29,14 @@ function matchesRepositoryQuery(
   return searchableText.toLowerCase().includes(query)
 }
 
-export function CatalogPage({ onDownload }: CatalogPageProps): ReactNode {
+export function CatalogPage({ onDownload, onUpdate, onRemove }: CatalogPageProps): ReactNode {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [selectionAnchorId, setSelectionAnchorId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [downloadState, setDownloadState] = useState<DownloadState>('idle')
   const [detailsRepositoryId, setDetailsRepositoryId] = useState<string | null>(null)
   const [installedIds, setInstalledIds] = useState<Set<string>>(() => new Set())
+  const [updateState, setUpdateState] = useState<DownloadState>('idle')
   const deferredSearchQuery = useDeferredValue(searchQuery.trim().toLowerCase())
 
   useEffect(() => {
@@ -99,6 +102,31 @@ export function CatalogPage({ onDownload }: CatalogPageProps): ReactNode {
     }
   }
 
+  async function updateRepositories(repositoryIds: string[]): Promise<void> {
+    if (updateState === 'loading' || repositoryIds.length === 0 || !onUpdate) return
+    setUpdateState('loading')
+    try {
+      await Promise.all(repositoryIds.map((repositoryId) => onUpdate(repositoryId)))
+      setUpdateState('success')
+    } catch {
+      setUpdateState('error')
+    }
+  }
+
+  async function removeRepository(repositoryId: string): Promise<void> {
+    if (!onRemove) return
+    try {
+      await onRemove(repositoryId)
+      setInstalledIds((current) => {
+        const next = new Set(current)
+        next.delete(repositoryId)
+        return next
+      })
+    } catch {
+      setUpdateState('error')
+    }
+  }
+
   const downloadLabel = selectedIds.length
     ? `Download selected (${selectedIds.length})`
     : 'Download all'
@@ -140,6 +168,18 @@ export function CatalogPage({ onDownload }: CatalogPageProps): ReactNode {
             <Download aria-hidden="true" className="mr-2 inline" size={16} />
             {downloadButtonLabel}
           </button>
+          {installedIds.size > 0 && onUpdate && (
+            <button
+              type="button"
+              onClick={() => void updateRepositories([...installedIds])}
+              disabled={updateState === 'loading'}
+              aria-busy={updateState === 'loading'}
+              className="rounded-xl border border-x-line bg-x-panel px-4 py-3 text-sm font-semibold hover:bg-x-paper"
+            >
+              <RefreshCw aria-hidden="true" className="mr-2 inline" size={16} />
+              {updateState === 'loading' ? 'Updating all…' : updateState === 'success' ? 'All sources updated' : updateState === 'error' ? 'Update failed — retry' : 'Update all'}
+            </button>
+          )}
           <button
             type="button"
             aria-label="Filter repositories"
@@ -184,6 +224,8 @@ export function CatalogPage({ onDownload }: CatalogPageProps): ReactNode {
               onSelect={(shiftKey) => handleSelect(repository.id, shiftKey)}
               onOpen={() => setDetailsRepositoryId(repository.id)}
               onDownload={() => void startDownload([repository.id])}
+              onUpdate={onUpdate ? () => void updateRepositories([repository.id]) : undefined}
+              onRemove={onRemove ? () => void removeRepository(repository.id) : undefined}
             />
           ))}
         </div>

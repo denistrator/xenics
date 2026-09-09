@@ -1,4 +1,4 @@
-import { ArrowUpRight, Check, Download, FolderOpen } from 'lucide-react'
+import { ArrowUpRight, Check, Download, FolderOpen, RefreshCw, Trash2 } from 'lucide-react'
 import type { ChangeEvent, ReactNode } from 'react'
 import type { Repository, RepositoryAccent } from './catalog-model'
 
@@ -8,6 +8,8 @@ type RepositoryCardProps = {
   onSelect: (shiftKey: boolean) => void
   onOpen: () => void
   onDownload?: () => void
+  onUpdate?: () => void
+  onRemove?: () => void
   featured?: boolean
 }
 
@@ -30,6 +32,8 @@ export function RepositoryCard({
   onSelect,
   onOpen,
   onDownload,
+  onUpdate,
+  onRemove,
   featured = false,
 }: RepositoryCardProps): ReactNode {
   const isInstalled = repo.status === 'Ready'
@@ -100,16 +104,28 @@ export function RepositoryCard({
             'Not installed'
           )}
         </span>
-        <button
-          type="button"
-          onClick={isInstalled || isWebsiteOnly ? onOpen : onDownload}
-          disabled={!isInstalled && !isWebsiteOnly && !onDownload}
-          className="rounded-lg p-2 text-x-muted hover:bg-x-mint hover:text-x-ink"
-          aria-label={`${primaryActionLabel}: ${repo.name}`}
-          title={primaryActionLabel}
-        >
-          {isFilesOnly ? <FolderOpen aria-hidden="true" size={17} /> : <ArrowUpRight aria-hidden="true" size={17} />}
-        </button>
+        <div className="flex items-center gap-1">
+          {isInstalled && onUpdate && !isFilesOnly && (
+            <button type="button" onClick={onUpdate} className="rounded-lg p-2 text-x-muted hover:bg-x-mint hover:text-x-ink" aria-label={`Update ${repo.name}`}>
+              <RefreshCw aria-hidden="true" size={16} />
+            </button>
+          )}
+          {isInstalled && onRemove && (
+            <button type="button" onClick={onRemove} className="rounded-lg p-2 text-x-muted hover:bg-x-coral hover:text-x-ink" aria-label={`Remove ${repo.name}`}>
+              <Trash2 aria-hidden="true" size={16} />
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={isInstalled || isWebsiteOnly ? onOpen : onDownload}
+            disabled={!isInstalled && !isWebsiteOnly && !onDownload}
+            className="rounded-lg p-2 text-x-muted hover:bg-x-mint hover:text-x-ink"
+            aria-label={`${primaryActionLabel}: ${repo.name}`}
+            title={primaryActionLabel}
+          >
+            {isFilesOnly ? <FolderOpen aria-hidden="true" size={17} /> : <ArrowUpRight aria-hidden="true" size={17} />}
+          </button>
+        </div>
       </div>
 
       {!isInstalled && isDownloadable && onDownload && (

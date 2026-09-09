@@ -28,6 +28,8 @@ The frontend keeps feature boundaries explicit: catalog, reader, search, organiz
 
 Search queries cross a narrow Rust-owned boundary. Blank queries return no results without touching SQLite; non-empty terms are quoted before reaching FTS5, quoted groups remain contiguous phrases, and a trailing `*` is treated as an intentional token-prefix query. This prevents user input from injecting FTS operators while preserving identifier searches such as `std::vec*`.
 
+Source monitoring uses a native recursive watcher for Markdown and MDX files. Git internals, dependency folders, and build outputs are filtered at the event boundary; reconciliation remains the authoritative fallback after missed events or restarts.
+
 ## Storage separation
 
 Durable user data includes source metadata, settings, bookmarks, collections, tags, reading state, session state, and task history. Search records and other derived index data are disposable and rebuildable without changing user data.

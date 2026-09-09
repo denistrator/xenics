@@ -1,4 +1,4 @@
-mod commands;
+pub mod commands;
 pub mod core;
 pub mod diagnostics;
 pub mod documents;

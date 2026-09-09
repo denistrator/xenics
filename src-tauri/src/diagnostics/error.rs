@@ -20,6 +20,7 @@ pub enum ErrorCode {
     RemoteUnavailable,
     InvalidGitSource,
     InvalidGitRef,
+    InvalidDeepLink,
     InvalidTaskEvent,
     Database,
     ManagedPathCollision,

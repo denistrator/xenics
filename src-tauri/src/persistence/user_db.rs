@@ -16,6 +16,16 @@ pub struct SourceRecord {
     pub remote_url: Option<String>,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BookmarkRecord {
+    pub id: i64,
+    pub source_id: String,
+    pub ref_name: String,
+    pub document_path: String,
+    pub anchor: Option<String>,
+}
+
 pub struct UserDb {
     connection: Mutex<Connection>,
 }
@@ -54,6 +64,54 @@ impl UserDb {
             )
             .map(|_| ())
             .map_err(database_error)
+    }
+
+    pub fn save_bookmark(
+        &self,
+        source_id: &str,
+        ref_name: &str,
+        document_path: &str,
+        anchor: Option<&str>,
+    ) -> Result<i64, XenicsError> {
+        let connection = self.connection.lock().expect("user database mutex");
+        let transaction = connection.unchecked_transaction().map_err(database_error)?;
+        transaction
+            .execute(
+                "DELETE FROM bookmarks WHERE source_id = ?1 AND ref_name = ?2 AND document_path = ?3",
+                params![source_id, ref_name, document_path],
+            )
+            .map_err(database_error)?;
+        transaction
+            .execute(
+                "INSERT INTO bookmarks(source_id, ref_name, document_path, anchor) VALUES (?1, ?2, ?3, ?4)",
+                params![source_id, ref_name, document_path, anchor],
+            )
+            .map_err(database_error)?;
+        let id = transaction.last_insert_rowid();
+        transaction.commit().map_err(database_error)?;
+        Ok(id)
+    }
+
+    pub fn list_bookmarks(&self) -> Result<Vec<BookmarkRecord>, XenicsError> {
+        let connection = self.connection.lock().expect("user database mutex");
+        let mut statement = connection
+            .prepare(
+                "SELECT id, source_id, ref_name, document_path, anchor
+                 FROM bookmarks ORDER BY created_at, id",
+            )
+            .map_err(database_error)?;
+        let rows = statement
+            .query_map([], |row| {
+                Ok(BookmarkRecord {
+                    id: row.get(0)?,
+                    source_id: row.get(1)?,
+                    ref_name: row.get(2)?,
+                    document_path: row.get(3)?,
+                    anchor: row.get(4)?,
+                })
+            })
+            .map_err(database_error)?;
+        rows.collect::<Result<Vec<_>, _>>().map_err(database_error)
     }
 
     pub fn bookmark_count(&self) -> Result<i64, XenicsError> {

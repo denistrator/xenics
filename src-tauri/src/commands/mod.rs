@@ -1,4 +1,5 @@
 pub mod deep_links;
+pub mod organization;
 pub mod tasks;
 
 use crate::{

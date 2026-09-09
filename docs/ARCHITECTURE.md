@@ -36,6 +36,8 @@ Global search is command-backed through a deferred React query boundary. The pal
 
 Xenics deep links are parsed and validated in Rust through `parse_deep_link`; the serialized target preserves the selected branch/tag, document path, and optional anchor for the reader/session layer.
 
+Bookmarks are user data, not search-derived data. Rust persists them in the durable user database with idempotent source/ref/path saves, while bookmark commands validate paths and anchors before writing.
+
 ## Storage separation
 
 Durable user data includes source metadata, settings, bookmarks, collections, tags, reading state, session state, and task history. Search records and other derived index data are disposable and rebuildable without changing user data.

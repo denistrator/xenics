@@ -75,3 +75,19 @@ fn source_records_are_durable_and_listed_in_creation_order() {
     );
     assert_eq!(sources[0].selected_ref.as_deref(), Some("main"));
 }
+
+#[test]
+fn bookmarks_are_upserted_and_listed_without_duplicates() {
+    let db = UserDb::open_in_memory().unwrap();
+    let first = db
+        .save_bookmark("react", "main", "docs/start.md", Some("install"))
+        .unwrap();
+    let second = db
+        .save_bookmark("react", "main", "docs/start.md", Some("advanced"))
+        .unwrap();
+
+    assert_eq!(first, second);
+    let bookmarks = db.list_bookmarks().unwrap();
+    assert_eq!(bookmarks.len(), 1);
+    assert_eq!(bookmarks[0].anchor.as_deref(), Some("advanced"));
+}

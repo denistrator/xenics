@@ -43,6 +43,8 @@ pub fn run() {
             commands::search_documents,
             commands::read_document,
             commands::deep_links::parse_deep_link,
+            commands::organization::list_bookmarks,
+            commands::organization::save_bookmark,
             commands::tasks::get_tasks,
             commands::tasks::cancel_task,
             commands::tasks::retry_task,

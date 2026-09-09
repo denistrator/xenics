@@ -42,6 +42,8 @@ Collections and tags use the same durable database boundary. Names are trimmed, 
 
 Recovery UI uses structured action objects rather than inspecting human-readable error strings. Inline errors can render only the actions supplied by the owning feature, keeping retry and destructive operations explicit.
 
+The shell notification panel consumes task snapshots as a compact activity summary. It does not duplicate task mutation logic; cancel/retry and detailed diagnostics remain owned by the task panel.
+
 Settings are persisted as allowlisted JSON keys in the durable user database. The native command boundary rejects unknown keys, control characters, and oversized string values before storage.
 
 The settings screen hydrates once from that command boundary and persists small patches after each user change. Native failures do not discard the in-memory choice; the screen reports the degraded persistence state instead.

@@ -29,7 +29,7 @@ export function App() {
   }
 
   return (
-    <AppShell activeHash={activeHash}>
+    <AppShell activeHash={activeHash} notifications={tasks}>
       {showSettings ? <SettingsPage /> : <CatalogPage onDownload={downloadRepositories} />}
       {tasks.length > 0 && (
         <div className="mx-auto max-w-[1500px] px-5 pb-8 md:px-10">

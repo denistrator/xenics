@@ -3,6 +3,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { SearchPalette } from '../../features/search/SearchPalette'
 import { useNativeSearch } from '../../features/search/search-hooks'
 import type { SearchResultModel } from '../../features/search/search-state'
+import type { TaskSnapshot } from '../../features/tasks/task-model'
 
 type NavigationItem = {
   label: string
@@ -45,10 +46,12 @@ type AppShellProps = {
   children: ReactNode
   activeHash?: string
   onSearchSelect?: (result: SearchResultModel) => void
+  notifications?: TaskSnapshot[]
 }
 
-export function AppShell({ children, activeHash = '#catalog', onSearchSelect }: AppShellProps): ReactNode {
+export function AppShell({ children, activeHash = '#catalog', onSearchSelect, notifications = [] }: AppShellProps): ReactNode {
   const [searchOpen, setSearchOpen] = useState(false)
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
   const { query, setQuery, response, isSearching } = useNativeSearch()
 
   useEffect(() => {
@@ -99,10 +102,32 @@ export function AppShell({ children, activeHash = '#catalog', onSearchSelect }: 
           </div>
           <button
             aria-label="Open notifications"
+            aria-expanded={notificationsOpen}
+            onClick={() => setNotificationsOpen((open) => !open)}
             className="grid size-10 place-items-center rounded-xl border border-x-line text-x-muted hover:bg-x-paper"
           >
             <Bell aria-hidden="true" size={18} />
           </button>
+          {notificationsOpen && (
+            <section aria-label="Notifications" className="absolute right-5 top-20 z-20 w-[min(22rem,calc(100vw-2.5rem))] rounded-2xl border border-x-line bg-x-panel p-4 shadow-xl md:right-10">
+              <div className="flex items-center justify-between">
+                <h2 className="font-semibold">Notifications</h2>
+                <span className="text-xs text-x-muted">{notifications.length}</span>
+              </div>
+              {notifications.length === 0 ? (
+                <p className="mt-4 text-sm text-x-muted">No recent activity.</p>
+              ) : (
+                <ul className="mt-3 space-y-2">
+                  {notifications.slice(0, 8).map((task) => (
+                    <li key={task.taskId} className="rounded-xl bg-x-paper p-3 text-sm">
+                      <p className="font-medium">{task.phase}</p>
+                      <p className="mt-1 text-xs text-x-muted">{task.state.replace(/([a-z])([A-Z])/g, '$1 $2')}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          )}
         </header>
 
         <div className="mx-auto max-w-[1500px] px-5 py-8 md:px-10 md:py-12">{children}</div>

@@ -40,6 +40,8 @@ Bookmarks are user data, not search-derived data. Rust persists them in the dura
 
 Collections and tags use the same durable database boundary. Names are trimmed, control characters are rejected, and stable normalized IDs make repeated create requests idempotent.
 
+Recovery UI uses structured action objects rather than inspecting human-readable error strings. Inline errors can render only the actions supplied by the owning feature, keeping retry and destructive operations explicit.
+
 ## Storage separation
 
 Durable user data includes source metadata, settings, bookmarks, collections, tags, reading state, session state, and task history. Search records and other derived index data are disposable and rebuildable without changing user data.

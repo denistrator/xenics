@@ -1,6 +1,8 @@
-import { Ban, RotateCcw } from 'lucide-react'
+import { Ban } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { TaskId } from '../../lib/contracts'
+import { InlineError } from '../../components/feedback/InlineError'
+import { RecoveryActions } from '../../components/feedback/RecoveryActions'
 import { canRetryTask, isActiveTask, recoveryMessage, taskStateLabel, type TaskSnapshot } from './task-model'
 
 type TaskRowProps = {
@@ -37,16 +39,6 @@ export function TaskRow({ task, onCancel, onRetry }: TaskRowProps): ReactNode {
               Cancel
             </button>
           )}
-          {retryable && onRetry && (
-            <button
-              type="button"
-              onClick={() => onRetry(task.taskId)}
-              className="rounded-lg bg-x-mint px-3 py-2 text-xs font-semibold text-x-ink"
-            >
-              <RotateCcw aria-hidden="true" className="mr-1 inline" size={14} />
-              Retry {task.phase}
-            </button>
-          )}
         </div>
       </div>
 
@@ -58,7 +50,19 @@ export function TaskRow({ task, onCancel, onRetry }: TaskRowProps): ReactNode {
           aria-label={`${task.phase} progress`}
         />
       )}
-      {errorMessage && <p role="alert" className="mt-3 text-sm text-x-coral">{errorMessage}</p>}
+      {errorMessage && (
+        <InlineError message={errorMessage}>
+          {retryable && onRetry && (
+            <RecoveryActions
+              actions={[{
+                id: 'retry',
+                label: `Retry ${task.phase}`,
+                onSelect: () => onRetry(task.taskId),
+              }]}
+            />
+          )}
+        </InlineError>
+      )}
     </article>
   )
 }

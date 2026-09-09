@@ -1,18 +1,20 @@
-type RecoveryActionsProps = { onRetry?: () => void; onOpenFolder?: () => void }
+import type { ReactNode } from 'react'
 
-export function RecoveryActions({ onRetry, onOpenFolder }: RecoveryActionsProps) {
+export type RecoveryAction = {
+  id: string
+  label: string
+  onSelect: () => void
+}
+
+export function RecoveryActions({ actions }: { actions: RecoveryAction[] }): ReactNode {
+  if (actions.length === 0) return null
   return (
     <div className="flex flex-wrap gap-2">
-      {onRetry && (
-        <button type="button" onClick={onRetry} className="rounded-lg bg-x-mint px-3 py-2 text-xs font-semibold text-x-ink">
-          Retry
+      {actions.map((action) => (
+        <button key={action.id} type="button" onClick={action.onSelect} className="rounded-lg bg-x-mint px-3 py-2 text-xs font-semibold text-x-ink">
+          {action.label}
         </button>
-      )}
-      {onOpenFolder && (
-        <button type="button" onClick={onOpenFolder} className="rounded-lg border border-x-line px-3 py-2 text-xs font-semibold">
-          Open folder
-        </button>
-      )}
+      ))}
     </div>
   )
 }

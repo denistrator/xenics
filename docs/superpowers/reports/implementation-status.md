@@ -26,6 +26,7 @@ Updated: 2026-09-10
 - Native deep-link parsing is now URL-based, validates encoded traversal and hostile authorities, and is exposed through the typed `parse_deep_link` command.
 - Durable bookmarks now support idempotent saves, anchor persistence, listing, and validated `save_bookmark`/`list_bookmarks` commands. Collections, tags, and session restoration remain.
 - Durable collections and tags now support validated, idempotent creation and listing through native commands. Assignment and session restoration remain.
+- Recovery presentation now has reusable `InlineError` and `RecoveryActions` primitives, and task failures use the same structured retry-action surface.
 - Native recursive file watching now reports supported document changes and filters Git/dependency/build folders; background indexing and polling reconciliation still need to consume those changes.
 - Windows/Linux validation and installed-package verification remain pending.
 

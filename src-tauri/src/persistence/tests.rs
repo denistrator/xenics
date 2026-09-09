@@ -32,3 +32,13 @@ fn both_databases_enable_wal_and_migrations_are_idempotent() {
     UserDb::open(&user_path).unwrap();
     SearchDb::open(&search_path).unwrap();
 }
+
+#[test]
+fn task_records_are_durable_and_upsertable() {
+    let db = UserDb::open_in_memory().unwrap();
+    db.upsert_task_record("task-1", "Running", "{\"phase\":\"clone\"}")
+        .unwrap();
+    db.upsert_task_record("task-1", "Succeeded", "{\"phase\":\"complete\"}")
+        .unwrap();
+    assert_eq!(db.task_record_count().unwrap(), 1);
+}

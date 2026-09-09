@@ -56,4 +56,29 @@ impl UserDb {
             .query_row("PRAGMA journal_mode", [], |row| row.get(0))
             .map_err(database_error)
     }
+
+    pub fn upsert_task_record(
+        &self,
+        task_id: &str,
+        state: &str,
+        payload_json: &str,
+    ) -> Result<(), XenicsError> {
+        let connection = self.connection.lock().expect("user database mutex");
+        connection
+            .execute(
+                "INSERT INTO task_records(id, state, payload_json) VALUES (?1, ?2, ?3)
+                 ON CONFLICT(id) DO UPDATE SET state = excluded.state,
+                 payload_json = excluded.payload_json, updated_at = CURRENT_TIMESTAMP",
+                params![task_id, state, payload_json],
+            )
+            .map(|_| ())
+            .map_err(database_error)
+    }
+
+    pub fn task_record_count(&self) -> Result<i64, XenicsError> {
+        let connection = self.connection.lock().expect("user database mutex");
+        connection
+            .query_row("SELECT COUNT(*) FROM task_records", [], |row| row.get(0))
+            .map_err(database_error)
+    }
 }

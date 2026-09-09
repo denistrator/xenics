@@ -38,6 +38,8 @@ Downloads, updates, indexing, and reconciliation run as isolated tasks with orde
 
 The task manager keeps operation identity, phase, attempt count, state, and structured failure data together. Automatic retry is limited to transient remote availability failures; authentication and other actionable failures remain manual.
 
+Task records are upserted in the durable user database so an interrupted operation can be identified and reconciled after restart. Git subprocess cancellation kills and waits for the child before reporting the task as canceled.
+
 ## Evolution rule
 
 Update this overview when a task introduces a new service boundary, persistence rule, platform adapter, task state, or security constraint. The product specifications remain authoritative for user-visible behavior.

@@ -5,7 +5,9 @@ use crate::{
 };
 use std::{
     path::{Path, PathBuf},
-    process::Command,
+    process::{Command, Stdio},
+    thread,
+    time::Duration,
 };
 
 #[derive(Debug, Eq, PartialEq)]
@@ -228,13 +230,9 @@ fn run(args: &[&str], cancellation: &CancellationToken) -> Result<GitResult, Xen
             RetryClass::Permanent,
         ));
     }
-    let output = Command::new("git").args(args).output().map_err(|error| {
-        git_error(
-            ErrorCode::GitCommandFailed,
-            error.to_string(),
-            RetryClass::Automatic,
-        )
-    })?;
+    let mut command = Command::new("git");
+    command.args(args);
+    let output = execute(command, cancellation)?;
     if !output.status.success() {
         return Err(classify_git_failure(
             output.status.code().unwrap_or(-1),
@@ -259,17 +257,9 @@ fn run_in_repo(
             RetryClass::Permanent,
         ));
     }
-    let output = Command::new("git")
-        .args(args)
-        .current_dir(destination)
-        .output()
-        .map_err(|error| {
-            git_error(
-                ErrorCode::GitCommandFailed,
-                error.to_string(),
-                RetryClass::Automatic,
-            )
-        })?;
+    let mut command = Command::new("git");
+    command.args(args).current_dir(destination);
+    let output = execute(command, cancellation)?;
     if !output.status.success() {
         return Err(classify_git_failure(
             output.status.code().unwrap_or(-1),
@@ -284,6 +274,52 @@ fn run_in_repo(
 
 fn path_string(path: &Path) -> &str {
     path.to_str().unwrap_or("")
+}
+
+fn execute(
+    mut command: Command,
+    cancellation: &CancellationToken,
+) -> Result<std::process::Output, XenicsError> {
+    command.stdout(Stdio::piped()).stderr(Stdio::piped());
+    let mut child = command.spawn().map_err(|error| {
+        git_error(
+            ErrorCode::GitCommandFailed,
+            error.to_string(),
+            RetryClass::Automatic,
+        )
+    })?;
+    loop {
+        if cancellation.is_cancelled() {
+            let _ = child.kill();
+            let _ = child.wait();
+            return Err(git_error(
+                ErrorCode::GitCanceled,
+                "Git operation canceled",
+                RetryClass::Permanent,
+            ));
+        }
+        match child.try_wait() {
+            Ok(Some(_)) => {
+                return child.wait_with_output().map_err(|error| {
+                    git_error(
+                        ErrorCode::GitCommandFailed,
+                        error.to_string(),
+                        RetryClass::Automatic,
+                    )
+                })
+            }
+            Ok(None) => thread::sleep(Duration::from_millis(20)),
+            Err(error) => {
+                let _ = child.kill();
+                let _ = child.wait();
+                return Err(git_error(
+                    ErrorCode::GitCommandFailed,
+                    error.to_string(),
+                    RetryClass::Automatic,
+                ));
+            }
+        }
+    }
 }
 fn git_error(code: ErrorCode, message: impl Into<String>, retry_class: RetryClass) -> XenicsError {
     let mut error = XenicsError::new(code, retry_class);

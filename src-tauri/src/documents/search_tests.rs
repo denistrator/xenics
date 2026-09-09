@@ -40,7 +40,7 @@ fn search_supports_prefixes_for_punctuation_heavy_identifiers() {
     let results = SearchService::new(&db).query("std::vec*").unwrap();
 
     assert_eq!(results.len(), 1);
-    assert!(results[0].path.ends_with("/api.md"));
+    assert_eq!(results[0].path, "api.md");
 }
 
 #[test]
@@ -50,6 +50,21 @@ fn empty_search_queries_are_noops() {
     let results = SearchService::new(&db).query("   ").unwrap();
 
     assert!(results.is_empty());
+}
+
+#[test]
+fn indexed_paths_are_source_relative_for_reader_navigation() {
+    let root = tempdir().unwrap();
+    fs::create_dir_all(root.path().join("docs")).unwrap();
+    fs::write(root.path().join("docs/api.md"), "# API\nReference").unwrap();
+    let db = SearchDb::open_in_memory().unwrap();
+    Indexer::new(&db, root.path())
+        .index_source("api", &CancellationToken::default())
+        .unwrap();
+
+    let results = SearchService::new(&db).query("Reference").unwrap();
+
+    assert_eq!(results[0].path, "docs/api.md");
 }
 
 #[test]

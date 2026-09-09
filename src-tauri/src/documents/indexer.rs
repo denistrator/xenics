@@ -68,7 +68,7 @@ impl<'a> Indexer<'a> {
         let prose = document.reader_text();
         self.database.replace_document(
             source_id,
-            &path.display().to_string(),
+            &self.relative_path(path),
             title,
             title,
             &prose,
@@ -76,6 +76,13 @@ impl<'a> Indexer<'a> {
             "",
         )?;
         Ok(true)
+    }
+
+    fn relative_path(&self, path: &PathBuf) -> String {
+        path.strip_prefix(&self.root)
+            .unwrap_or(path)
+            .to_string_lossy()
+            .replace('\\', "/")
     }
     pub fn retry_failed_documents(
         &self,

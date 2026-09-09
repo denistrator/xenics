@@ -38,6 +38,8 @@ The reader accepts only the parsed native document model. React renders text nod
 
 Global search is command-backed through a deferred React query boundary. The palette presents loading and native error states, while the Rust service remains responsible for FTS normalization, ranking, and input safety.
 
+Search records store source-relative document paths with normalized `/` separators. This keeps result navigation independent of the machine’s absolute library location and lets the reader enforce one consistent containment boundary.
+
 Xenics deep links are parsed and validated in Rust through `parse_deep_link`; the serialized target preserves the selected branch/tag, document path, and optional anchor for the reader/session layer.
 
 Bookmarks are user data, not search-derived data. Rust persists them in the durable user database with idempotent source/ref/path saves, while bookmark commands validate paths and anchors before writing.

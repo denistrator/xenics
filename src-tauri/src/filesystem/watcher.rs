@@ -78,8 +78,13 @@ impl WatcherHandle {
                 if indexer.index_file(source_id, &path)? {
                     indexed += 1;
                 }
-            } else if database.remove_document(source_id, &path.display().to_string())? {
-                indexed += 1;
+            } else if let Ok(relative_path) = path.strip_prefix(root) {
+                if database.remove_document(
+                    source_id,
+                    &relative_path.to_string_lossy().replace('\\', "/"),
+                )? {
+                    indexed += 1;
+                }
             }
         }
         Ok(indexed)

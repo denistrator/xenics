@@ -18,13 +18,15 @@ Xenics is in active foundation development. The Tauri/React/Rust workspace and v
 
 ## Development
 
-See [the development guide](docs/DEVELOPMENT.md) for complete prerequisites, platform dependencies, setup, testing, and build commands.
+See [the development guide](docs/DEVELOPMENT.md) for complete prerequisites, platform dependencies, setup, testing, and build commands. Release validation also requires a platform-native packaging environment; signing/notarization credentials are intentionally not part of the repository.
 
 ```bash
 npm install
 npm test -- --run
 npm run build
 cargo test --manifest-path src-tauri/Cargo.toml
+npm run test:e2e
+npm run verify:packaged
 ```
 
 ## Product documentation

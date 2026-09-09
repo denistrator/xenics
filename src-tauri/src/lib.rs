@@ -1,5 +1,6 @@
 pub mod commands;
 pub mod core;
+pub mod desktop;
 pub mod diagnostics;
 pub mod documents;
 pub mod filesystem;

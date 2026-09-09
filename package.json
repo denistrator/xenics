@@ -10,7 +10,8 @@
     "test:ui": "vitest --ui",
     "typecheck:e2e": "tsc -p tsconfig.e2e.json --noEmit",
     "test:e2e": "cargo build --manifest-path src-tauri/Cargo.toml --features e2e && wdio run tests/e2e/wdio.conf.ts",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "verify:packaged": "node scripts/verify-packaged-build.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",

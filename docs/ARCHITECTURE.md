@@ -15,7 +15,7 @@ Rust domain services
   ├── disposable FTS5 search database
   ├── cancellable task manager
   ├── managed paths and filesystem reconciliation
-  └── desktop integrations
+  └── desktop integrations and notification policy
 ```
 
 The frontend keeps feature boundaries explicit: catalog, reader, search, organization, and task/recovery surfaces expose small model and hook modules rather than sharing ad-hoc state. Task rows use structured error codes and retry classification, so recovery actions never depend on matching human-readable error text.
@@ -47,6 +47,8 @@ Scheduled availability checks run only while the app is open. The update-check s
 Task recovery is surface-specific: active and recent operations are shown in the task panel, retry/cancel actions remain available according to task state, inline errors handle local field/component failures, and offline placeholders preserve access to already-downloaded documentation. Diagnostics redact credentials, authorization headers, and document content before they can be copied or displayed.
 
 Xenics deep links preserve source, branch/tag ref, document path, and optional anchor. They are parsed and traversal-checked at the Rust command boundary before a reader target is opened.
+
+Native notifications are policy-gated: Xenics only requests completion/failure notifications when the app is unfocused and the user has enabled them. Progress remains in-app, and denied notification permission is not converted into a task failure. The current release verifier checks bundle configuration and the built `.app`; installer, signing, notarization, and clean-profile OS registration remain platform acceptance checks.
 
 ## Evolution rule
 

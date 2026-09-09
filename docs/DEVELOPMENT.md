@@ -55,6 +55,10 @@ task events use the `task://<task-id>` channel and strictly increasing sequence
 numbers; consumers must reject stale or terminal-state transitions.
 The current React task feed follows this rule and treats an unavailable native
 bridge as an empty feed without scheduling redundant state updates.
+Source lifecycle commands also include validated local-source registration,
+Git-source update/reindex, derived-search cleanup, and explicit managed-folder
+removal. External/local folders remain user-owned and are never deleted by
+default.
 
 ## Platform targets
 

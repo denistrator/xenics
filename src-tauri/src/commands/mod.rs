@@ -113,7 +113,7 @@ pub fn read_document(
     source_id: String,
     path: String,
 ) -> Result<crate::documents::ParsedDocument, String> {
-    if path.is_empty() || path.split('/').any(|part| part.is_empty() || part == "..") {
+    if !is_safe_document_path(&path) {
         return Err("document path is outside the source".into());
     }
     let source = state
@@ -133,4 +133,25 @@ pub fn read_document(
     let bytes = fs::read(&document_path).map_err(|error| error.to_string())?;
     crate::documents::DocumentParser::parse(&document_path, &bytes)
         .map_err(|error| error.to_string())
+}
+
+fn is_safe_document_path(path: &str) -> bool {
+    !path.is_empty()
+        && !PathBuf::from(path).is_absolute()
+        && !path
+            .split(['/', '\\'])
+            .any(|part| part.is_empty() || part == "..")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_safe_document_path;
+
+    #[test]
+    fn document_paths_reject_absolute_and_cross_platform_traversal() {
+        assert!(is_safe_document_path("docs/start.md"));
+        assert!(!is_safe_document_path("../secret.md"));
+        assert!(!is_safe_document_path(r"docs\\..\\secret.md"));
+        assert!(!is_safe_document_path("/etc/passwd"));
+    }
 }

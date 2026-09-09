@@ -1,4 +1,4 @@
-import type { ChangeEvent, ReactNode } from 'react'
+import { useEffect, useState, type ChangeEvent, type ReactNode } from 'react'
 import type { XenicsSettings } from './settings-hooks'
 import {
   densityOptions,
@@ -8,6 +8,7 @@ import {
   updateScheduleOptions,
   useSettings,
 } from './settings-hooks'
+import { hasNativeBridge, invokeCommand } from '../../lib/tauri'
 
 type SettingsPageProps = {
   initialSettings?: XenicsSettings
@@ -28,11 +29,28 @@ const scheduleLabels: Record<XenicsSettings['updateSchedule'], string> = {
 }
 
 export function SettingsPage({ initialSettings, onSettingsChange }: SettingsPageProps): ReactNode {
-  const { settings, updateSettings } = useSettings(initialSettings)
+  const { settings, updateSettings, replaceSettings } = useSettings(initialSettings)
+  const [persistenceError, setPersistenceError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!hasNativeBridge()) return
+    let active = true
+    void invokeCommand<Partial<XenicsSettings>>('get_settings')
+      .then((stored) => {
+        if (active && stored) replaceSettings(stored)
+      })
+      .catch(() => undefined)
+    return () => { active = false }
+  }, [replaceSettings])
 
   function changeSettings(patch: Partial<XenicsSettings>): void {
     updateSettings(patch)
     onSettingsChange?.(patch)
+    setPersistenceError(null)
+    if (!hasNativeBridge()) return
+    void invokeCommand('update_settings', { patch }).catch(() => {
+      setPersistenceError('Settings could not be saved. They will remain active for this session.')
+    })
   }
 
   function handleThemeChange(event: ChangeEvent<HTMLSelectElement>): void {
@@ -48,6 +66,7 @@ export function SettingsPage({ initialSettings, onSettingsChange }: SettingsPage
       <header>
         <p className="text-xs font-bold uppercase tracking-[.2em] text-x-mint-strong">Preferences</p>
         <h1 id="settings-title" className="mt-2 font-display text-4xl tracking-tight">Settings</h1>
+        {persistenceError && <p role="alert" className="mt-3 text-sm text-x-danger">{persistenceError}</p>}
       </header>
 
       <fieldset className="rounded-2xl border border-x-line bg-x-panel p-5">

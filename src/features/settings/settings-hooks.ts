@@ -43,5 +43,9 @@ export function useSettings(initial: XenicsSettings = defaultSettings) {
     setSettings((current) => ({ ...current, ...patch }))
   }, [])
 
-  return { settings, updateSettings }
+  const replaceSettings = useCallback((next: Partial<XenicsSettings>) => {
+    setSettings((current) => ({ ...current, ...next }))
+  }, [])
+
+  return { settings, updateSettings, replaceSettings }
 }

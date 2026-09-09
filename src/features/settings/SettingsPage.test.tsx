@@ -13,4 +13,10 @@ describe('SettingsPage', () => {
     expect(onSettingsChange).toHaveBeenCalledWith({ density: 'compact' })
     expect(screen.getByRole('radio', { name: /compact/i })).toBeChecked()
   })
+
+  it('keeps local settings usable when the native bridge is unavailable', async () => {
+    render(<SettingsPage />)
+    fireEvent.change(screen.getByLabelText('Theme'), { target: { value: 'dark' } })
+    expect(screen.getByLabelText('Theme')).toHaveValue('dark')
+  })
 })

@@ -28,6 +28,7 @@ Updated: 2026-09-10
 - Durable collections and tags now support validated, idempotent creation and listing through native commands. Assignment and session restoration remain.
 - Recovery presentation now has reusable `InlineError` and `RecoveryActions` primitives, and task failures use the same structured retry-action surface.
 - Native settings persistence now supports allowlisted get/update commands with validation for unknown keys, control characters, and oversized values. The UI integration and native folder/editor/terminal actions remain.
+- React settings now hydrate from the native settings store and persist individual changes, while retaining local behavior and an inline warning when the native bridge cannot save.
 - Latest macOS release verification passed: 5/5 desktop E2E specs, with only the known non-failing WebDriver/Tauri invoke-timeout warnings.
 - Native recursive file watching now reports supported document changes and filters Git/dependency/build folders; background indexing and polling reconciliation still need to consume those changes.
 - Installed Git sources now expose native update and removal operations. Updates fetch, fast-forward, and re-index the selected source; removals clear derived search records first. Managed library folders may be deleted only through an explicit flag and containment check, while external/local folders remain user-owned.

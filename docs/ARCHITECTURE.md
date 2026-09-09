@@ -44,6 +44,8 @@ Recovery UI uses structured action objects rather than inspecting human-readable
 
 Settings are persisted as allowlisted JSON keys in the durable user database. The native command boundary rejects unknown keys, control characters, and oversized string values before storage.
 
+The settings screen hydrates once from that command boundary and persists small patches after each user change. Native failures do not discard the in-memory choice; the screen reports the degraded persistence state instead.
+
 ## Storage separation
 
 Durable user data includes source metadata, settings, bookmarks, collections, tags, reading state, session state, and task history. Search records and other derived index data are disposable and rebuildable without changing user data.

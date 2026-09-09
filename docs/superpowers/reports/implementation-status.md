@@ -25,6 +25,7 @@ Updated: 2026-09-10
 - Search palette is now backed by the native search command with deferred requests and explicit loading/error states. Full filter/coverage semantics and exact source locations remain. The native search boundary has blank-query handling, quoted user terms and phrases, safe operator handling, and punctuation-heavy prefix support such as `std::vec*`.
 - Native deep-link parsing is now URL-based, validates encoded traversal and hostile authorities, and is exposed through the typed `parse_deep_link` command.
 - Durable bookmarks now support idempotent saves, anchor persistence, listing, and validated `save_bookmark`/`list_bookmarks` commands. Collections, tags, and session restoration remain.
+- Durable collections and tags now support validated, idempotent creation and listing through native commands. Assignment and session restoration remain.
 - Native recursive file watching now reports supported document changes and filters Git/dependency/build folders; background indexing and polling reconciliation still need to consume those changes.
 - Windows/Linux validation and installed-package verification remain pending.
 

@@ -33,6 +33,39 @@ pub fn save_bookmark(
         .map_err(|error| error.message)
 }
 
+#[tauri::command]
+pub fn create_collection(state: State<'_, AppState>, name: String) -> Result<String, String> {
+    state
+        .user_db
+        .create_collection(&name)
+        .map_err(|error| error.message)
+}
+
+#[tauri::command]
+pub fn create_tag(state: State<'_, AppState>, name: String) -> Result<String, String> {
+    state
+        .user_db
+        .create_tag(&name)
+        .map_err(|error| error.message)
+}
+
+#[tauri::command]
+pub fn list_collections(
+    state: State<'_, AppState>,
+) -> Result<Vec<crate::persistence::NamedRecord>, String> {
+    state
+        .user_db
+        .list_collections()
+        .map_err(|error| error.message)
+}
+
+#[tauri::command]
+pub fn list_tags(
+    state: State<'_, AppState>,
+) -> Result<Vec<crate::persistence::NamedRecord>, String> {
+    state.user_db.list_tags().map_err(|error| error.message)
+}
+
 fn is_safe_value(value: &str) -> bool {
     !value.is_empty() && !value.chars().any(|character| character.is_control())
 }

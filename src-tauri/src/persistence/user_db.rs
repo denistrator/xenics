@@ -1,5 +1,5 @@
 use super::{database_error, migrations};
-use crate::diagnostics::error::XenicsError;
+use crate::diagnostics::error::{ErrorCode, RetryClass, XenicsError};
 use rusqlite::{params, Connection};
 use serde::Serialize;
 use std::{path::Path, sync::Mutex};
@@ -24,6 +24,12 @@ pub struct BookmarkRecord {
     pub ref_name: String,
     pub document_path: String,
     pub anchor: Option<String>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct NamedRecord {
+    pub id: String,
+    pub name: String,
 }
 
 pub struct UserDb {
@@ -108,6 +114,58 @@ impl UserDb {
                     ref_name: row.get(2)?,
                     document_path: row.get(3)?,
                     anchor: row.get(4)?,
+                })
+            })
+            .map_err(database_error)?;
+        rows.collect::<Result<Vec<_>, _>>().map_err(database_error)
+    }
+
+    pub fn create_collection(&self, name: &str) -> Result<String, XenicsError> {
+        self.create_named_record("collections", "collection", name)
+    }
+
+    pub fn create_tag(&self, name: &str) -> Result<String, XenicsError> {
+        self.create_named_record("tags", "tag", name)
+    }
+
+    pub fn list_collections(&self) -> Result<Vec<NamedRecord>, XenicsError> {
+        self.list_named_records("collections")
+    }
+
+    pub fn list_tags(&self) -> Result<Vec<NamedRecord>, XenicsError> {
+        self.list_named_records("tags")
+    }
+
+    fn create_named_record(
+        &self,
+        table: &str,
+        prefix: &str,
+        name: &str,
+    ) -> Result<String, XenicsError> {
+        let normalized_name = normalize_name(name)?;
+        let id = format!("{prefix}:{}", normalized_name.replace(' ', "-"));
+        let connection = self.connection.lock().expect("user database mutex");
+        connection
+            .execute(
+                &format!("INSERT OR IGNORE INTO {table}(id, name) VALUES (?1, ?2)"),
+                params![id, name.trim()],
+            )
+            .map_err(database_error)?;
+        Ok(id)
+    }
+
+    fn list_named_records(&self, table: &str) -> Result<Vec<NamedRecord>, XenicsError> {
+        let connection = self.connection.lock().expect("user database mutex");
+        let mut statement = connection
+            .prepare(&format!(
+                "SELECT id, name FROM {table} ORDER BY created_at, id"
+            ))
+            .map_err(database_error)?;
+        let rows = statement
+            .query_map([], |row| {
+                Ok(NamedRecord {
+                    id: row.get(0)?,
+                    name: row.get(1)?,
                 })
             })
             .map_err(database_error)?;
@@ -207,4 +265,14 @@ impl UserDb {
             .into_iter()
             .find(|source| source.id == id))
     }
+}
+
+fn normalize_name(name: &str) -> Result<String, XenicsError> {
+    let trimmed = name.trim();
+    if trimmed.is_empty() || trimmed.chars().any(|character| character.is_control()) {
+        let mut error = XenicsError::new(ErrorCode::Unknown, RetryClass::Permanent);
+        error.message = "name is invalid".into();
+        return Err(error);
+    }
+    Ok(trimmed.to_lowercase())
 }

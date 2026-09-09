@@ -91,3 +91,21 @@ fn bookmarks_are_upserted_and_listed_without_duplicates() {
     assert_eq!(bookmarks.len(), 1);
     assert_eq!(bookmarks[0].anchor.as_deref(), Some("advanced"));
 }
+
+#[test]
+fn collections_and_tags_are_created_idempotently() {
+    let db = UserDb::open_in_memory().unwrap();
+
+    assert_eq!(
+        db.create_collection("Frontend").unwrap(),
+        "collection:frontend"
+    );
+    assert_eq!(
+        db.create_collection("Frontend").unwrap(),
+        "collection:frontend"
+    );
+    assert_eq!(db.create_tag("Important").unwrap(), "tag:important");
+    assert_eq!(db.create_tag("Important").unwrap(), "tag:important");
+    assert_eq!(db.list_collections().unwrap().len(), 1);
+    assert_eq!(db.list_tags().unwrap().len(), 1);
+}

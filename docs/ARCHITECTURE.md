@@ -38,6 +38,8 @@ Xenics deep links are parsed and validated in Rust through `parse_deep_link`; th
 
 Bookmarks are user data, not search-derived data. Rust persists them in the durable user database with idempotent source/ref/path saves, while bookmark commands validate paths and anchors before writing.
 
+Collections and tags use the same durable database boundary. Names are trimmed, control characters are rejected, and stable normalized IDs make repeated create requests idempotent.
+
 ## Storage separation
 
 Durable user data includes source metadata, settings, bookmarks, collections, tags, reading state, session state, and task history. Search records and other derived index data are disposable and rebuildable without changing user data.

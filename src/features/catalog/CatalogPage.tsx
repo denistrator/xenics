@@ -67,7 +67,10 @@ export function CatalogPage({ onDownload }: CatalogPageProps): ReactNode {
     setDownloadState('loading')
 
     try {
-      await onDownload?.(repositoryIds)
+      if (!onDownload) {
+        throw new Error('Repository download is unavailable in this environment')
+      }
+      await onDownload(repositoryIds)
       setDownloadState('success')
     } catch {
       setDownloadState('error')

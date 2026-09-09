@@ -15,6 +15,43 @@ fn git_arguments_do_not_use_shell_interpolation() {
 }
 
 #[test]
+fn clone_arguments_preserve_selected_ref_and_shallow_mode() {
+    let command = GitCommand::clone_with_options(
+        "https://example.test/docs",
+        "/tmp/xenics/docs",
+        Some("release/v1"),
+        true,
+    )
+    .unwrap();
+
+    assert_eq!(
+        command.args,
+        vec![
+            "clone",
+            "--depth",
+            "1",
+            "--branch",
+            "release/v1",
+            "https://example.test/docs",
+            "/tmp/xenics/docs"
+        ]
+    );
+}
+
+#[test]
+fn clone_arguments_reject_option_injection_through_ref() {
+    let error = GitCommand::clone_with_options(
+        "https://example.test/docs",
+        "/tmp/xenics/docs",
+        Some("--upload-pack=evil"),
+        false,
+    )
+    .unwrap_err();
+
+    assert_eq!(error.code, ErrorCode::InvalidGitRef);
+}
+
+#[test]
 fn authentication_output_is_sanitized_and_requires_action() {
     let error = classify_git_failure(
         128,
@@ -33,6 +70,7 @@ fn canceled_operations_do_not_spawn_git() {
         source: "https://example.test/docs".into(),
         destination: PathBuf::from("/tmp/docs"),
         reference: None,
+        shallow: false,
     };
     let error = GitService::clone(&request, &token).unwrap_err();
     assert_eq!(error.code, ErrorCode::GitCanceled);
@@ -59,6 +97,7 @@ fn local_repository_status_and_remote_are_read_through_system_git() {
         source: root.path().display().to_string(),
         destination: root.path().to_path_buf(),
         reference: None,
+        shallow: false,
     };
     let status = GitService::status(&request).unwrap();
     let remote = GitService::open_remote(root.path()).unwrap();

@@ -4,9 +4,11 @@ use crate::{
     git::CancellationToken,
     persistence::SearchDb,
 };
+use serde::Serialize;
 use std::path::PathBuf;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct IndexReport {
     pub source_id: String,
     pub indexed_files: u64,

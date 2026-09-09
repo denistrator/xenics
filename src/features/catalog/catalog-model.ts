@@ -11,6 +11,8 @@ export interface Repository {
   accent: RepositoryAccent
   status: RepositoryStatus
   capability: RepositoryCapability
+  sourceUrl: string
+  selectedRef: string
 }
 
 export const repositories: Repository[] = [
@@ -23,6 +25,8 @@ export const repositories: Repository[] = [
     accent: 'mint',
     status: 'Ready',
     capability: 'Readable',
+    sourceUrl: 'https://github.com/facebook/react.git',
+    selectedRef: 'main',
   },
   {
     id: 'typescript',
@@ -33,6 +37,8 @@ export const repositories: Repository[] = [
     accent: 'sky',
     status: 'Ready',
     capability: 'Readable',
+    sourceUrl: 'https://github.com/microsoft/TypeScript.git',
+    selectedRef: 'main',
   },
   {
     id: 'rust',
@@ -43,6 +49,8 @@ export const repositories: Repository[] = [
     accent: 'coral',
     status: 'Not installed',
     capability: 'Readable',
+    sourceUrl: 'https://github.com/rust-lang/rust.git',
+    selectedRef: 'master',
   },
   {
     id: 'tauri',
@@ -53,6 +61,8 @@ export const repositories: Repository[] = [
     accent: 'amber',
     status: 'Ready',
     capability: 'Partially readable',
+    sourceUrl: 'https://github.com/tauri-apps/tauri.git',
+    selectedRef: 'dev',
   },
   {
     id: 'tailwind',
@@ -63,6 +73,8 @@ export const repositories: Repository[] = [
     accent: 'teal',
     status: 'Not installed',
     capability: 'Readable',
+    sourceUrl: 'https://github.com/tailwindlabs/tailwindcss.git',
+    selectedRef: 'main',
   },
   {
     id: 'sqlite',
@@ -73,5 +85,7 @@ export const repositories: Repository[] = [
     accent: 'violet',
     status: 'Not installed',
     capability: 'Files only',
+    sourceUrl: 'https://github.com/sqlite/sqlite.git',
+    selectedRef: 'master',
   },
 ] satisfies readonly Repository[]

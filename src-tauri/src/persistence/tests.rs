@@ -42,3 +42,36 @@ fn task_records_are_durable_and_upsertable() {
         .unwrap();
     assert_eq!(db.task_record_count().unwrap(), 1);
 }
+
+#[test]
+fn source_records_are_durable_and_listed_in_creation_order() {
+    let db = UserDb::open_in_memory().unwrap();
+    db.upsert_source(
+        "react",
+        "React",
+        "Readable",
+        Some("main"),
+        Some("https://example.test/react"),
+        None,
+    )
+    .unwrap();
+    db.upsert_source(
+        "rust",
+        "Rust",
+        "Readable",
+        Some("stable"),
+        Some("https://example.test/rust"),
+        None,
+    )
+    .unwrap();
+
+    let sources = db.list_sources().unwrap();
+    assert_eq!(
+        sources
+            .iter()
+            .map(|source| source.id.as_str())
+            .collect::<Vec<_>>(),
+        ["react", "rust"]
+    );
+    assert_eq!(sources[0].selected_ref.as_deref(), Some("main"));
+}

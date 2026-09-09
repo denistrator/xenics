@@ -7,7 +7,7 @@ mod user_db;
 
 pub use repository::RebuildReport;
 pub use search_db::{SearchDb, SearchHit};
-pub use user_db::UserDb;
+pub use user_db::{SourceRecord, UserDb};
 
 fn database_error(error: rusqlite::Error) -> XenicsError {
     let mut result = XenicsError::new(ErrorCode::Database, RetryClass::Automatic);

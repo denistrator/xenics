@@ -1,6 +1,7 @@
 use super::{database_error, migrations, RebuildReport};
 use crate::diagnostics::error::XenicsError;
 use rusqlite::{params, Connection};
+use serde::Serialize;
 use std::{path::Path, sync::Mutex};
 
 pub struct SearchDb {
@@ -101,7 +102,8 @@ impl SearchDb {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SearchHit {
     pub source_id: String,
     pub path: String,

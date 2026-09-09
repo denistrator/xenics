@@ -4,6 +4,7 @@ use crate::{
     filesystem::validate_managed_path,
 };
 use std::{
+    io::Read,
     path::{Path, PathBuf},
     process::{Command, Stdio},
     thread,
@@ -23,6 +24,30 @@ impl GitCommand {
             args: vec!["clone".into(), source.into(), destination.into()],
         }
     }
+
+    pub fn clone_with_options(
+        source: impl Into<String>,
+        destination: impl Into<String>,
+        reference: Option<&str>,
+        shallow: bool,
+    ) -> Result<Self, XenicsError> {
+        if let Some(reference) = reference {
+            validate_ref(reference)?;
+        }
+
+        let mut args = vec!["clone".into()];
+        if shallow {
+            args.extend(["--depth".into(), "1".into()]);
+        }
+        if let Some(reference) = reference {
+            args.extend(["--branch".into(), reference.into()]);
+        }
+        args.extend([source.into(), destination.into()]);
+        Ok(Self {
+            program: "git".into(),
+            args,
+        })
+    }
     pub fn shell_string(&self) -> String {
         std::iter::once(self.program.as_str())
             .chain(self.args.iter().map(String::as_str))
@@ -36,6 +61,7 @@ pub struct GitRequest {
     pub source: String,
     pub destination: PathBuf,
     pub reference: Option<String>,
+    pub shallow: bool,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -93,10 +119,14 @@ impl GitService {
         cancellation: &CancellationToken,
     ) -> Result<GitResult, XenicsError> {
         validate_request(request)?;
-        run(
-            &["clone", &request.source, path_string(&request.destination)],
-            cancellation,
-        )
+        let command = GitCommand::clone_with_options(
+            &request.source,
+            path_string(&request.destination),
+            request.reference.as_deref(),
+            request.shallow,
+        )?;
+        let args = command.args.iter().map(String::as_str).collect::<Vec<_>>();
+        run(&args, cancellation)
     }
 
     pub fn fetch(
@@ -288,10 +318,36 @@ fn execute(
             RetryClass::Automatic,
         )
     })?;
+    let mut stdout = child.stdout.take().ok_or_else(|| {
+        git_error(
+            ErrorCode::GitCommandFailed,
+            "Git stdout pipe was not created",
+            RetryClass::Automatic,
+        )
+    })?;
+    let mut stderr = child.stderr.take().ok_or_else(|| {
+        git_error(
+            ErrorCode::GitCommandFailed,
+            "Git stderr pipe was not created",
+            RetryClass::Automatic,
+        )
+    })?;
+    let stdout_reader = thread::spawn(move || {
+        let mut bytes = Vec::new();
+        let result = stdout.read_to_end(&mut bytes);
+        (result, bytes)
+    });
+    let stderr_reader = thread::spawn(move || {
+        let mut bytes = Vec::new();
+        let result = stderr.read_to_end(&mut bytes);
+        (result, bytes)
+    });
     loop {
         if cancellation.is_cancelled() {
             let _ = child.kill();
             let _ = child.wait();
+            let _ = stdout_reader.join();
+            let _ = stderr_reader.join();
             return Err(git_error(
                 ErrorCode::GitCanceled,
                 "Git operation canceled",
@@ -299,14 +355,40 @@ fn execute(
             ));
         }
         match child.try_wait() {
-            Ok(Some(_)) => {
-                return child.wait_with_output().map_err(|error| {
+            Ok(Some(status)) => {
+                let (stdout_result, stdout) = stdout_reader.join().map_err(|_| {
+                    git_error(
+                        ErrorCode::GitCommandFailed,
+                        "Git stdout reader failed",
+                        RetryClass::Automatic,
+                    )
+                })?;
+                let (stderr_result, stderr) = stderr_reader.join().map_err(|_| {
+                    git_error(
+                        ErrorCode::GitCommandFailed,
+                        "Git stderr reader failed",
+                        RetryClass::Automatic,
+                    )
+                })?;
+                stdout_result.map_err(|error| {
                     git_error(
                         ErrorCode::GitCommandFailed,
                         error.to_string(),
                         RetryClass::Automatic,
                     )
-                })
+                })?;
+                stderr_result.map_err(|error| {
+                    git_error(
+                        ErrorCode::GitCommandFailed,
+                        error.to_string(),
+                        RetryClass::Automatic,
+                    )
+                })?;
+                return Ok(std::process::Output {
+                    status,
+                    stdout,
+                    stderr,
+                });
             }
             Ok(None) => thread::sleep(Duration::from_millis(20)),
             Err(error) => {

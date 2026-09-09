@@ -1,9 +1,10 @@
 import { Download, Search, SlidersHorizontal } from 'lucide-react'
-import { useDeferredValue, useMemo, useState, type ReactNode } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { repositories } from './catalog-model'
 import { RepositoryCard } from './RepositoryCard'
 import { defaultDownloadSelection, selectRange, toggleSelection } from './catalog-selection'
 import { SourceDetails } from './SourceDetails'
+import { hasNativeBridge, invokeCommand } from '../../lib/tauri'
 
 type DownloadState = 'idle' | 'loading' | 'success' | 'error'
 
@@ -32,16 +33,36 @@ export function CatalogPage({ onDownload }: CatalogPageProps): ReactNode {
   const [searchQuery, setSearchQuery] = useState('')
   const [downloadState, setDownloadState] = useState<DownloadState>('idle')
   const [detailsRepositoryId, setDetailsRepositoryId] = useState<string | null>(null)
+  const [installedIds, setInstalledIds] = useState<Set<string>>(() => new Set())
   const deferredSearchQuery = useDeferredValue(searchQuery.trim().toLowerCase())
 
+  useEffect(() => {
+    if (!hasNativeBridge()) return
+    let active = true
+    void invokeCommand<Array<{ id: string }>>('list_sources')
+      .then((sources) => {
+        if (active) setInstalledIds(new Set(sources.map(({ id }) => id)))
+      })
+      .catch(() => undefined)
+    return () => { active = false }
+  }, [])
+
+  const catalogRepositories = useMemo(
+    () => repositories.map((repository) => ({
+      ...repository,
+      status: installedIds.has(repository.id) ? 'Ready' as const : repository.status,
+    })),
+    [installedIds],
+  )
+
   const visibleRepositories = useMemo(
-    () => repositories.filter((repository) => matchesRepositoryQuery(repository, deferredSearchQuery)),
-    [deferredSearchQuery],
+    () => catalogRepositories.filter((repository) => matchesRepositoryQuery(repository, deferredSearchQuery)),
+    [catalogRepositories, deferredSearchQuery],
   )
   const selectedRepositoryIds = useMemo(() => new Set(selectedIds), [selectedIds])
   const downloadableRepositoryIds = useMemo(
-    () => defaultDownloadSelection(repositories),
-    [],
+    () => defaultDownloadSelection(catalogRepositories),
+    [catalogRepositories],
   )
 
   function handleSelect(repositoryId: string, shiftKey: boolean): void {
@@ -71,6 +92,7 @@ export function CatalogPage({ onDownload }: CatalogPageProps): ReactNode {
         throw new Error('Repository download is unavailable in this environment')
       }
       await onDownload(repositoryIds)
+      setInstalledIds((current) => new Set([...current, ...repositoryIds]))
       setDownloadState('success')
     } catch {
       setDownloadState('error')
@@ -88,7 +110,7 @@ export function CatalogPage({ onDownload }: CatalogPageProps): ReactNode {
   }[downloadState]
   const detailsRepository = detailsRepositoryId === null
     ? undefined
-    : repositories.find(({ id }) => id === detailsRepositoryId)
+    : catalogRepositories.find(({ id }) => id === detailsRepositoryId)
 
   return (
     <div id="catalog" className="space-y-9">

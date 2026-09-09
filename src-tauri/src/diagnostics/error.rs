@@ -12,7 +12,7 @@ use crate::core::ids::{DocumentId, SourceId, TaskId};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub enum ErrorCode { GitAuthentication, InvalidTaskEvent, Unknown }
+pub enum ErrorCode { GitAuthentication, InvalidTaskEvent, Database, Unknown }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum RetryClass { Automatic, NeedsAction, Permanent }

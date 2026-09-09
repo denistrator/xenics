@@ -1,6 +1,7 @@
 mod commands;
 pub mod core;
 pub mod diagnostics;
+pub mod persistence;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {

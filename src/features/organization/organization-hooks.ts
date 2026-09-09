@@ -1,5 +1,6 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { Bookmark, ReaderTarget } from './organization-model'
+import { hasNativeBridge, invokeCommand } from '../../lib/tauri'
 
 const CONTROL_CHARACTER_PATTERN = /[\u0000-\u001f\u007f]/
 
@@ -17,6 +18,34 @@ function isSafeRelativePath(value: string): boolean {
 export function useBookmarks() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([])
 
+  useEffect(() => {
+    if (!hasNativeBridge()) return
+    let active = true
+    void invokeCommand<Array<{ id: number; sourceId: string; refName: string; documentPath: string; anchor?: string }>>('list_bookmarks')
+      .then(async (records) => {
+        const mapped = await Promise.all(records.map(async (record) => {
+          const [collectionIds, tagIds] = await Promise.all([
+            invokeCommand<string[]>('list_bookmark_collections', { bookmarkId: record.id }),
+            invokeCommand<string[]>('list_bookmark_tags', { bookmarkId: record.id }),
+          ])
+          return {
+            id: String(record.id),
+            sourceId: record.sourceId,
+            refName: record.refName,
+            path: record.documentPath,
+            anchor: record.anchor,
+            title: record.documentPath,
+            collectionId: collectionIds[0],
+            tagIds,
+            available: true,
+          } satisfies Bookmark
+        }))
+        if (active) setBookmarks(mapped)
+      })
+      .catch(() => undefined)
+    return () => { active = false }
+  }, [])
+
   const saveBookmark = useCallback((target: ReaderTarget): Bookmark => {
     const bookmark: Bookmark = {
       ...target,
@@ -33,10 +62,27 @@ export function useBookmarks() {
         ? { ...value, ...bookmark, tagIds: value.tagIds }
         : value)
     })
+    if (hasNativeBridge()) {
+      void invokeCommand('save_bookmark', {
+        sourceId: target.sourceId,
+        refName: target.refName,
+        documentPath: target.path,
+        anchor: target.anchor,
+      }).catch(() => undefined)
+    }
     return bookmark
   }, [])
 
   return { bookmarks, saveBookmark }
+}
+
+export function useNamedOrganizationRecords<T extends { id: string; name: string }>(command: string): T[] {
+  const [records, setRecords] = useState<T[]>([])
+  useEffect(() => {
+    if (!hasNativeBridge()) return
+    void invokeCommand<T[]>(command).then(setRecords).catch(() => undefined)
+  }, [command])
+  return records
 }
 
 export function parseXenicsUrl(url: string): Omit<ReaderTarget, 'title'> {

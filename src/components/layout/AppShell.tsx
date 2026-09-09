@@ -14,6 +14,7 @@ type NavigationItem = {
 const navigationItems = [
   { label: 'Library', href: '#catalog', icon: BookOpen },
   { label: 'Sources', href: '#sources', icon: FolderGit2 },
+  { label: 'Organize', href: '#organize', icon: FolderGit2 },
   { label: 'Settings', href: '#settings', icon: Settings2 },
 ] satisfies readonly NavigationItem[]
 

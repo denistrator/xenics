@@ -10,10 +10,12 @@ import { TaskPanel } from '../features/tasks/TaskPanel'
 import { useTaskFeed } from '../features/tasks/use-task-feed'
 import { ReaderWorkspace } from '../features/reader/ReaderWorkspace'
 import { openSearchResult, type SearchReaderTarget } from '../features/search/search-state'
+import { OrganizationPage } from '../features/organization/OrganizationPage'
 
 export function App() {
   const activeHash = useLocationHash()
   const showSettings = activeHash === '#settings'
+  const showOrganization = activeHash === '#organize'
   const { tasks, cancelTask, retryTask } = useTaskFeed()
   const [readerTarget, setReaderTarget] = useState<SearchReaderTarget | null>(null)
 
@@ -80,7 +82,7 @@ export function App() {
             history: [readerTarget.path],
           }]}
         />
-      ) : showSettings ? <SettingsPage /> : <CatalogPage onDownload={downloadRepositories} onUpdate={updateRepository} onRemove={removeRepository} onAddLocalSource={addLocalSource} onOpenFolder={openSourceFolder} onOpenWebsite={openSourceWebsite} />}
+      ) : showSettings ? <SettingsPage /> : showOrganization ? <OrganizationPage /> : <CatalogPage onDownload={downloadRepositories} onUpdate={updateRepository} onRemove={removeRepository} onAddLocalSource={addLocalSource} onOpenFolder={openSourceFolder} onOpenWebsite={openSourceWebsite} />}
       {tasks.length > 0 && (
         <div className="mx-auto max-w-[1500px] px-5 pb-8 md:px-10">
           <TaskPanel

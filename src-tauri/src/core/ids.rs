@@ -6,7 +6,9 @@ macro_rules! opaque_id {
         pub struct $name(pub String);
 
         impl From<&str> for $name {
-            fn from(value: &str) -> Self { Self(value.to_owned()) }
+            fn from(value: &str) -> Self {
+                Self(value.to_owned())
+            }
         }
     };
 }

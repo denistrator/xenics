@@ -6,7 +6,8 @@ fn rebuilding_search_does_not_delete_user_bookmarks() {
     let directory = tempdir().unwrap();
     let user = UserDb::open(directory.path().join("user.sqlite")).unwrap();
     let search = SearchDb::open(directory.path().join("search.sqlite")).unwrap();
-    user.insert_bookmark("source-1", "main", "docs/start.md").unwrap();
+    user.insert_bookmark("source-1", "main", "docs/start.md")
+        .unwrap();
     search.rebuild("source-1").unwrap();
     assert_eq!(user.bookmark_count().unwrap(), 1);
 }

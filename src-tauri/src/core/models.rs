@@ -18,17 +18,37 @@ use crate::{core::ids::TaskId, diagnostics::error::XenicsError};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub enum RepositoryCapability { Readable, PartiallyReadable, FilesOnly, WebsiteOnly }
+pub enum RepositoryCapability {
+    Readable,
+    PartiallyReadable,
+    FilesOnly,
+    WebsiteOnly,
+}
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum TaskState {
-    Queued, Running, WaitingToRetry, NeedsAction, Canceling, Canceled,
-    Succeeded, SucceededWithWarnings, Failed, Interrupted,
+    Queued,
+    Running,
+    WaitingToRetry,
+    NeedsAction,
+    Canceling,
+    Canceled,
+    Succeeded,
+    SucceededWithWarnings,
+    Failed,
+    Interrupted,
 }
 
 impl TaskState {
     pub fn is_terminal(self) -> bool {
-        matches!(self, Self::Succeeded | Self::SucceededWithWarnings | Self::Failed | Self::Canceled | Self::Interrupted)
+        matches!(
+            self,
+            Self::Succeeded
+                | Self::SucceededWithWarnings
+                | Self::Failed
+                | Self::Canceled
+                | Self::Interrupted
+        )
     }
 }
 
@@ -44,8 +64,17 @@ pub struct TaskEvent {
 
 impl TaskEvent {
     pub fn new(task_id: &str, sequence: u64, state: TaskState) -> Self {
-        Self { task_id: task_id.into(), sequence, phase: "unknown".into(), progress: None, state, error: None }
+        Self {
+            task_id: task_id.into(),
+            sequence,
+            phase: "unknown".into(),
+            progress: None,
+            state,
+            error: None,
+        }
     }
 
-    pub fn can_follow(&self, previous: TaskState) -> bool { !previous.is_terminal() }
+    pub fn can_follow(&self, previous: TaskState) -> bool {
+        !previous.is_terminal()
+    }
 }

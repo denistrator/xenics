@@ -12,10 +12,19 @@ use crate::core::ids::{DocumentId, SourceId, TaskId};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub enum ErrorCode { GitAuthentication, InvalidTaskEvent, Database, Unknown }
+pub enum ErrorCode {
+    GitAuthentication,
+    InvalidTaskEvent,
+    Database,
+    Unknown,
+}
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub enum RetryClass { Automatic, NeedsAction, Permanent }
+pub enum RetryClass {
+    Automatic,
+    NeedsAction,
+    Permanent,
+}
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct XenicsError {
@@ -32,6 +41,16 @@ pub struct XenicsError {
 
 impl XenicsError {
     pub fn new(code: ErrorCode, retry_class: RetryClass) -> Self {
-        Self { code, source_id: None, document_id: None, task_id: None, phase: None, retry_class, message: String::new(), actions: Vec::new(), diagnostic_id: String::new() }
+        Self {
+            code,
+            source_id: None,
+            document_id: None,
+            task_id: None,
+            phase: None,
+            retry_class,
+            message: String::new(),
+            actions: Vec::new(),
+            diagnostic_id: String::new(),
+        }
     }
 }

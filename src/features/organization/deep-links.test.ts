@@ -14,4 +14,12 @@ describe('Xenics deep links', () => {
       anchor: 'install',
     })
   })
+
+  it.each([
+    'xenics://docs/react?ref=main&path=../secrets.md',
+    'xenics://docs/react?ref=main&path=%2Fetc%2Fpasswd',
+    'xenics://docs/react?ref=main&path=docs%5C..%5Csecrets.md',
+  ])('rejects unsafe paths: %s', (url) => {
+    expect(() => parseXenicsUrl(url)).toThrow(/invalid xenics deep link target/i)
+  })
 })

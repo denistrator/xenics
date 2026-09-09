@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseTaskEvent, TaskState } from './contracts'
+import { parseTaskEvent, type TaskState } from './contracts'
 
 describe('task contracts', () => {
   it('rejects an event that moves a terminal task back to running', () => {
@@ -14,5 +14,14 @@ describe('task contracts', () => {
     const event = parseTaskEvent({ taskId: 'task-1', sequence: 3, state: 'Succeeded' }, 'Running', 2)
     const state: TaskState = event.state
     expect(state).toBe('Succeeded')
+  })
+
+  it('rejects malformed error payloads instead of trusting event data', () => {
+    expect(() => parseTaskEvent({
+      taskId: 'task-1',
+      sequence: 3,
+      state: 'Failed',
+      error: { code: 'Unknown', retryClass: 'NeedsAction', actions: 'retry' },
+    }, 'Running', 2)).toThrow(/invalid details/i)
   })
 })

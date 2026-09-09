@@ -1,31 +1,88 @@
 import { Download, Search, SlidersHorizontal } from 'lucide-react'
-import { useState } from 'react'
+import { useDeferredValue, useMemo, useState, type ReactNode } from 'react'
 import { repositories } from './catalog-model'
 import { RepositoryCard } from './RepositoryCard'
 import { selectRange, toggleSelection } from './catalog-selection'
 
-export function CatalogPage() {
-  const [selectedIds, setSelectedIds] = useState<string[]>([])
-  const [selectionAnchor, setSelectionAnchor] = useState<number | null>(null)
-  const [downloadState, setDownloadState] = useState<'idle' | 'loading' | 'success'>('idle')
+type DownloadState = 'idle' | 'loading' | 'success' | 'error'
 
-  function handleSelect(repoId: string, index: number, shiftKey: boolean) {
-    const nextSelection = shiftKey && selectionAnchor !== null
-      ? [...new Set([...selectedIds, ...selectRange(repositories, selectionAnchor, index)])]
-      : toggleSelection(selectedIds, repoId)
+type CatalogPageProps = {
+  onDownload?: (repositoryIds: string[]) => Promise<void> | void
+}
+
+function matchesRepositoryQuery(
+  repository: (typeof repositories)[number],
+  query: string,
+): boolean {
+  const searchableText = [
+    repository.name,
+    repository.vendor,
+    repository.description,
+    repository.category,
+    repository.capability,
+  ].join(' ')
+
+  return searchableText.toLowerCase().includes(query)
+}
+
+export function CatalogPage({ onDownload }: CatalogPageProps): ReactNode {
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [selectionAnchorId, setSelectionAnchorId] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [downloadState, setDownloadState] = useState<DownloadState>('idle')
+  const deferredSearchQuery = useDeferredValue(searchQuery.trim().toLowerCase())
+
+  const visibleRepositories = useMemo(
+    () => repositories.filter((repository) => matchesRepositoryQuery(repository, deferredSearchQuery)),
+    [deferredSearchQuery],
+  )
+  const selectedRepositoryIds = useMemo(() => new Set(selectedIds), [selectedIds])
+  const downloadableRepositoryIds = useMemo(
+    () => repositories
+      .filter((repository) => repository.capability !== 'Website only')
+      .map((repository) => repository.id),
+    [],
+  )
+
+  function handleSelect(repositoryId: string, shiftKey: boolean): void {
+    const currentIndex = visibleRepositories.findIndex(({ id }) => id === repositoryId)
+    const anchorIndex = selectionAnchorId === null
+      ? -1
+      : visibleRepositories.findIndex(({ id }) => id === selectionAnchorId)
+
+    const nextSelection = shiftKey && anchorIndex >= 0
+      ? [...new Set([
+        ...selectedIds,
+        ...selectRange(visibleRepositories, anchorIndex, currentIndex),
+      ])]
+      : toggleSelection(selectedIds, repositoryId)
 
     setSelectedIds(nextSelection)
-    setSelectionAnchor(index)
+    setSelectionAnchorId(repositoryId)
+  }
+
+  async function startDownload(repositoryIds: string[]): Promise<void> {
+    if (downloadState === 'loading' || repositoryIds.length === 0) return
+
+    setDownloadState('loading')
+
+    try {
+      await onDownload?.(repositoryIds)
+      setDownloadState('success')
+    } catch {
+      setDownloadState('error')
+    }
   }
 
   const downloadLabel = selectedIds.length
     ? `Download selected (${selectedIds.length})`
     : 'Download all'
-
-  function handleDownload() {
-    setDownloadState('loading')
-    window.setTimeout(() => setDownloadState('success'), 500)
-  }
+  const downloadButtonLabel = {
+    idle: downloadLabel,
+    loading: 'Preparing downloads…',
+    success: 'Downloads queued',
+    error: 'Download failed — retry',
+  }[downloadState]
 
   return (
     <div id="catalog" className="space-y-9">
@@ -43,51 +100,66 @@ export function CatalogPage() {
           </p>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <button
             type="button"
-            onClick={handleDownload}
-            disabled={downloadState === 'loading'}
+            onClick={() => void startDownload(selectedIds.length ? selectedIds : downloadableRepositoryIds)}
+            disabled={downloadState === 'loading' || downloadableRepositoryIds.length === 0}
             aria-busy={downloadState === 'loading'}
             data-state={downloadState}
             className="rounded-xl bg-x-ink px-4 py-3 text-sm font-semibold text-x-paper hover:opacity-90"
           >
-            <Download className="mr-2 inline" size={16} />
-            {downloadState === 'loading' ? 'Preparing downloads…' : downloadState === 'success' ? 'Downloads queued' : downloadLabel}
+            <Download aria-hidden="true" className="mr-2 inline" size={16} />
+            {downloadButtonLabel}
           </button>
           <button
+            type="button"
             aria-label="Filter repositories"
             className="grid size-11 place-items-center rounded-xl border border-x-line bg-x-panel text-x-muted hover:bg-x-paper"
           >
-            <SlidersHorizontal size={17} />
+            <SlidersHorizontal aria-hidden="true" size={17} />
           </button>
         </div>
       </section>
 
       <section className="flex flex-col gap-3 border-y border-x-line py-4 sm:flex-row sm:items-center sm:justify-between">
         <label className="flex max-w-md flex-1 items-center gap-3 rounded-xl border border-x-line bg-x-panel px-4 py-3 text-sm text-x-muted">
-          <Search size={17} />
+          <Search aria-hidden="true" size={17} />
           <span className="sr-only">Search repositories</span>
-          <input className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-x-muted" placeholder="Search your catalog" />
+          <input
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-x-muted"
+            placeholder="Search your catalog"
+          />
         </label>
         <div className="flex gap-2 text-xs font-semibold text-x-muted">
           <span className="rounded-full bg-x-mint px-3 py-2 text-x-ink">All sources</span>
-          <span className="rounded-full px-3 py-2">{repositories.length} technologies</span>
+          <span className="rounded-full px-3 py-2">
+            {visibleRepositories.length} {visibleRepositories.length === 1 ? 'technology' : 'technologies'}
+          </span>
         </div>
       </section>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {repositories.map((repo, index) => (
-          <RepositoryCard
-            key={repo.id}
-            repo={repo}
-            featured={index === 0}
-            selected={selectedIds.includes(repo.id)}
-            onSelect={(shiftKey) => handleSelect(repo.id, index, shiftKey)}
-            onOpen={() => undefined}
-          />
-        ))}
-      </div>
+      {visibleRepositories.length === 0 ? (
+        <p className="rounded-2xl border border-dashed border-x-line bg-x-panel p-10 text-center text-sm text-x-muted">
+          No repositories match “{searchQuery}”.
+        </p>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {visibleRepositories.map((repository, index) => (
+            <RepositoryCard
+              key={repository.id}
+              repo={repository}
+              featured={index === 0 && deferredSearchQuery === ''}
+              selected={selectedRepositoryIds.has(repository.id)}
+              onSelect={(shiftKey) => handleSelect(repository.id, shiftKey)}
+              onOpen={() => undefined}
+              onDownload={() => void startDownload([repository.id])}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

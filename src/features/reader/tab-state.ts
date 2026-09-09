@@ -1,24 +1,67 @@
-export type ReaderTarget = { sourceId: string; refName: string; path: string; title: string }
-export type ReaderTab = ReaderTarget & { id: string; pinned: boolean; history: string[] }
+export type ReaderTarget = {
+  sourceId: string
+  refName: string
+  path: string
+  title: string
+}
+
+export type ReaderTab = ReaderTarget & {
+  id: string
+  pinned: boolean
+  history: string[]
+}
+
+function getBaseTabId(target: ReaderTarget): string {
+  return `${target.sourceId}:${target.path}`
+}
+
+function getUniqueTabId(tabs: ReaderTab[], baseId: string): string {
+  if (!tabs.some((tab) => tab.id === baseId)) return baseId
+
+  let copyNumber = 2
+  while (tabs.some((tab) => tab.id === `${baseId}:copy-${copyNumber}`)) copyNumber += 1
+  return `${baseId}:copy-${copyNumber}`
+}
 
 export function openTab(tabs: ReaderTab[], target: ReaderTarget): ReaderTab[] {
-  return [...tabs, { ...target, id: `${target.sourceId}:${target.path}`, pinned: false, history: [target.path] }]
+  const id = getUniqueTabId(tabs, getBaseTabId(target))
+  return [...tabs, { ...target, id, pinned: false, history: [target.path] }]
 }
 
 export function closeTab(tabs: ReaderTab[], id: string): { tabs: ReaderTab[]; closed?: ReaderTab } {
-  return { tabs: tabs.filter((tab) => tab.id !== id), closed: tabs.find((tab) => tab.id === id) }
+  const closed = tabs.find((tab) => tab.id === id)
+  return {
+    tabs: tabs.filter((tab) => tab.id !== id),
+    closed,
+  }
 }
 
 export function duplicateTab(tabs: ReaderTab[], id: string): ReaderTab[] {
   const tab = tabs.find((value) => value.id === id)
-  return tab ? [...tabs, { ...tab, id: `${tab.id}:copy`, history: [...tab.history] }] : tabs
+  if (!tab) return tabs
+
+  const duplicate = {
+    ...tab,
+    id: getUniqueTabId(tabs, tab.id),
+    history: [...tab.history],
+  }
+
+  return [...tabs, duplicate]
 }
 
 export function pinTab(tabs: ReaderTab[], id: string): ReaderTab[] {
-  return tabs.map((tab) => tab.id === id ? { ...tab, pinned: !tab.pinned } : tab)
+  return tabs.map((tab) => (tab.id === id ? { ...tab, pinned: !tab.pinned } : tab))
 }
 
 export function reorderTabs(tabs: ReaderTab[], order: string[]): ReaderTab[] {
   const byId = new Map(tabs.map((tab) => [tab.id, tab]))
-  return order.flatMap((id) => { const tab = byId.get(id); return tab ? [tab] : [] })
+  const orderedIds = new Set<string>()
+  const orderedTabs = order.flatMap((id) => {
+    const tab = byId.get(id)
+    if (!tab) return []
+    orderedIds.add(id)
+    return [tab]
+  })
+
+  return [...orderedTabs, ...tabs.filter((tab) => !orderedIds.has(tab.id))]
 }

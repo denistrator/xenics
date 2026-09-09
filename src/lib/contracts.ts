@@ -37,21 +37,71 @@ export interface TaskEvent {
   error?: XenicsError
 }
 
-const terminalStates = new Set<TaskState>(['Succeeded', 'SucceededWithWarnings', 'Failed', 'Canceled', 'Interrupted'])
+const terminalStates = new Set<TaskState>([
+  'Succeeded',
+  'SucceededWithWarnings',
+  'Failed',
+  'Canceled',
+  'Interrupted',
+])
+
+const errorCodes = ['GitAuthentication', 'InvalidTaskEvent', 'Unknown'] as const
+const retryClasses = ['Automatic', 'NeedsAction', 'Permanent'] as const
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function isErrorCode(value: unknown): value is ErrorCode {
+  return typeof value === 'string' && errorCodes.includes(value as ErrorCode)
+}
+
+function isRetryClass(value: unknown): value is RetryClass {
+  return typeof value === 'string' && retryClasses.includes(value as RetryClass)
+}
+
+function parseTaskError(input: unknown): XenicsError | undefined {
+  if (input === undefined) return undefined
+  if (!isRecord(input)) throw new Error('Task event error must be an object')
+  if (!isErrorCode(input.code) || !isRetryClass(input.retryClass)) {
+    throw new Error('Task event error has invalid metadata')
+  }
+  if (
+    typeof input.message !== 'string'
+    || typeof input.diagnosticId !== 'string'
+    || !Array.isArray(input.actions)
+    || !input.actions.every((action) => typeof action === 'string')
+  ) {
+    throw new Error('Task event error has invalid details')
+  }
+
+  const optionalStringFields = ['sourceId', 'documentId', 'taskId', 'phase']
+  if (optionalStringFields.some((field) => input[field] !== undefined && typeof input[field] !== 'string')) {
+    throw new Error('Task event error has invalid context')
+  }
+
+  return input as unknown as XenicsError
+}
+
+export function isTerminalTaskState(state: TaskState): boolean {
+  return terminalStates.has(state)
+}
 
 export function isTaskState(value: unknown): value is TaskState {
   return typeof value === 'string' && (taskStates as readonly string[]).includes(value)
 }
 
 export function parseTaskEvent(input: unknown, previousState: TaskState, previousSequence = 0): TaskEvent {
-  if (!input || typeof input !== 'object') throw new Error('Task event must be an object')
-  const value = input as Record<string, unknown>
-  if (typeof value.taskId !== 'string' || value.taskId.length === 0) throw new Error('Task event requires taskId')
+  if (!isRecord(input)) throw new Error('Task event must be an object')
+  const value = input
+  if (typeof value.taskId !== 'string' || value.taskId.trim().length === 0) {
+    throw new Error('Task event requires taskId')
+  }
   if (typeof value.sequence !== 'number' || !Number.isSafeInteger(value.sequence) || value.sequence <= previousSequence) {
     throw new Error('Task event sequence must be newer than the previous sequence')
   }
   if (!isTaskState(value.state)) throw new Error('Task event has an invalid state')
-  if (terminalStates.has(previousState)) throw new Error('Terminal task cannot transition to another state')
+  if (isTerminalTaskState(previousState)) throw new Error('Terminal task cannot transition to another state')
   if (value.progress !== undefined && (typeof value.progress !== 'number' || value.progress < 0 || value.progress > 1)) {
     throw new Error('Task event progress must be between 0 and 1')
   }
@@ -61,6 +111,6 @@ export function parseTaskEvent(input: unknown, previousState: TaskState, previou
     phase: typeof value.phase === 'string' ? value.phase : 'unknown',
     progress: value.progress as number | undefined,
     state: value.state,
-    error: value.error as XenicsError | undefined,
+    error: parseTaskError(value.error),
   }
 }

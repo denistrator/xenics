@@ -1,17 +1,46 @@
+import type { ChangeEvent, ReactNode } from 'react'
 import type { XenicsSettings } from './settings-hooks'
-import { useSettings } from './settings-hooks'
+import {
+  densityOptions,
+  isTheme,
+  isUpdateSchedule,
+  themeOptions,
+  updateScheduleOptions,
+  useSettings,
+} from './settings-hooks'
 
 type SettingsPageProps = {
   initialSettings?: XenicsSettings
   onSettingsChange?: (patch: Partial<XenicsSettings>) => void
 }
 
-export function SettingsPage({ initialSettings, onSettingsChange }: SettingsPageProps) {
+const themeLabels: Record<XenicsSettings['theme'], string> = {
+  system: 'System',
+  light: 'Light',
+  dark: 'Dark',
+}
+
+const scheduleLabels: Record<XenicsSettings['updateSchedule'], string> = {
+  'on-launch': 'On launch',
+  daily: 'Daily',
+  weekly: 'Weekly',
+  disabled: 'Disabled',
+}
+
+export function SettingsPage({ initialSettings, onSettingsChange }: SettingsPageProps): ReactNode {
   const { settings, updateSettings } = useSettings(initialSettings)
 
-  function changeSettings(patch: Partial<XenicsSettings>) {
+  function changeSettings(patch: Partial<XenicsSettings>): void {
     updateSettings(patch)
     onSettingsChange?.(patch)
+  }
+
+  function handleThemeChange(event: ChangeEvent<HTMLSelectElement>): void {
+    if (isTheme(event.target.value)) changeSettings({ theme: event.target.value })
+  }
+
+  function handleScheduleChange(event: ChangeEvent<HTMLSelectElement>): void {
+    if (isUpdateSchedule(event.target.value)) changeSettings({ updateSchedule: event.target.value })
   }
 
   return (
@@ -28,17 +57,15 @@ export function SettingsPage({ initialSettings, onSettingsChange }: SettingsPage
             <span className="font-semibold">Theme</span>
             <select
               value={settings.theme}
-              onChange={(event) => changeSettings({ theme: event.target.value as XenicsSettings['theme'] })}
+              onChange={handleThemeChange}
               className="w-full rounded-lg border border-x-line bg-x-paper px-3 py-2"
             >
-              <option value="system">System</option>
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
+              {themeOptions.map((theme) => <option key={theme} value={theme}>{themeLabels[theme]}</option>)}
             </select>
           </label>
           <fieldset className="space-y-2 text-sm">
             <legend className="font-semibold">Density</legend>
-            {(['comfortable', 'compact'] as const).map((density) => (
+            {densityOptions.map((density) => (
               <label key={density} className="flex items-center gap-2 capitalize">
                 <input
                   type="radio"
@@ -61,13 +88,12 @@ export function SettingsPage({ initialSettings, onSettingsChange }: SettingsPage
             <span className="font-semibold">Automatic update checks</span>
             <select
               value={settings.updateSchedule}
-              onChange={(event) => changeSettings({ updateSchedule: event.target.value as XenicsSettings['updateSchedule'] })}
+              onChange={handleScheduleChange}
               className="block w-full rounded-lg border border-x-line bg-x-paper px-3 py-2 sm:max-w-xs"
             >
-              <option value="on-launch">On launch</option>
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="disabled">Disabled</option>
+              {updateScheduleOptions.map((schedule) => (
+                <option key={schedule} value={schedule}>{scheduleLabels[schedule]}</option>
+              ))}
             </select>
           </label>
           <label className="block space-y-2">

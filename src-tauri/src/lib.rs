@@ -44,6 +44,7 @@ pub fn run() {
             commands::download_source,
             commands::start_download_source,
             commands::update_source,
+            commands::start_update_source,
             commands::remove_source,
             commands::search_documents,
             commands::read_document,

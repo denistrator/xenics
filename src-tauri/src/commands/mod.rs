@@ -279,6 +279,47 @@ pub fn update_source(
 }
 
 #[tauri::command]
+pub fn start_update_source(
+    state: State<'_, AppState>,
+    source_id: String,
+) -> Result<String, String> {
+    let source = state
+        .user_db
+        .find_source(&source_id)
+        .map_err(|error| error.message)?
+        .ok_or("source is not installed")?;
+    let local_path = source.local_path.ok_or("source has no local path")?;
+    let remote_url = source.remote_url.ok_or("source is not a Git source")?;
+    let selected_ref = source.selected_ref;
+    let shallow = source.clone_mode.as_deref() != Some("full");
+    let search_db = Arc::clone(&state.search_db);
+    let operation: CancellableTaskOperation = Arc::new(move |cancellation| {
+        GitService::fetch(
+            &GitRequest {
+                source: remote_url.clone(),
+                destination: PathBuf::from(&local_path),
+                reference: selected_ref.clone(),
+                shallow,
+            },
+            &cancellation,
+        )?;
+        GitService::fast_forward(
+            &GitRequest {
+                source: String::from("origin"),
+                destination: PathBuf::from(&local_path),
+                reference: selected_ref.clone(),
+                shallow,
+            },
+            &cancellation,
+        )?;
+        Indexer::new(&search_db, PathBuf::from(&local_path))
+            .index_source(&source_id, &cancellation)?;
+        Ok(())
+    });
+    Ok(state.task_manager.submit_cancellable(operation).0)
+}
+
+#[tauri::command]
 pub fn remove_source(
     state: State<'_, AppState>,
     source_id: String,

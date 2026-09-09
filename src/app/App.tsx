@@ -34,7 +34,7 @@ export function App() {
   }
 
   async function updateRepository(repositoryId: string): Promise<void> {
-    await invokeCommand('update_source', { sourceId: repositoryId })
+    await invokeCommand('start_update_source', { sourceId: repositoryId })
   }
 
   async function removeRepository(repositoryId: string): Promise<void> {

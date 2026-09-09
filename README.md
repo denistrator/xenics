@@ -4,7 +4,7 @@ Xenics is a cross-platform, local-first developer documentation library. It mana
 
 ## Project status
 
-Xenics is in active foundation development. The Tauri/React/Rust workspace and verification harness are in place; product features are being implemented incrementally from the approved specifications.
+Xenics is in active foundation development. The native command boundary now connects catalog source metadata to clone, indexing, durable source records, safe document reads, and durable task snapshots. Reader sessions, live task events, updates, and the remaining catalog lifecycle are still being implemented incrementally from the approved specifications.
 
 ## Technology
 
@@ -36,5 +36,6 @@ npm run verify:packaged
 - [Product design specification](docs/superpowers/specs/2026-09-09-xenics-design.md)
 - [Error-handling strategy](docs/superpowers/specs/2026-09-09-xenics-error-handling-strategy.md)
 - [Implementation plan](docs/superpowers/plans/2026-09-09-xenics-implementation-plan.md)
+- [Implementation status](docs/superpowers/reports/implementation-status.md)
 
 Documentation is a living part of the project. Each implementation task should update the relevant guides, architecture notes, and status statements when behavior or developer workflow changes.

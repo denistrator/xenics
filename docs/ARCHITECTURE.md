@@ -18,6 +18,11 @@ Rust domain services
   └── desktop integrations and notification policy
 ```
 
+The current native command surface includes `list_sources`, `download_source`,
+`read_document`, `search_documents`, and `get_tasks`. The catalog download path
+uses these Rust-owned services; it does not report success when the native
+bridge is unavailable.
+
 The frontend keeps feature boundaries explicit: catalog, reader, search, organization, and task/recovery surfaces expose small model and hook modules rather than sharing ad-hoc state. Task rows use structured error codes and retry classification, so recovery actions never depend on matching human-readable error text.
 
 ## Storage separation

@@ -44,6 +44,13 @@ npm run test:e2e
 
 The E2E harness uses an isolated test scope. Do not point it at a personal Xenics library.
 
+Native lifecycle commands are registered during Tauri startup. The application
+data scope contains `user.sqlite` for source/task/user records and
+`search.sqlite` for disposable FTS5 records. A download request validates its
+managed destination, invokes system Git with explicit ref/shallow options,
+indexes supported documents, and persists the source only after those steps
+complete.
+
 ## Platform targets
 
 The primary target is desktop macOS, Windows, and Linux. Mobile support is a future read-only/synced companion target; do not assume desktop filesystem, explorer, editor, terminal, or long-running background behavior exists on iOS.

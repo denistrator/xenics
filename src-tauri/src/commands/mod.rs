@@ -6,25 +6,30 @@ use crate::{
     filesystem::ManagedPath,
     git::{CancellationToken, GitRequest, GitService},
     persistence::{SearchDb, SourceRecord, UserDb},
+    tasks::TaskManager,
 };
 use serde::Serialize;
-use std::{fs, path::PathBuf};
+use std::{fs, path::PathBuf, sync::Arc};
 use tauri::State;
 
 pub struct AppState {
-    pub user_db: UserDb,
+    pub user_db: Arc<UserDb>,
     pub search_db: SearchDb,
     pub library_root: PathBuf,
+    pub task_manager: TaskManager,
 }
 
 impl AppState {
     pub fn open(data_dir: PathBuf) -> Result<Self, String> {
         fs::create_dir_all(&data_dir).map_err(|error| error.to_string())?;
+        let user_db =
+            Arc::new(UserDb::open(data_dir.join("user.sqlite")).map_err(|error| error.message)?);
         Ok(Self {
-            user_db: UserDb::open(data_dir.join("user.sqlite")).map_err(|error| error.message)?,
+            user_db: Arc::clone(&user_db),
             search_db: SearchDb::open(data_dir.join("search.sqlite"))
                 .map_err(|error| error.message)?,
             library_root: data_dir,
+            task_manager: TaskManager::new_with_store(user_db),
         })
     }
 }

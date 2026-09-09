@@ -1,7 +1,9 @@
 use crate::{
     core::{ids::TaskId, models::TaskState},
     diagnostics::error::{ErrorCode, RetryClass, XenicsError},
+    persistence::UserDb,
 };
+use serde::Serialize;
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex},
@@ -11,7 +13,8 @@ use std::{
 
 pub type TaskOperation = Arc<dyn Fn() -> Result<(), XenicsError> + Send + Sync + 'static>;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct TaskSnapshot {
     pub task_id: TaskId,
     pub state: TaskState,
@@ -28,6 +31,7 @@ struct TaskEntry {
 
 pub struct TaskManager {
     tasks: Arc<Mutex<HashMap<TaskId, TaskEntry>>>,
+    store: Option<Arc<UserDb>>,
 }
 
 impl Default for TaskManager {
@@ -38,8 +42,17 @@ impl Default for TaskManager {
 
 impl TaskManager {
     pub fn new() -> Self {
+        Self::with_store(None)
+    }
+
+    pub fn new_with_store(store: Arc<UserDb>) -> Self {
+        Self::with_store(Some(store))
+    }
+
+    fn with_store(store: Option<Arc<UserDb>>) -> Self {
         Self {
             tasks: Arc::new(Mutex::new(HashMap::new())),
+            store,
         }
     }
 
@@ -58,6 +71,8 @@ impl TaskManager {
         };
         self.tasks.lock().unwrap().insert(task_id.clone(), entry);
         let tasks = Arc::clone(&self.tasks);
+        let store = self.store.clone();
+        persist_snapshot(store.as_ref(), &tasks.lock().unwrap()[&task_id].snapshot);
         let worker_id = task_id.clone();
         thread::spawn(move || {
             {
@@ -66,6 +81,7 @@ impl TaskManager {
                     entry.snapshot.state = TaskState::Running;
                     entry.snapshot.phase = "running".into();
                     entry.snapshot.attempts += 1;
+                    persist_snapshot(store.as_ref(), &entry.snapshot);
                 }
             }
             let result = operation();
@@ -82,6 +98,7 @@ impl TaskManager {
                     entry.snapshot.state = TaskState::Succeeded;
                     entry.snapshot.phase = "complete".into();
                 }
+                persist_snapshot(store.as_ref(), &entry.snapshot);
             }
         });
         task_id
@@ -98,6 +115,7 @@ impl TaskManager {
         entry.cancel_requested = true;
         entry.snapshot.state = TaskState::Canceling;
         entry.snapshot.phase = "canceling".into();
+        persist_snapshot(self.store.as_ref(), &entry.snapshot);
         Ok(())
     }
 
@@ -142,6 +160,18 @@ impl TaskManager {
         let mut snapshots = self.snapshot();
         crate::tasks::reconcile_snapshots(&mut snapshots)
     }
+}
+
+fn persist_snapshot(store: Option<&Arc<UserDb>>, snapshot: &TaskSnapshot) {
+    let Some(store) = store else { return };
+    let Ok(payload) = serde_json::to_string(snapshot) else {
+        return;
+    };
+    let _ = store.upsert_task_record(
+        &snapshot.task_id.0,
+        &format!("{:?}", snapshot.state),
+        &payload,
+    );
 }
 
 fn task_error(code: ErrorCode, message: impl Into<String>) -> XenicsError {

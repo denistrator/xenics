@@ -2,6 +2,7 @@ use super::{RetryPlan, TaskManager, TaskOperation};
 use crate::{
     core::models::TaskState,
     diagnostics::error::{ErrorCode, RetryClass, XenicsError},
+    persistence::UserDb,
 };
 use std::{
     sync::{Arc, Condvar, Mutex},
@@ -65,4 +66,20 @@ fn failed_task_can_be_retried_with_the_same_operation() {
     }
     let retry = manager.retry(&task).unwrap();
     assert_ne!(task, retry);
+}
+
+#[test]
+fn task_transitions_are_persisted_for_recovery() {
+    let database = Arc::new(UserDb::open_in_memory().unwrap());
+    let manager = TaskManager::new_with_store(Arc::clone(&database));
+    let task = manager.submit(Arc::new(|| Ok(())));
+
+    for _ in 0..20 {
+        if manager.snapshot_for(&task).unwrap().state == TaskState::Succeeded {
+            break;
+        }
+        thread::sleep(Duration::from_millis(10));
+    }
+
+    assert_eq!(database.task_record_count().unwrap(), 1);
 }

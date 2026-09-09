@@ -49,6 +49,8 @@ The task manager keeps operation identity, phase, attempt count, state, and stru
 Each task also emits ordered `TaskEvent` values on `task://<task-id>`. Sequence
 numbers are assigned by the task manager, and the Tauri adapter forwards the
 events without allowing the frontend to infer completion from dispatch alone.
+The React task feed hydrates from native snapshots, subscribes to active tasks,
+cleans up listeners on unmount, and rejects stale or terminal-reopening events.
 
 Task records are upserted in the durable user database so an interrupted operation can be identified and reconciled after restart. Git subprocess cancellation kills and waits for the child before reporting the task as canceled.
 

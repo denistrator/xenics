@@ -53,6 +53,8 @@ complete. The queued variant stores task snapshots durably and responds to
 native cancellation before a task reaches its terminal canceled state. Native
 task events use the `task://<task-id>` channel and strictly increasing sequence
 numbers; consumers must reject stale or terminal-state transitions.
+The current React task feed follows this rule and treats an unavailable native
+bridge as an empty feed without scheduling redundant state updates.
 
 ## Platform targets
 

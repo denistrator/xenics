@@ -46,6 +46,10 @@ Downloads, updates, indexing, and reconciliation run as isolated tasks with orde
 
 The task manager keeps operation identity, phase, attempt count, state, and structured failure data together. Automatic retry is limited to transient remote availability failures; authentication and other actionable failures remain manual.
 
+Each task also emits ordered `TaskEvent` values on `task://<task-id>`. Sequence
+numbers are assigned by the task manager, and the Tauri adapter forwards the
+events without allowing the frontend to infer completion from dispatch alone.
+
 Task records are upserted in the durable user database so an interrupted operation can be identified and reconciled after restart. Git subprocess cancellation kills and waits for the child before reporting the task as canceled.
 
 Scheduled availability checks run only while the app is open. The update-check service injects a clock for deterministic cadence tests, deduplicates overlapping checks per source, performs one overdue interval check after restart, and leaves availability unknown when a check fails while retaining the last successful timestamp.

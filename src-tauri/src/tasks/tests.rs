@@ -1,4 +1,4 @@
-use super::{CancellableTaskOperation, RetryPlan, TaskManager, TaskOperation};
+use super::{CancellableTaskOperation, RetryPlan, TaskEventSink, TaskManager, TaskOperation};
 use crate::{
     core::models::TaskState,
     diagnostics::error::{ErrorCode, RetryClass, XenicsError},
@@ -114,4 +114,30 @@ fn cancellable_operations_receive_the_cancel_signal_before_completion() {
         thread::sleep(Duration::from_millis(5));
     }
     panic!("cancellable task did not finish after its operation received cancellation");
+}
+
+#[test]
+fn task_events_are_emitted_in_strict_sequence_order() {
+    let events = Arc::new(Mutex::new(Vec::new()));
+    let collected_events = Arc::clone(&events);
+    let sink: TaskEventSink = Arc::new(move |event| {
+        collected_events.lock().unwrap().push(event);
+    });
+    let manager = TaskManager::new_with_event_sink(sink);
+    let task = manager.submit(Arc::new(|| Ok(())));
+
+    for _ in 0..20 {
+        if manager.snapshot_for(&task).unwrap().state == TaskState::Succeeded {
+            break;
+        }
+        thread::sleep(Duration::from_millis(5));
+    }
+
+    let events = events.lock().unwrap();
+    assert!(events.len() >= 3);
+    assert!(events
+        .windows(2)
+        .all(|pair| pair[0].sequence < pair[1].sequence));
+    assert_eq!(events.first().unwrap().state, TaskState::Queued);
+    assert_eq!(events.last().unwrap().state, TaskState::Succeeded);
 }

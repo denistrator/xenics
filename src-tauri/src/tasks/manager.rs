@@ -1,5 +1,8 @@
 use crate::{
-    core::{ids::TaskId, models::TaskState},
+    core::{
+        ids::TaskId,
+        models::{TaskEvent, TaskState},
+    },
     diagnostics::error::{ErrorCode, RetryClass, XenicsError},
     git::CancellationToken,
     persistence::UserDb,
@@ -15,6 +18,7 @@ use std::{
 pub type TaskOperation = Arc<dyn Fn() -> Result<(), XenicsError> + Send + Sync + 'static>;
 pub type CancellableTaskOperation =
     Arc<dyn Fn(CancellationToken) -> Result<(), XenicsError> + Send + Sync + 'static>;
+pub type TaskEventSink = Arc<dyn Fn(TaskEvent) + Send + Sync + 'static>;
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -32,11 +36,13 @@ struct TaskEntry {
     cancellable_operation: Option<CancellableTaskOperation>,
     cancellation: Option<CancellationToken>,
     cancel_requested: bool,
+    sequence: u64,
 }
 
 pub struct TaskManager {
     tasks: Arc<Mutex<HashMap<TaskId, TaskEntry>>>,
     store: Option<Arc<UserDb>>,
+    event_sink: Option<TaskEventSink>,
 }
 
 impl Default for TaskManager {
@@ -55,9 +61,22 @@ impl TaskManager {
     }
 
     fn with_store(store: Option<Arc<UserDb>>) -> Self {
+        Self::with_store_and_sink(store, None)
+    }
+
+    pub fn new_with_event_sink(event_sink: TaskEventSink) -> Self {
+        Self::with_store_and_sink(None, Some(event_sink))
+    }
+
+    pub fn new_with_store_and_event_sink(store: Arc<UserDb>, event_sink: TaskEventSink) -> Self {
+        Self::with_store_and_sink(Some(store), Some(event_sink))
+    }
+
+    fn with_store_and_sink(store: Option<Arc<UserDb>>, event_sink: Option<TaskEventSink>) -> Self {
         Self {
             tasks: Arc::new(Mutex::new(HashMap::new())),
             store,
+            event_sink,
         }
     }
 
@@ -91,12 +110,19 @@ impl TaskManager {
             cancellable_operation: cancellable_operation.clone(),
             cancellation: cancellation.clone(),
             cancel_requested: false,
+            sequence: 0,
         };
         self.tasks.lock().unwrap().insert(task_id.clone(), entry);
         let tasks = Arc::clone(&self.tasks);
         let store = self.store.clone();
+        let event_sink = self.event_sink.clone();
         let worker_operation = cancellable_operation;
-        persist_snapshot(store.as_ref(), &tasks.lock().unwrap()[&task_id].snapshot);
+        {
+            let mut all = tasks.lock().unwrap();
+            let entry = all.get_mut(&task_id).expect("new task entry");
+            persist_snapshot(store.as_ref(), &entry.snapshot);
+            emit_event(event_sink.as_ref(), &mut entry.sequence, &entry.snapshot);
+        }
         let worker_id = task_id.clone();
         thread::spawn(move || {
             {
@@ -106,6 +132,7 @@ impl TaskManager {
                     entry.snapshot.phase = "running".into();
                     entry.snapshot.attempts += 1;
                     persist_snapshot(store.as_ref(), &entry.snapshot);
+                    emit_event(event_sink.as_ref(), &mut entry.sequence, &entry.snapshot);
                 }
             }
             let result = match worker_operation {
@@ -126,6 +153,7 @@ impl TaskManager {
                     entry.snapshot.phase = "complete".into();
                 }
                 persist_snapshot(store.as_ref(), &entry.snapshot);
+                emit_event(event_sink.as_ref(), &mut entry.sequence, &entry.snapshot);
             }
         });
         task_id
@@ -146,6 +174,11 @@ impl TaskManager {
         entry.snapshot.state = TaskState::Canceling;
         entry.snapshot.phase = "canceling".into();
         persist_snapshot(self.store.as_ref(), &entry.snapshot);
+        emit_event(
+            self.event_sink.as_ref(),
+            &mut entry.sequence,
+            &entry.snapshot,
+        );
         Ok(())
     }
 
@@ -205,6 +238,15 @@ fn persist_snapshot(store: Option<&Arc<UserDb>>, snapshot: &TaskSnapshot) {
         &format!("{:?}", snapshot.state),
         &payload,
     );
+}
+
+fn emit_event(sink: Option<&TaskEventSink>, sequence: &mut u64, snapshot: &TaskSnapshot) {
+    let Some(sink) = sink else { return };
+    *sequence += 1;
+    let mut event = TaskEvent::new(&snapshot.task_id.0, *sequence, snapshot.state);
+    event.phase = snapshot.phase.clone();
+    event.error = snapshot.error.clone();
+    sink(event);
 }
 
 fn task_error(code: ErrorCode, message: impl Into<String>) -> XenicsError {

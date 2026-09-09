@@ -50,7 +50,9 @@ data scope contains `user.sqlite` for source/task/user records and
 managed destination, invokes system Git with explicit ref/shallow options,
 indexes supported documents, and persists the source only after those steps
 complete. The queued variant stores task snapshots durably and responds to
-native cancellation before a task reaches its terminal canceled state.
+native cancellation before a task reaches its terminal canceled state. Native
+task events use the `task://<task-id>` channel and strictly increasing sequence
+numbers; consumers must reject stale or terminal-state transitions.
 
 ## Platform targets
 

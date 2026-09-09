@@ -8,7 +8,8 @@ pub mod git;
 pub mod persistence;
 pub mod tasks;
 
-use tauri::Manager;
+use std::sync::Arc;
+use tauri::{Emitter, Manager};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -24,7 +25,15 @@ pub fn run() {
                 .path()
                 .app_data_dir()
                 .map_err(|error| std::io::Error::other(error.to_string()))?;
-            app.manage(commands::AppState::open(data_dir).map_err(std::io::Error::other)?);
+            let app_handle = app.handle().clone();
+            let event_sink: tasks::TaskEventSink = Arc::new(move |event| {
+                let event_name = format!("task://{}", event.task_id.0);
+                let _ = app_handle.emit(&event_name, event);
+            });
+            app.manage(
+                commands::AppState::open_with_event_sink(data_dir, Some(event_sink))
+                    .map_err(std::io::Error::other)?,
+            );
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

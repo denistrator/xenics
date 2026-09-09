@@ -4,6 +4,7 @@ pub mod diagnostics;
 pub mod filesystem;
 pub mod git;
 pub mod persistence;
+pub mod tasks;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {

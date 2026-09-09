@@ -17,6 +17,7 @@ pub enum ErrorCode {
     GitUnavailable,
     GitCommandFailed,
     GitCanceled,
+    RemoteUnavailable,
     InvalidGitSource,
     InvalidGitRef,
     InvalidTaskEvent,
@@ -34,7 +35,7 @@ pub enum RetryClass {
     Permanent,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct XenicsError {
     pub code: ErrorCode,
     pub source_id: Option<SourceId>,

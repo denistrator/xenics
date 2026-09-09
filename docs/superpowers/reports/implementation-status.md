@@ -26,6 +26,7 @@ Updated: 2026-09-10
 - Reader tabs/session persistence remain to be connected. Reader links now stay in the active tab with history updates, and tabs can load parsed documents through the native `read_document` command with explicit loading/error states.
 - Search palette is now backed by the native search command with deferred requests and explicit loading/error states. Native search also returns source-relative paths and parser-derived line/column locations for reader navigation; full filter/coverage semantics remain.
 - Search index paths now use source-relative POSIX separators, matching the safe reader command contract and allowing exact result navigation without exposing local filesystem paths.
+- Search palette selections now open a reader tab through the application boundary, preserving source, path, match index, and native line/column location metadata.
 - Native deep-link parsing is now URL-based, validates encoded traversal and hostile authorities, and is exposed through the typed `parse_deep_link` command.
 - Durable bookmarks now support idempotent saves, anchor persistence, listing, and validated `save_bookmark`/`list_bookmarks` commands. Collections, tags, and session restoration remain.
 - Durable collections and tags now support validated, idempotent creation and listing through native commands. Assignment and session restoration remain.

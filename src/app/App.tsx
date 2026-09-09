@@ -1,4 +1,5 @@
 import { AppShell } from '../components/layout/AppShell'
+import { useState } from 'react'
 import { CatalogPage } from '../features/catalog/CatalogPage'
 import { SettingsPage } from '../features/settings/SettingsPage'
 import { repositories } from '../features/catalog/catalog-model'
@@ -7,11 +8,14 @@ import { useLocationHash } from '../lib/use-location-hash'
 import { invokeCommand } from '../lib/tauri'
 import { TaskPanel } from '../features/tasks/TaskPanel'
 import { useTaskFeed } from '../features/tasks/use-task-feed'
+import { ReaderWorkspace } from '../features/reader/ReaderWorkspace'
+import { openSearchResult, type SearchReaderTarget } from '../features/search/search-state'
 
 export function App() {
   const activeHash = useLocationHash()
   const showSettings = activeHash === '#settings'
   const { tasks, cancelTask, retryTask } = useTaskFeed()
+  const [readerTarget, setReaderTarget] = useState<SearchReaderTarget | null>(null)
 
   async function downloadRepositories(repositoryIds: string[]): Promise<void> {
     const selectedRepositories = repositories.filter(({ id }) => repositoryIds.includes(id))
@@ -62,8 +66,21 @@ export function App() {
   }
 
   return (
-    <AppShell activeHash={activeHash} notifications={tasks}>
-      {showSettings ? <SettingsPage /> : <CatalogPage onDownload={downloadRepositories} onUpdate={updateRepository} onRemove={removeRepository} onAddLocalSource={addLocalSource} onOpenFolder={openSourceFolder} onOpenWebsite={openSourceWebsite} />}
+    <AppShell
+      activeHash={activeHash}
+      notifications={tasks}
+      onSearchSelect={(result) => setReaderTarget(openSearchResult(result))}
+    >
+      {readerTarget ? (
+        <ReaderWorkspace
+          initialTabs={[{
+            ...readerTarget,
+            id: `${readerTarget.sourceId}:${readerTarget.path}`,
+            pinned: false,
+            history: [readerTarget.path],
+          }]}
+        />
+      ) : showSettings ? <SettingsPage /> : <CatalogPage onDownload={downloadRepositories} onUpdate={updateRepository} onRemove={removeRepository} onAddLocalSource={addLocalSource} onOpenFolder={openSourceFolder} onOpenWebsite={openSourceWebsite} />}
       {tasks.length > 0 && (
         <div className="mx-auto max-w-[1500px] px-5 pb-8 md:px-10">
           <TaskPanel

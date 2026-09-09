@@ -18,6 +18,8 @@ Rust domain services
   └── desktop integrations
 ```
 
+The frontend keeps feature boundaries explicit: catalog, reader, search, organization, and task/recovery surfaces expose small model and hook modules rather than sharing ad-hoc state. Task rows use structured error codes and retry classification, so recovery actions never depend on matching human-readable error text.
+
 ## Storage separation
 
 Durable user data includes source metadata, settings, bookmarks, collections, tags, reading state, session state, and task history. Search records and other derived index data are disposable and rebuildable without changing user data.
@@ -41,6 +43,10 @@ The task manager keeps operation identity, phase, attempt count, state, and stru
 Task records are upserted in the durable user database so an interrupted operation can be identified and reconciled after restart. Git subprocess cancellation kills and waits for the child before reporting the task as canceled.
 
 Scheduled availability checks run only while the app is open. The update-check service injects a clock for deterministic cadence tests, deduplicates overlapping checks per source, performs one overdue interval check after restart, and leaves availability unknown when a check fails while retaining the last successful timestamp.
+
+Task recovery is surface-specific: active and recent operations are shown in the task panel, retry/cancel actions remain available according to task state, inline errors handle local field/component failures, and offline placeholders preserve access to already-downloaded documentation. Diagnostics redact credentials, authorization headers, and document content before they can be copied or displayed.
+
+Xenics deep links preserve source, branch/tag ref, document path, and optional anchor. They are parsed and traversal-checked at the Rust command boundary before a reader target is opened.
 
 ## Evolution rule
 

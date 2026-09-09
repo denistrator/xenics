@@ -13,6 +13,8 @@ type CatalogPageProps = {
   onUpdate?: (repositoryId: string) => Promise<void> | void
   onRemove?: (repositoryId: string) => Promise<void> | void
   onAddLocalSource?: (input: { id: string; displayName: string; path: string }) => Promise<Repository> | Repository
+  onOpenFolder?: (repositoryId: string) => Promise<void> | void
+  onOpenWebsite?: (repositoryId: string) => Promise<void> | void
 }
 
 function matchesRepositoryQuery(
@@ -30,7 +32,7 @@ function matchesRepositoryQuery(
   return searchableText.toLowerCase().includes(query)
 }
 
-export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource }: CatalogPageProps): ReactNode {
+export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, onOpenFolder, onOpenWebsite }: CatalogPageProps): ReactNode {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [selectionAnchorId, setSelectionAnchorId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -258,6 +260,8 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource }
               onDownload={() => void startDownload([repository.id])}
               onUpdate={onUpdate ? () => void updateRepositories([repository.id]) : undefined}
               onRemove={onRemove ? () => void removeRepository(repository.id) : undefined}
+              onOpenFolder={onOpenFolder ? () => void onOpenFolder(repository.id) : undefined}
+              onOpenWebsite={onOpenWebsite ? () => void onOpenWebsite(repository.id) : undefined}
             />
           ))}
         </div>

@@ -53,9 +53,17 @@ export function App() {
     }
   }
 
+  async function openSourceFolder(repositoryId: string): Promise<void> {
+    await invokeCommand('open_source_folder', { sourceId: repositoryId })
+  }
+
+  async function openSourceWebsite(repositoryId: string): Promise<void> {
+    await invokeCommand('open_source_website', { sourceId: repositoryId })
+  }
+
   return (
     <AppShell activeHash={activeHash} notifications={tasks}>
-      {showSettings ? <SettingsPage /> : <CatalogPage onDownload={downloadRepositories} onUpdate={updateRepository} onRemove={removeRepository} onAddLocalSource={addLocalSource} />}
+      {showSettings ? <SettingsPage /> : <CatalogPage onDownload={downloadRepositories} onUpdate={updateRepository} onRemove={removeRepository} onAddLocalSource={addLocalSource} onOpenFolder={openSourceFolder} onOpenWebsite={openSourceWebsite} />}
       {tasks.length > 0 && (
         <div className="mx-auto max-w-[1500px] px-5 pb-8 md:px-10">
           <TaskPanel

@@ -97,6 +97,28 @@ pub fn add_local_source(
 }
 
 #[tauri::command]
+pub fn open_source_folder(state: State<'_, AppState>, source_id: String) -> Result<(), String> {
+    let source = state
+        .user_db
+        .find_source(&source_id)
+        .map_err(|error| error.message)?
+        .ok_or("source is not installed")?;
+    let path = source.local_path.ok_or("source has no local folder")?;
+    crate::desktop::external_actions::open_external_folder(path)
+}
+
+#[tauri::command]
+pub fn open_source_website(state: State<'_, AppState>, source_id: String) -> Result<(), String> {
+    let source = state
+        .user_db
+        .find_source(&source_id)
+        .map_err(|error| error.message)?
+        .ok_or("source is not installed")?;
+    let url = source.remote_url.ok_or("source has no remote URL")?;
+    crate::desktop::external_actions::open_external_url(url)
+}
+
+#[tauri::command]
 pub fn download_source(
     state: State<'_, AppState>,
     id: String,

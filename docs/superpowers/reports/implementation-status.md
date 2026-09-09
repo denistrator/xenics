@@ -20,6 +20,7 @@ Updated: 2026-09-10
 
 - Queued downloads now wrap clone/index work in cancellable operations; detailed progress phases and richer notification-panel presentation remain to be connected.
 - Catalog management now exposes native-backed update/remove actions for installed sources and an explicit Update all action. The catalog also includes an explicit local-source dialog for user-owned Files-only folders; bulk review remains to be completed.
+- Capability-specific primary actions are now wired: installed Files-only sources open through the native system-folder command, and Website-only sources use the validated native browser command.
 - Catalog cards now expose accessible source-details dialogs, and bulk documentation downloads intentionally exclude Files-only and Website-only sources unless explicitly selected.
 - The catalog now reconciles installed status from the native source database and updates the local card state after queued downloads complete; browser-only rendering retains its fixture behavior.
 - Reader tabs/session persistence remain to be connected. Reader links now stay in the active tab with history updates, and tabs can load parsed documents through the native `read_document` command with explicit loading/error states.

@@ -10,6 +10,8 @@ type RepositoryCardProps = {
   onDownload?: () => void
   onUpdate?: () => void
   onRemove?: () => void
+  onOpenFolder?: () => void
+  onOpenWebsite?: () => void
   featured?: boolean
 }
 
@@ -34,6 +36,8 @@ export function RepositoryCard({
   onDownload,
   onUpdate,
   onRemove,
+  onOpenFolder,
+  onOpenWebsite,
   featured = false,
 }: RepositoryCardProps): ReactNode {
   const isInstalled = repo.status === 'Ready'
@@ -117,7 +121,7 @@ export function RepositoryCard({
           )}
           <button
             type="button"
-            onClick={isInstalled || isWebsiteOnly ? onOpen : onDownload}
+            onClick={isWebsiteOnly ? onOpenWebsite : isFilesOnly && isInstalled ? onOpenFolder : isInstalled ? onOpen : onDownload}
             disabled={!isInstalled && !isWebsiteOnly && !onDownload}
             className="rounded-lg p-2 text-x-muted hover:bg-x-mint hover:text-x-ink"
             aria-label={`${primaryActionLabel}: ${repo.name}`}

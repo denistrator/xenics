@@ -2,6 +2,7 @@ use super::{database_error, migrations};
 use crate::diagnostics::error::{ErrorCode, RetryClass, XenicsError};
 use rusqlite::{params, Connection};
 use serde::Serialize;
+use serde_json::{Map, Value};
 use std::{path::Path, sync::Mutex};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
@@ -179,6 +180,48 @@ impl UserDb {
             .map_err(database_error)
     }
 
+    pub fn update_settings(&self, patch: Value) -> Result<(), XenicsError> {
+        let Some(values) = patch.as_object() else {
+            return Err(invalid_user_value("settings patch must be an object"));
+        };
+        let connection = self.connection.lock().expect("user database mutex");
+        let transaction = connection.unchecked_transaction().map_err(database_error)?;
+        for (key, value) in values {
+            let value_json = serde_json::to_string(value)
+                .map_err(|_| invalid_user_value("setting is not serializable"))?;
+            transaction
+                .execute(
+                    "INSERT INTO settings(key, value_json) VALUES (?1, ?2)
+                     ON CONFLICT(key) DO UPDATE SET value_json = excluded.value_json",
+                    params![key, value_json],
+                )
+                .map_err(database_error)?;
+        }
+        transaction.commit().map_err(database_error)
+    }
+
+    pub fn get_settings(&self) -> Result<Value, XenicsError> {
+        let connection = self.connection.lock().expect("user database mutex");
+        let mut statement = connection
+            .prepare("SELECT key, value_json FROM settings ORDER BY key")
+            .map_err(database_error)?;
+        let rows = statement
+            .query_map([], |row| {
+                let key: String = row.get(0)?;
+                let value_json: String = row.get(1)?;
+                Ok((key, value_json))
+            })
+            .map_err(database_error)?;
+        let mut values = Map::new();
+        for row in rows {
+            let (key, value_json) = row.map_err(database_error)?;
+            let value = serde_json::from_str(&value_json)
+                .map_err(|_| invalid_user_value("stored setting is invalid"))?;
+            values.insert(key, value);
+        }
+        Ok(Value::Object(values))
+    }
+
     pub fn journal_mode(&self) -> Result<String, XenicsError> {
         let connection = self.connection.lock().expect("user database mutex");
         connection
@@ -275,4 +318,10 @@ fn normalize_name(name: &str) -> Result<String, XenicsError> {
         return Err(error);
     }
     Ok(trimmed.to_lowercase())
+}
+
+fn invalid_user_value(message: &str) -> XenicsError {
+    let mut error = XenicsError::new(ErrorCode::Unknown, RetryClass::Permanent);
+    error.message = message.into();
+    error
 }

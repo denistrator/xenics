@@ -1,5 +1,6 @@
 use super::AppState;
 use crate::persistence::BookmarkRecord;
+use serde_json::{Map, Value};
 use tauri::State;
 
 #[tauri::command]
@@ -64,6 +65,43 @@ pub fn list_tags(
     state: State<'_, AppState>,
 ) -> Result<Vec<crate::persistence::NamedRecord>, String> {
     state.user_db.list_tags().map_err(|error| error.message)
+}
+
+#[tauri::command]
+pub fn get_settings(state: State<'_, AppState>) -> Result<Value, String> {
+    state.user_db.get_settings().map_err(|error| error.message)
+}
+
+#[tauri::command]
+pub fn update_settings(state: State<'_, AppState>, patch: Value) -> Result<(), String> {
+    let Some(values) = patch.as_object() else {
+        return Err("settings patch must be an object".into());
+    };
+    let mut allowed = Map::new();
+    for (key, value) in values {
+        if !matches!(
+            key.as_str(),
+            "theme"
+                | "density"
+                | "updateSchedule"
+                | "editorCommand"
+                | "allowLocalFolderUpdates"
+                | "notificationsEnabled"
+                | "libraryPath"
+        ) {
+            return Err("settings key is not supported".into());
+        }
+        if let Value::String(string) = value {
+            if string.len() > 4096 || string.chars().any(|character| character.is_control()) {
+                return Err("settings value is invalid".into());
+            }
+        }
+        allowed.insert(key.clone(), value.clone());
+    }
+    state
+        .user_db
+        .update_settings(Value::Object(allowed))
+        .map_err(|error| error.message)
 }
 
 fn is_safe_value(value: &str) -> bool {

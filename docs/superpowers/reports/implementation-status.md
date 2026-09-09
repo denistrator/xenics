@@ -27,6 +27,7 @@ Updated: 2026-09-10
 - Durable bookmarks now support idempotent saves, anchor persistence, listing, and validated `save_bookmark`/`list_bookmarks` commands. Collections, tags, and session restoration remain.
 - Durable collections and tags now support validated, idempotent creation and listing through native commands. Assignment and session restoration remain.
 - Recovery presentation now has reusable `InlineError` and `RecoveryActions` primitives, and task failures use the same structured retry-action surface.
+- Native settings persistence now supports allowlisted get/update commands with validation for unknown keys, control characters, and oversized values. The UI integration and native folder/editor/terminal actions remain.
 - Native recursive file watching now reports supported document changes and filters Git/dependency/build folders; background indexing and polling reconciliation still need to consume those changes.
 - Windows/Linux validation and installed-package verification remain pending.
 

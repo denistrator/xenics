@@ -109,3 +109,16 @@ fn collections_and_tags_are_created_idempotently() {
     assert_eq!(db.list_collections().unwrap().len(), 1);
     assert_eq!(db.list_tags().unwrap().len(), 1);
 }
+
+#[test]
+fn settings_are_upserted_and_read_as_json_values() {
+    let db = UserDb::open_in_memory().unwrap();
+
+    db.update_settings(serde_json::json!({ "theme": "dark", "density": "compact" }))
+        .unwrap();
+
+    assert_eq!(
+        db.get_settings().unwrap(),
+        serde_json::json!({ "theme": "dark", "density": "compact" })
+    );
+}

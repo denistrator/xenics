@@ -49,6 +49,8 @@ pub fn run() {
             commands::organization::create_tag,
             commands::organization::list_collections,
             commands::organization::list_tags,
+            commands::organization::get_settings,
+            commands::organization::update_settings,
             commands::tasks::get_tasks,
             commands::tasks::cancel_task,
             commands::tasks::retry_task,

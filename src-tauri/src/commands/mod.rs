@@ -21,6 +21,13 @@ pub struct AppState {
 
 impl AppState {
     pub fn open(data_dir: PathBuf) -> Result<Self, String> {
+        Self::open_with_event_sink(data_dir, None)
+    }
+
+    pub fn open_with_event_sink(
+        data_dir: PathBuf,
+        event_sink: Option<crate::tasks::TaskEventSink>,
+    ) -> Result<Self, String> {
         fs::create_dir_all(&data_dir).map_err(|error| error.to_string())?;
         let user_db =
             Arc::new(UserDb::open(data_dir.join("user.sqlite")).map_err(|error| error.message)?);
@@ -30,7 +37,10 @@ impl AppState {
                 SearchDb::open(data_dir.join("search.sqlite")).map_err(|error| error.message)?,
             ),
             library_root: data_dir,
-            task_manager: TaskManager::new_with_store(user_db),
+            task_manager: match event_sink {
+                Some(sink) => TaskManager::new_with_store_and_event_sink(user_db, sink),
+                None => TaskManager::new_with_store(user_db),
+            },
         })
     }
 }

@@ -155,3 +155,15 @@ fn removing_search_source_deletes_only_its_documents() {
     assert_eq!(db.query_documents("rust").unwrap().len(), 1);
     assert!(db.query_documents("react").unwrap().is_empty());
 }
+
+#[test]
+fn removing_one_search_document_preserves_other_documents() {
+    let db = SearchDb::open_in_memory().unwrap();
+    db.replace_document("react", "a.md", "A", "", "alpha", "", "")
+        .unwrap();
+    db.replace_document("react", "b.md", "B", "", "beta", "", "")
+        .unwrap();
+    assert!(db.remove_document("react", "a.md").unwrap());
+    assert!(!db.remove_document("react", "a.md").unwrap());
+    assert_eq!(db.query_documents("beta").unwrap().len(), 1);
+}

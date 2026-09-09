@@ -30,6 +30,8 @@ Search queries cross a narrow Rust-owned boundary. Blank queries return no resul
 
 Source monitoring uses a native recursive watcher for Markdown and MDX files. Git internals, dependency folders, and build outputs are filtered at the event boundary; reconciliation remains the authoritative fallback after missed events or restarts.
 
+Changed files can be consumed incrementally: supported paths are re-parsed and upserted, deleted paths are removed from the derived index, and cancellation or root mismatches stop the operation safely. Full reconciliation remains available after missed events.
+
 The catalog treats the hardcoded technology list as presentation metadata and hydrates installation status from the durable native source catalog. A successful download updates the local view immediately while the database remains authoritative on the next launch.
 
 The reader accepts only the parsed native document model. React renders text nodes and structured blocks, maps parser warnings to visible warning blocks, and resolves internal links into the active tab history; it never evaluates repository HTML or MDX as executable markup.

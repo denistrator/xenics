@@ -37,35 +37,10 @@ impl<'a> Indexer<'a> {
             if cancellation.is_cancelled() {
                 break;
             }
-            match std::fs::read(&path)
-                .ok()
-                .and_then(|bytes| DocumentParser::parse(&path, &bytes).ok())
-            {
-                Some(document) => {
-                    let title = document
-                        .blocks
-                        .iter()
-                        .find_map(|block| {
-                            if let super::ReaderBlock::Heading { text, .. } = block {
-                                Some(text.as_str())
-                            } else {
-                                None
-                            }
-                        })
-                        .unwrap_or("");
-                    let prose = document.reader_text();
-                    self.database.replace_document(
-                        source_id,
-                        &path.display().to_string(),
-                        title,
-                        title,
-                        &prose,
-                        "",
-                        "",
-                    )?;
-                    indexed += 1;
-                }
-                None => failed += 1,
+            match self.index_file(source_id, &path) {
+                Ok(true) => indexed += 1,
+                Ok(false) => failed += 1,
+                Err(error) => return Err(error),
             }
         }
         Ok(IndexReport {
@@ -73,6 +48,34 @@ impl<'a> Indexer<'a> {
             indexed_files: indexed,
             failed_files: failed,
         })
+    }
+
+    pub fn index_file(&self, source_id: &str, path: &PathBuf) -> Result<bool, XenicsError> {
+        let Some(bytes) = std::fs::read(path).ok() else {
+            return Ok(false);
+        };
+        let Some(document) = DocumentParser::parse(path, &bytes).ok() else {
+            return Ok(false);
+        };
+        let title = document
+            .blocks
+            .iter()
+            .find_map(|block| match block {
+                super::ReaderBlock::Heading { text, .. } => Some(text.as_str()),
+                _ => None,
+            })
+            .unwrap_or("");
+        let prose = document.reader_text();
+        self.database.replace_document(
+            source_id,
+            &path.display().to_string(),
+            title,
+            title,
+            &prose,
+            "",
+            "",
+        )?;
+        Ok(true)
     }
     pub fn retry_failed_documents(
         &self,

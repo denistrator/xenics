@@ -33,7 +33,7 @@ Updated: 2026-09-10
 - Native settings persistence now supports allowlisted get/update commands with validation for unknown keys, control characters, and oversized values. The UI is connected; native folder/editor/terminal command coverage remains partial.
 - React settings now hydrate from the native settings store and persist individual changes, while retaining local behavior and an inline warning when the native bridge cannot save.
 - Latest macOS release verification passed: 5/5 desktop E2E specs, with only the known non-failing WebDriver/Tauri invoke-timeout warnings.
-- Native recursive file watching now reports supported document changes and filters Git/dependency/build folders; background indexing and polling reconciliation still need to consume those changes.
+- Native recursive file watching reports supported document changes and filters Git/dependency/build folders; the indexer now consumes changed and deleted documents incrementally with cancellation and source-root containment checks.
 - Installed Git sources now expose native update and removal operations. Updates fetch, fast-forward, and re-index the selected source; removals clear derived search records first. Managed library folders may be deleted only through an explicit flag and containment check, while external/local folders remain user-owned.
 - Native custom-source registration now accepts a validated local folder, detects an optional Git remote, persists the source outside managed-library deletion scope, and defaults unknown local folders to Files-only capability.
 - Native external URL and folder actions now validate their target before delegating to the Tauri opener plugin, keeping browser and system-explorer launches outside shell interpolation.

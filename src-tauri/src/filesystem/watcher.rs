@@ -1,4 +1,5 @@
 use super::reconcile::{ReconcileReport, Reconciler};
+use crate::{documents::Indexer, git::CancellationToken, persistence::SearchDb};
 use notify::{Event, RecommendedWatcher, RecursiveMode, Watcher as NotifyWatcher};
 use std::{
     path::{Path, PathBuf},
@@ -58,6 +59,30 @@ impl WatcherHandle {
         changes.sort();
         changes.dedup();
         changes
+    }
+
+    pub fn reindex_changes(
+        &self,
+        source_id: &str,
+        root: &Path,
+        database: &SearchDb,
+        cancellation: &CancellationToken,
+    ) -> Result<u64, crate::diagnostics::error::XenicsError> {
+        let indexer = Indexer::new(database, root);
+        let mut indexed = 0;
+        for path in self.poll_changes() {
+            if cancellation.is_cancelled() || !path.starts_with(root) {
+                continue;
+            }
+            if path.exists() {
+                if indexer.index_file(source_id, &path)? {
+                    indexed += 1;
+                }
+            } else if database.remove_document(source_id, &path.display().to_string())? {
+                indexed += 1;
+            }
+        }
+        Ok(indexed)
     }
 }
 

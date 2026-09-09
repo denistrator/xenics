@@ -97,3 +97,8 @@ and derived search data together. Files are deleted only when the caller
 explicitly requests it and the canonical path is inside Xenics' library root;
 external or local-folder sources are detached without deleting user-owned
 files.
+
+Custom local sources are canonicalized once at registration and retain their
+path as user-owned data. If the folder is a Git working copy, its configured
+remote is recorded for optional update workflows; a non-Git folder remains
+downloadable/openable but is not treated as a managed remote.

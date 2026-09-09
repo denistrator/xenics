@@ -38,6 +38,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             commands::list_sources,
+            commands::add_local_source,
             commands::download_source,
             commands::start_download_source,
             commands::update_source,

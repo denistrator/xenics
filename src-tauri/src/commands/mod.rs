@@ -59,6 +59,44 @@ pub fn list_sources(state: State<'_, AppState>) -> Result<Vec<SourceRecord>, Str
 }
 
 #[tauri::command]
+pub fn add_local_source(
+    state: State<'_, AppState>,
+    id: String,
+    display_name: String,
+    path: String,
+    capability: Option<String>,
+) -> Result<SourceRecord, String> {
+    if !is_safe_source_value(&id) || !is_safe_source_value(&display_name) {
+        return Err("source identity is invalid".into());
+    }
+    let local_path = PathBuf::from(path)
+        .canonicalize()
+        .map_err(|error| error.to_string())?;
+    if !local_path.is_dir() {
+        return Err("source folder does not exist".into());
+    }
+    let remote_url = GitService::open_remote(&local_path)
+        .ok()
+        .map(|remote| remote.url);
+    state
+        .user_db
+        .upsert_source(
+            &id,
+            &display_name,
+            capability.as_deref().unwrap_or("FilesOnly"),
+            None,
+            remote_url.as_deref(),
+            Some(local_path.to_string_lossy().as_ref()),
+        )
+        .map_err(|error| error.message)?;
+    state
+        .user_db
+        .find_source(&id)
+        .map_err(|error| error.message)?
+        .ok_or_else(|| "local source was not persisted".into())
+}
+
+#[tauri::command]
 pub fn download_source(
     state: State<'_, AppState>,
     id: String,
@@ -302,9 +340,13 @@ fn is_safe_document_path(path: &str) -> bool {
             .any(|part| part.is_empty() || part == "..")
 }
 
+fn is_safe_source_value(value: &str) -> bool {
+    !value.trim().is_empty() && !value.chars().any(|character| character.is_control())
+}
+
 #[cfg(test)]
 mod tests {
-    use super::is_safe_document_path;
+    use super::{is_safe_document_path, is_safe_source_value};
 
     #[test]
     fn document_paths_reject_absolute_and_cross_platform_traversal() {
@@ -312,5 +354,12 @@ mod tests {
         assert!(!is_safe_document_path("../secret.md"));
         assert!(!is_safe_document_path(r"docs\\..\\secret.md"));
         assert!(!is_safe_document_path("/etc/passwd"));
+    }
+
+    #[test]
+    fn source_identity_rejects_empty_and_control_values() {
+        assert!(is_safe_source_value("local-docs"));
+        assert!(!is_safe_source_value("  "));
+        assert!(!is_safe_source_value("docs\n"));
     }
 }

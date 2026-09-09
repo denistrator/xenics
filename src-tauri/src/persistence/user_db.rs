@@ -222,6 +222,23 @@ impl UserDb {
         Ok(Value::Object(values))
     }
 
+    pub fn save_session(&self, session: &Value) -> Result<(), XenicsError> {
+        let value_json = serde_json::to_string(session)
+            .map_err(|_| invalid_user_value("session is not serializable"))?;
+        if value_json.len() > 1_000_000 {
+            return Err(invalid_user_value("session is too large"));
+        }
+        self.update_settings(serde_json::json!({ "readerSession": session }))
+    }
+
+    pub fn get_session(&self) -> Result<Value, XenicsError> {
+        Ok(self
+            .get_settings()?
+            .get("readerSession")
+            .cloned()
+            .unwrap_or_else(|| Value::Object(Map::new())))
+    }
+
     pub fn journal_mode(&self) -> Result<String, XenicsError> {
         let connection = self.connection.lock().expect("user database mutex");
         connection

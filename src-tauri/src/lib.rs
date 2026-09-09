@@ -53,6 +53,8 @@ pub fn run() {
             commands::organization::list_tags,
             commands::organization::get_settings,
             commands::organization::update_settings,
+            commands::organization::get_reader_session,
+            commands::organization::save_reader_session,
             commands::tasks::get_tasks,
             commands::tasks::cancel_task,
             commands::tasks::retry_task,

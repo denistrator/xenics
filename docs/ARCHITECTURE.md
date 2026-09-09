@@ -46,6 +46,8 @@ Settings are persisted as allowlisted JSON keys in the durable user database. Th
 
 The settings screen hydrates once from that command boundary and persists small patches after each user change. Native failures do not discard the in-memory choice; the screen reports the degraded persistence state instead.
 
+Reader session state is stored as a bounded JSON value in the durable user database. The reader validates restored tab shapes before applying them and persists tab order, tab history, pin state, and the active tab through native commands.
+
 ## Storage separation
 
 Durable user data includes source metadata, settings, bookmarks, collections, tags, reading state, session state, and task history. Search records and other derived index data are disposable and rebuildable without changing user data.

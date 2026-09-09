@@ -104,6 +104,22 @@ pub fn update_settings(state: State<'_, AppState>, patch: Value) -> Result<(), S
         .map_err(|error| error.message)
 }
 
+#[tauri::command]
+pub fn get_reader_session(state: State<'_, AppState>) -> Result<Value, String> {
+    state.user_db.get_session().map_err(|error| error.message)
+}
+
+#[tauri::command]
+pub fn save_reader_session(state: State<'_, AppState>, session: Value) -> Result<(), String> {
+    if !session.is_object() {
+        return Err("reader session must be an object".into());
+    }
+    state
+        .user_db
+        .save_session(&session)
+        .map_err(|error| error.message)
+}
+
 fn is_safe_value(value: &str) -> bool {
     !value.is_empty() && !value.chars().any(|character| character.is_control())
 }

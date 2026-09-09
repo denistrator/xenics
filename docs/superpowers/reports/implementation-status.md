@@ -26,6 +26,7 @@ Updated: 2026-09-10
 - Native deep-link parsing is now URL-based, validates encoded traversal and hostile authorities, and is exposed through the typed `parse_deep_link` command.
 - Durable bookmarks now support idempotent saves, anchor persistence, listing, and validated `save_bookmark`/`list_bookmarks` commands. Collections, tags, and session restoration remain.
 - Durable collections and tags now support validated, idempotent creation and listing through native commands. Assignment and session restoration remain.
+- Reader session state now has a durable native contract and the reader persists/restores validated tab targets and the active tab when running inside Tauri; browser-mode fixtures remain isolated from native storage.
 - Recovery presentation now has reusable `InlineError` and `RecoveryActions` primitives, and task failures use the same structured retry-action surface.
 - Native settings persistence now supports allowlisted get/update commands with validation for unknown keys, control characters, and oversized values. The UI integration and native folder/editor/terminal actions remain.
 - React settings now hydrate from the native settings store and persist individual changes, while retaining local behavior and an inline warning when the native bridge cannot save.

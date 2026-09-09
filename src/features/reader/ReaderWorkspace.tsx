@@ -1,8 +1,9 @@
 import { Copy, Pin, RotateCcw, X } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { DocumentView, type ReaderDocument, type ReaderLink } from './DocumentView'
 import { closeTab, duplicateTab, pinTab, type ReaderTab } from './tab-state'
 import { useReaderDocument } from './reader-hooks'
+import { hasNativeBridge, invokeCommand } from '../../lib/tauri'
 
 type ReaderWorkspaceProps = {
   initialTabs: ReaderTab[]
@@ -10,12 +11,36 @@ type ReaderWorkspaceProps = {
 }
 
 export function ReaderWorkspace({ initialTabs, document }: ReaderWorkspaceProps): ReactNode {
-  const loadedDocument = useReaderDocument(document ? undefined : initialTabs[0])
   const [tabs, setTabs] = useState<ReaderTab[]>(() => initialTabs)
   const [activeTabId, setActiveTabId] = useState<string | undefined>(() => initialTabs[0]?.id)
   const [closedTabs, setClosedTabs] = useState<ReaderTab[]>([])
+  const sessionHydrated = useRef(!hasNativeBridge())
   const currentTab = tabs.find((tab) => tab.id === activeTabId) ?? tabs[0]
+  const loadedDocument = useReaderDocument(document ? undefined : currentTab)
   const visibleDocument = document ?? loadedDocument.document
+
+  useEffect(() => {
+    if (!hasNativeBridge()) return
+    let active = true
+    void invokeCommand<{ tabs?: ReaderTab[]; activeTabId?: string }>('get_reader_session')
+      .then((session) => {
+        if (!active || !Array.isArray(session.tabs)) return
+        const validTabs = session.tabs.filter(isReaderTab)
+        if (validTabs.length === 0) return
+        setTabs(validTabs)
+        setActiveTabId(validTabs.some((tab) => tab.id === session.activeTabId)
+          ? session.activeTabId
+          : validTabs[0]?.id)
+        sessionHydrated.current = true
+      })
+      .catch(() => { sessionHydrated.current = true })
+    return () => { active = false }
+  }, [])
+
+  useEffect(() => {
+    if (!sessionHydrated.current || !hasNativeBridge()) return
+    void invokeCommand('save_reader_session', { session: { tabs, activeTabId } }).catch(() => undefined)
+  }, [activeTabId, tabs])
 
   function handleCloseTab(tabId: string): void {
     const closedIndex = tabs.findIndex((tab) => tab.id === tabId)
@@ -179,4 +204,17 @@ function resolveInternalPath(currentPath: string, target: string): string | unde
     segments.push(segment)
   }
   return segments.join('/') || undefined
+}
+
+function isReaderTab(value: unknown): value is ReaderTab {
+  if (!value || typeof value !== 'object') return false
+  const tab = value as Partial<ReaderTab>
+  return typeof tab.id === 'string'
+    && typeof tab.sourceId === 'string'
+    && typeof tab.refName === 'string'
+    && typeof tab.path === 'string'
+    && typeof tab.title === 'string'
+    && typeof tab.pinned === 'boolean'
+    && Array.isArray(tab.history)
+    && tab.history.every((path) => typeof path === 'string')
 }

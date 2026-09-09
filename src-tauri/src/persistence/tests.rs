@@ -124,6 +124,18 @@ fn settings_are_upserted_and_read_as_json_values() {
 }
 
 #[test]
+fn reader_session_is_durable_and_defaults_to_an_empty_object() {
+    let db = UserDb::open_in_memory().unwrap();
+    assert_eq!(db.get_session().unwrap(), serde_json::json!({}));
+    db.save_session(&serde_json::json!({ "activeTabId": "react:docs/start.md" }))
+        .unwrap();
+    assert_eq!(
+        db.get_session().unwrap(),
+        serde_json::json!({ "activeTabId": "react:docs/start.md" })
+    );
+}
+
+#[test]
 fn source_removal_is_idempotent_and_reports_whether_it_removed_a_record() {
     let db = UserDb::open_in_memory().unwrap();
     db.upsert_source("react", "React", "Readable", Some("main"), None, None)

@@ -7,6 +7,7 @@ import { selectRange, toggleSelection } from './catalog-selection'
 export function CatalogPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [selectionAnchor, setSelectionAnchor] = useState<number | null>(null)
+  const [downloadState, setDownloadState] = useState<'idle' | 'loading' | 'success'>('idle')
 
   function handleSelect(repoId: string, index: number, shiftKey: boolean) {
     const nextSelection = shiftKey && selectionAnchor !== null
@@ -21,6 +22,11 @@ export function CatalogPage() {
     ? `Download selected (${selectedIds.length})`
     : 'Download all'
 
+  function handleDownload() {
+    setDownloadState('loading')
+    window.setTimeout(() => setDownloadState('success'), 500)
+  }
+
   return (
     <div id="catalog" className="space-y-9">
       <section className="grid gap-8 xl:grid-cols-[1fr_auto] xl:items-end">
@@ -29,7 +35,7 @@ export function CatalogPage() {
             Your offline shelf
           </p>
           <h1 className="max-w-3xl font-display text-4xl leading-[.98] tracking-[-.04em] md:text-6xl">
-            The tools you build with, <em className="text-x-mint-strong">close at hand.</em>
+            The tools you build with, <span className="font-semibold text-x-mint-strong">close at hand.</span>
           </h1>
           <p className="mt-5 max-w-xl text-base leading-7 text-x-muted">
             A calm home for the documentation you reach for every day. Download a source once,
@@ -38,9 +44,16 @@ export function CatalogPage() {
         </div>
 
         <div className="flex gap-3">
-          <button className="rounded-xl bg-x-ink px-4 py-3 text-sm font-semibold text-x-paper hover:opacity-90">
+          <button
+            type="button"
+            onClick={handleDownload}
+            disabled={downloadState === 'loading'}
+            aria-busy={downloadState === 'loading'}
+            data-state={downloadState}
+            className="rounded-xl bg-x-ink px-4 py-3 text-sm font-semibold text-x-paper hover:opacity-90"
+          >
             <Download className="mr-2 inline" size={16} />
-            {downloadLabel}
+            {downloadState === 'loading' ? 'Preparing downloads…' : downloadState === 'success' ? 'Downloads queued' : downloadLabel}
           </button>
           <button
             aria-label="Filter repositories"
@@ -68,6 +81,7 @@ export function CatalogPage() {
           <RepositoryCard
             key={repo.id}
             repo={repo}
+            featured={index === 0}
             selected={selectedIds.includes(repo.id)}
             onSelect={(shiftKey) => handleSelect(repo.id, index, shiftKey)}
             onOpen={() => undefined}

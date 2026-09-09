@@ -6,15 +6,24 @@ type RepositoryCardProps = {
   selected: boolean
   onSelect: (shiftKey: boolean) => void
   onOpen: () => void
+  featured?: boolean
 }
 
-export function RepositoryCard({ repo, selected, onSelect, onOpen }: RepositoryCardProps) {
+export function RepositoryCard({ repo, selected, onSelect, onOpen, featured = false }: RepositoryCardProps) {
   const filesOnly = repo.capability === 'Files only'
+  const accentClasses = {
+    mint: 'bg-x-mint',
+    sky: 'bg-x-sky',
+    coral: 'bg-x-coral',
+    amber: 'bg-x-amber',
+    teal: 'bg-x-teal',
+    violet: 'bg-x-violet',
+  } as const
 
   return (
-    <article className="group relative overflow-hidden rounded-2xl border border-x-line bg-x-panel p-5 shadow-[var(--x-shadow)] transition hover:-translate-y-1 hover:shadow-xl">
+    <article className={`group relative overflow-hidden rounded-2xl border border-x-line bg-x-panel p-5 shadow-[var(--x-shadow)] transition-transform duration-150 hover:-translate-y-1 hover:shadow-xl ${featured ? 'sm:col-span-2 xl:col-span-2' : ''}`}>
       <div className="mb-7 flex items-start justify-between">
-        <span style={{ backgroundColor: repo.accent }} className="grid size-12 place-items-center rounded-2xl text-lg font-bold text-x-ink">
+        <span className={`grid size-12 place-items-center rounded-2xl text-lg font-bold text-x-ink ${accentClasses[repo.accent]}`}>
           {repo.name.slice(0, 1)}
         </span>
         <label className="grid size-11 place-items-center rounded-xl hover:bg-x-paper">

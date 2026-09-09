@@ -10,6 +10,12 @@
   --color-x-mint-strong: var(--x-mint-strong);
   --color-x-coral: var(--x-coral);
   --color-x-amber: var(--x-amber);
+  --color-x-sky: var(--x-sky);
+  --color-x-teal: var(--x-teal);
+  --color-x-violet: var(--x-violet);
+  --color-x-code: var(--x-code);
+  --color-x-code-foreground: var(--x-code-foreground);
+  --color-x-code-muted: var(--x-code-muted);
 }
 
 @custom-variant dark (&:where(.dark, .dark *));

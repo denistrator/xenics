@@ -41,6 +41,14 @@ export function AppShell({ children }: { children: ReactNode }) {
       <section className="min-w-0">
         <header className="flex items-center justify-between border-b border-x-line bg-x-panel/90 px-5 py-4 backdrop-blur md:px-10">
           <div className="font-display text-xl lg:hidden">Xenics</div>
+          <nav aria-label="Mobile primary" className="flex items-center gap-1 lg:hidden">
+            <a className="rounded-lg px-3 py-2 text-xs font-semibold text-x-muted hover:bg-x-paper" href="#catalog">
+              Library
+            </a>
+            <a className="rounded-lg px-3 py-2 text-xs font-semibold text-x-muted hover:bg-x-paper" href="#settings">
+              Settings
+            </a>
+          </nav>
           <div className="hidden text-xs font-semibold uppercase tracking-[.18em] text-x-muted md:block">
             Documentation library
           </div>

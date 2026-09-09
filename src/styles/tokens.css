@@ -1,27 +1,39 @@
 :root {
-  --x-ink: #17212b;
-  --x-muted: #6c7883;
-  --x-paper: #f6f8f7;
-  --x-panel: #ffffff;
-  --x-line: #dce4e2;
-  --x-mint: #b8efd9;
-  --x-mint-strong: #16866b;
-  --x-coral: #f09b7c;
-  --x-amber: #f4c96b;
-  --x-shadow: 0 18px 45px rgba(23, 33, 43, .08);
+  --x-ink: oklch(23% 0.03 250);
+  --x-muted: oklch(52% 0.03 235);
+  --x-paper: oklch(97% 0.01 160);
+  --x-panel: oklch(100% 0 0);
+  --x-line: oklch(90% 0.02 160);
+  --x-mint: oklch(91% 0.09 165);
+  --x-mint-strong: oklch(52% 0.13 165);
+  --x-coral: oklch(72% 0.12 45);
+  --x-amber: oklch(83% 0.13 85);
+  --x-sky: oklch(82% 0.08 240);
+  --x-teal: oklch(83% 0.07 190);
+  --x-violet: oklch(82% 0.08 300);
+  --x-code: oklch(23% 0.03 250);
+  --x-code-foreground: oklch(94% 0.02 160);
+  --x-code-muted: oklch(76% 0.04 160);
+  --x-shadow: 0 18px 45px oklch(23% 0.03 250 / 0.08);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --x-ink: #edf4f1;
-    --x-muted: #a7b4b0;
-    --x-paper: #17201f;
-    --x-panel: #202b29;
-    --x-line: #354540;
-    --x-mint: #205b4b;
-    --x-mint-strong: #7ee3bf;
-    --x-coral: #d77f65;
-    --x-amber: #d3a94f;
-    --x-shadow: 0 18px 45px rgba(0, 0, 0, .22);
+    --x-ink: oklch(95% 0.02 160);
+    --x-muted: oklch(73% 0.03 160);
+    --x-paper: oklch(18% 0.02 160);
+    --x-panel: oklch(23% 0.03 160);
+    --x-line: oklch(32% 0.04 160);
+    --x-mint: oklch(38% 0.08 165);
+    --x-mint-strong: oklch(83% 0.13 165);
+    --x-coral: oklch(67% 0.12 45);
+    --x-amber: oklch(72% 0.13 85);
+    --x-sky: oklch(45% 0.06 240);
+    --x-teal: oklch(44% 0.05 190);
+    --x-violet: oklch(46% 0.06 300);
+    --x-code: oklch(12% 0.02 250);
+    --x-code-foreground: oklch(94% 0.02 160);
+    --x-code-muted: oklch(76% 0.04 160);
+    --x-shadow: 0 18px 45px oklch(0% 0 0 / 0.22);
   }
 }

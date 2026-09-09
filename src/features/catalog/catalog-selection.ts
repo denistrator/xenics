@@ -1,4 +1,11 @@
 export type SelectableItem = { id: string; selectable?: boolean }
+type DownloadableItem = { id: string; capability: string }
+
+export function defaultDownloadSelection(items: DownloadableItem[]): string[] {
+  return items
+    .filter(({ capability }) => capability === 'Readable' || capability === 'Partially readable')
+    .map(({ id }) => id)
+}
 
 export function selectRange(items: SelectableItem[], from: number, to: number): string[] {
   const start = Math.min(from, to)

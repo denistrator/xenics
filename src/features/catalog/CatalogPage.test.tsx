@@ -35,8 +35,16 @@ describe('CatalogPage', () => {
       'rust',
       'tauri',
       'tailwind',
-      'sqlite',
     ]))
     expect(await screen.findByRole('button', { name: 'Downloads queued' })).toBeInTheDocument()
+  })
+
+  it('opens source details from the card body without changing selection', () => {
+    render(<CatalogPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'React details' }))
+
+    expect(screen.getByRole('dialog', { name: 'React details' })).toBeInTheDocument()
+    expect(screen.getByText('https://github.com/facebook/react.git')).toBeInTheDocument()
   })
 })

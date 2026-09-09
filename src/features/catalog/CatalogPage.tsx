@@ -2,7 +2,8 @@ import { Download, Search, SlidersHorizontal } from 'lucide-react'
 import { useDeferredValue, useMemo, useState, type ReactNode } from 'react'
 import { repositories } from './catalog-model'
 import { RepositoryCard } from './RepositoryCard'
-import { selectRange, toggleSelection } from './catalog-selection'
+import { defaultDownloadSelection, selectRange, toggleSelection } from './catalog-selection'
+import { SourceDetails } from './SourceDetails'
 
 type DownloadState = 'idle' | 'loading' | 'success' | 'error'
 
@@ -30,6 +31,7 @@ export function CatalogPage({ onDownload }: CatalogPageProps): ReactNode {
   const [selectionAnchorId, setSelectionAnchorId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [downloadState, setDownloadState] = useState<DownloadState>('idle')
+  const [detailsRepositoryId, setDetailsRepositoryId] = useState<string | null>(null)
   const deferredSearchQuery = useDeferredValue(searchQuery.trim().toLowerCase())
 
   const visibleRepositories = useMemo(
@@ -38,9 +40,7 @@ export function CatalogPage({ onDownload }: CatalogPageProps): ReactNode {
   )
   const selectedRepositoryIds = useMemo(() => new Set(selectedIds), [selectedIds])
   const downloadableRepositoryIds = useMemo(
-    () => repositories
-      .filter((repository) => repository.capability !== 'Website only')
-      .map((repository) => repository.id),
+    () => defaultDownloadSelection(repositories),
     [],
   )
 
@@ -86,6 +86,9 @@ export function CatalogPage({ onDownload }: CatalogPageProps): ReactNode {
     success: 'Downloads queued',
     error: 'Download failed — retry',
   }[downloadState]
+  const detailsRepository = detailsRepositoryId === null
+    ? undefined
+    : repositories.find(({ id }) => id === detailsRepositoryId)
 
   return (
     <div id="catalog" className="space-y-9">
@@ -157,12 +160,13 @@ export function CatalogPage({ onDownload }: CatalogPageProps): ReactNode {
               featured={index === 0 && deferredSearchQuery === ''}
               selected={selectedRepositoryIds.has(repository.id)}
               onSelect={(shiftKey) => handleSelect(repository.id, shiftKey)}
-              onOpen={() => undefined}
+              onOpen={() => setDetailsRepositoryId(repository.id)}
               onDownload={() => void startDownload([repository.id])}
             />
           ))}
         </div>
       )}
+      {detailsRepository && <SourceDetails repository={detailsRepository} onClose={() => setDetailsRepositoryId(null)} />}
     </div>
   )
 }

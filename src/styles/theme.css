@@ -1,0 +1,15 @@
+@theme {
+  --font-sans: "Avenir Next", "Segoe UI", sans-serif;
+  --font-display: "Iowan Old Style", "Palatino Linotype", serif;
+  --color-x-ink: var(--x-ink);
+  --color-x-muted: var(--x-muted);
+  --color-x-paper: var(--x-paper);
+  --color-x-panel: var(--x-panel);
+  --color-x-line: var(--x-line);
+  --color-x-mint: var(--x-mint);
+  --color-x-mint-strong: var(--x-mint-strong);
+  --color-x-coral: var(--x-coral);
+  --color-x-amber: var(--x-amber);
+}
+
+@custom-variant dark (&:where(.dark, .dark *));

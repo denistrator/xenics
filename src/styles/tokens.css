@@ -1,0 +1,27 @@
+:root {
+  --x-ink: #17212b;
+  --x-muted: #6c7883;
+  --x-paper: #f6f8f7;
+  --x-panel: #ffffff;
+  --x-line: #dce4e2;
+  --x-mint: #b8efd9;
+  --x-mint-strong: #16866b;
+  --x-coral: #f09b7c;
+  --x-amber: #f4c96b;
+  --x-shadow: 0 18px 45px rgba(23, 33, 43, .08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --x-ink: #edf4f1;
+    --x-muted: #a7b4b0;
+    --x-paper: #17201f;
+    --x-panel: #202b29;
+    --x-line: #354540;
+    --x-mint: #205b4b;
+    --x-mint-strong: #7ee3bf;
+    --x-coral: #d77f65;
+    --x-amber: #d3a94f;
+    --x-shadow: 0 18px 45px rgba(0, 0, 0, .22);
+  }
+}

@@ -122,3 +122,24 @@ fn settings_are_upserted_and_read_as_json_values() {
         serde_json::json!({ "theme": "dark", "density": "compact" })
     );
 }
+
+#[test]
+fn source_removal_is_idempotent_and_reports_whether_it_removed_a_record() {
+    let db = UserDb::open_in_memory().unwrap();
+    db.upsert_source("react", "React", "Readable", Some("main"), None, None)
+        .unwrap();
+    assert!(db.remove_source("react").unwrap());
+    assert!(!db.remove_source("react").unwrap());
+}
+
+#[test]
+fn removing_search_source_deletes_only_its_documents() {
+    let db = SearchDb::open_in_memory().unwrap();
+    db.replace_document("react", "docs/start.md", "Start", "", "react", "", "")
+        .unwrap();
+    db.replace_document("rust", "docs/start.md", "Start", "", "rust", "", "")
+        .unwrap();
+    assert_eq!(db.remove_source("react").unwrap(), 1);
+    assert_eq!(db.query_documents("rust").unwrap().len(), 1);
+    assert!(db.query_documents("react").unwrap().is_empty());
+}

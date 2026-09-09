@@ -308,6 +308,14 @@ impl UserDb {
             .into_iter()
             .find(|source| source.id == id))
     }
+
+    pub fn remove_source(&self, id: &str) -> Result<bool, XenicsError> {
+        let connection = self.connection.lock().expect("user database mutex");
+        connection
+            .execute("DELETE FROM sources WHERE id = ?1", params![id])
+            .map(|count| count > 0)
+            .map_err(database_error)
+    }
 }
 
 fn normalize_name(name: &str) -> Result<String, XenicsError> {

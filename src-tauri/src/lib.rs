@@ -40,6 +40,8 @@ pub fn run() {
             commands::list_sources,
             commands::download_source,
             commands::start_download_source,
+            commands::update_source,
+            commands::remove_source,
             commands::search_documents,
             commands::read_document,
             commands::deep_links::parse_deep_link,

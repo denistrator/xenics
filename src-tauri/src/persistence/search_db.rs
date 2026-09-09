@@ -56,6 +56,17 @@ impl SearchDb {
         })
     }
 
+    pub fn remove_source(&self, source_id: &str) -> Result<u64, XenicsError> {
+        let connection = self.connection.lock().expect("search database mutex");
+        connection
+            .execute(
+                "DELETE FROM documents WHERE source_id = ?1",
+                params![source_id],
+            )
+            .map(|count| count as u64)
+            .map_err(database_error)
+    }
+
     pub fn journal_mode(&self) -> Result<String, XenicsError> {
         let connection = self.connection.lock().expect("search database mutex");
         connection

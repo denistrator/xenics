@@ -170,6 +170,93 @@ pub fn start_download_source(
 }
 
 #[tauri::command]
+pub fn update_source(
+    state: State<'_, AppState>,
+    source_id: String,
+) -> Result<SourceRecord, String> {
+    let source = state
+        .user_db
+        .find_source(&source_id)
+        .map_err(|error| error.message)?
+        .ok_or("source is not installed")?;
+    let local_path = source
+        .local_path
+        .clone()
+        .ok_or("source has no local path")?;
+    let remote_url = source
+        .remote_url
+        .clone()
+        .ok_or("source is not a Git source")?;
+    let cancellation = CancellationToken::default();
+    GitService::fetch(
+        &GitRequest {
+            source: remote_url,
+            destination: PathBuf::from(&local_path),
+            reference: source.selected_ref.clone(),
+            shallow: source.clone_mode.as_deref() != Some("full"),
+        },
+        &cancellation,
+    )
+    .map_err(|error| error.message)?;
+    GitService::fast_forward(
+        &GitRequest {
+            source: String::from("origin"),
+            destination: PathBuf::from(&local_path),
+            reference: source.selected_ref.clone(),
+            shallow: source.clone_mode.as_deref() != Some("full"),
+        },
+        &cancellation,
+    )
+    .map_err(|error| error.message)?;
+    Indexer::new(&state.search_db, PathBuf::from(&local_path).as_path())
+        .index_source(&source_id, &cancellation)
+        .map_err(|error| error.message)?;
+    state
+        .user_db
+        .find_source(&source_id)
+        .map_err(|error| error.message)?
+        .ok_or_else(|| "updated source was not persisted".to_owned())
+}
+
+#[tauri::command]
+pub fn remove_source(
+    state: State<'_, AppState>,
+    source_id: String,
+    delete_managed_files: Option<bool>,
+) -> Result<bool, String> {
+    let source = state
+        .user_db
+        .find_source(&source_id)
+        .map_err(|error| error.message)?
+        .ok_or("source is not installed")?;
+    if delete_managed_files.unwrap_or(false) {
+        let local_path = source
+            .local_path
+            .as_deref()
+            .ok_or("source has no local path")?;
+        let root = state
+            .library_root
+            .canonicalize()
+            .map_err(|error| error.to_string())?;
+        let path = PathBuf::from(local_path)
+            .canonicalize()
+            .map_err(|error| error.to_string())?;
+        if !path.starts_with(&root) || path == root {
+            return Err("only Xenics-managed library folders can be deleted".into());
+        }
+        fs::remove_dir_all(&path).map_err(|error| error.to_string())?;
+    }
+    state
+        .search_db
+        .remove_source(&source_id)
+        .map_err(|error| error.message)?;
+    state
+        .user_db
+        .remove_source(&source_id)
+        .map_err(|error| error.message)
+}
+
+#[tauri::command]
 pub fn search_documents(
     state: State<'_, AppState>,
     query: String,

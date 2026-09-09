@@ -30,6 +30,7 @@ Updated: 2026-09-10
 - Native settings persistence now supports allowlisted get/update commands with validation for unknown keys, control characters, and oversized values. The UI integration and native folder/editor/terminal actions remain.
 - Latest macOS release verification passed: 5/5 desktop E2E specs, with only the known non-failing WebDriver/Tauri invoke-timeout warnings.
 - Native recursive file watching now reports supported document changes and filters Git/dependency/build folders; background indexing and polling reconciliation still need to consume those changes.
+- Installed Git sources now expose native update and removal operations. Updates fetch, fast-forward, and re-index the selected source; removals clear derived search records first. Managed library folders may be deleted only through an explicit flag and containment check, while external/local folders remain user-owned.
 - Windows/Linux validation and installed-package verification remain pending.
 
 ## Safety note

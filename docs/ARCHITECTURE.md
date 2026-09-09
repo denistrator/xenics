@@ -83,3 +83,11 @@ Native notifications are policy-gated: Xenics only requests completion/failure n
 ## Evolution rule
 
 Update this overview when a task introduces a new service boundary, persistence rule, platform adapter, task state, or security constraint. The product specifications remain authoritative for user-visible behavior.
+### Source lifecycle ownership
+
+Source updates operate on the installed Git working copy, then rebuild its
+derived search records. Removing a source always removes the catalog record
+and derived search data together. Files are deleted only when the caller
+explicitly requests it and the canonical path is inside Xenics' library root;
+external or local-folder sources are detached without deleting user-owned
+files.

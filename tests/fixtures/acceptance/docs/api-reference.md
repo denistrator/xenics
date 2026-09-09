@@ -4,9 +4,13 @@
 
 `RepositoryCapability` is one of `Readable`, `PartiallyReadable`, `FilesOnly`, or `WebsiteOnly`.
 
+Readable capability is indexed and rendered for offline reading.
+
 ## TaskEvent
 
 `TaskEvent` includes `taskId`, `sequence`, `phase`, `progress`, and `state`.
+
+The Canceling state is observable while a task is stopping.
 
 ## XenicsError
 
@@ -14,7 +18,7 @@
 
 ## Search database
 
-The disposable search database uses SQLite FTS5 and WAL mode. A rebuild must not delete durable bookmarks.
+The disposable search database uses SQLite WAL mode and FTS5. A rebuild must not delete durable bookmarks.
 
 ## Endpoint
 

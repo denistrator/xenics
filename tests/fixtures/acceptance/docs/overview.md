@@ -2,6 +2,8 @@
 
 Xenics is a local-first documentation library for managing supported and unsupported repositories.
 
+A managed repository uses a stable library path. A cancellable task must stop before reporting completion.
+
 ## Document index
 
 Readable repositories are discovered, rendered safely, and added to an exact document index. The library path uses stable vendor and package names.

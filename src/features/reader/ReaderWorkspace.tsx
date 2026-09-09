@@ -1,18 +1,21 @@
 import { Copy, Pin, RotateCcw, X } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
-import { DocumentView, type ReaderDocument } from './DocumentView'
+import { DocumentView, type ReaderDocument, type ReaderLink } from './DocumentView'
 import { closeTab, duplicateTab, pinTab, type ReaderTab } from './tab-state'
+import { useReaderDocument } from './reader-hooks'
 
 type ReaderWorkspaceProps = {
   initialTabs: ReaderTab[]
-  document: ReaderDocument
+  document?: ReaderDocument
 }
 
 export function ReaderWorkspace({ initialTabs, document }: ReaderWorkspaceProps): ReactNode {
+  const loadedDocument = useReaderDocument(document ? undefined : initialTabs[0])
   const [tabs, setTabs] = useState<ReaderTab[]>(() => initialTabs)
   const [activeTabId, setActiveTabId] = useState<string | undefined>(() => initialTabs[0]?.id)
   const [closedTabs, setClosedTabs] = useState<ReaderTab[]>([])
   const currentTab = tabs.find((tab) => tab.id === activeTabId) ?? tabs[0]
+  const visibleDocument = document ?? loadedDocument.document
 
   function handleCloseTab(tabId: string): void {
     const closedIndex = tabs.findIndex((tab) => tab.id === tabId)
@@ -46,6 +49,16 @@ export function ReaderWorkspace({ initialTabs, document }: ReaderWorkspaceProps)
 
   function toggleCurrentTabPin(): void {
     if (currentTab) setTabs((current) => pinTab(current, currentTab.id))
+  }
+
+  function openInternalLink(link: ReaderLink): void {
+    if (!currentTab || link.target.startsWith('#')) return
+    const nextPath = resolveInternalPath(currentTab.path, link.target)
+    if (!nextPath) return
+
+    setTabs((current) => current.map((tab) => tab.id === currentTab.id
+      ? { ...tab, path: nextPath, title: link.label, history: [...tab.history, nextPath] }
+      : tab))
   }
 
   function focusAdjacentTab(currentTabId: string, direction: -1 | 1): void {
@@ -136,13 +149,34 @@ export function ReaderWorkspace({ initialTabs, document }: ReaderWorkspaceProps)
         </div>
       </header>
 
-      {currentTab ? (
+      {currentTab && visibleDocument ? (
         <div id={`panel-${currentTab.id}`} role="tabpanel" aria-labelledby={`tab-${currentTab.id}`} className="p-6 md:p-10">
-          <DocumentView document={document} />
+          <DocumentView document={visibleDocument} onInternalLink={openInternalLink} />
         </div>
+      ) : loadedDocument.loading ? (
+        <p className="p-10 text-x-muted" role="status">Loading document…</p>
+      ) : loadedDocument.error ? (
+        <p className="p-10 text-x-coral" role="alert">{loadedDocument.error}</p>
       ) : (
         <p className="p-10 text-x-muted">Open a document to start reading.</p>
       )}
     </section>
   )
+}
+
+function resolveInternalPath(currentPath: string, target: string): string | undefined {
+  const cleanTarget = target.split('#', 1)[0].split('?', 1)[0]
+  if (!cleanTarget || cleanTarget.startsWith('/') || cleanTarget.includes('\\')) return undefined
+
+  const segments = currentPath.split('/').slice(0, -1)
+  for (const segment of cleanTarget.split('/')) {
+    if (!segment || segment === '.') continue
+    if (segment === '..') {
+      if (!segments.length) return undefined
+      segments.pop()
+      continue
+    }
+    segments.push(segment)
+  }
+  return segments.join('/') || undefined
 }

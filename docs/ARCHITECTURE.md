@@ -30,6 +30,8 @@ Search queries cross a narrow Rust-owned boundary. Blank queries return no resul
 
 Source monitoring uses a native recursive watcher for Markdown and MDX files. Git internals, dependency folders, and build outputs are filtered at the event boundary; reconciliation remains the authoritative fallback after missed events or restarts.
 
+The reader accepts only the parsed native document model. React renders text nodes and structured blocks, maps parser warnings to visible warning blocks, and resolves internal links into the active tab history; it never evaluates repository HTML or MDX as executable markup.
+
 ## Storage separation
 
 Durable user data includes source metadata, settings, bookmarks, collections, tags, reading state, session state, and task history. Search records and other derived index data are disposable and rebuildable without changing user data.

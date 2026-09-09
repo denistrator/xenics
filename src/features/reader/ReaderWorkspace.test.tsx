@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { ReaderWorkspace } from './ReaderWorkspace'
 const tab = { id: 'react:README.md', sourceId: 'react', refName: 'main', path: 'README.md', title: 'React', pinned: false, history: ['README.md'] }
@@ -19,5 +19,25 @@ describe('ReaderWorkspace', () => {
     expect(screen.getByRole('tab', { name: 'React' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByText(/unsupported component/i)).toBeInTheDocument()
     expect(globalThis.document.querySelector('script')).toBeNull()
+  })
+
+  it('opens an internal link in the current tab', () => {
+    render(
+      <ReaderWorkspace
+        initialTabs={[tab]}
+        document={{
+          ...readerDocument,
+          links: [{ label: 'useEffect', target: 'hooks/use-effect.md' }],
+          blocks: [
+            { type: 'paragraph' as const, text: '[useEffect](hooks/use-effect.md)' },
+          ],
+        }}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('link', { name: 'useEffect' }))
+
+    expect(screen.getAllByRole('tab')).toHaveLength(1)
+    expect(screen.getByRole('tab', { name: /useEffect/i })).toHaveAttribute('aria-selected', 'true')
   })
 })

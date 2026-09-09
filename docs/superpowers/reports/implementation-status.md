@@ -20,7 +20,7 @@ Updated: 2026-09-10
 
 - Queued downloads now wrap clone/index work in cancellable operations; detailed progress phases and richer notification-panel presentation remain to be connected.
 - Source updates, removals, local-folder sources, unsupported-repository explorer opening, and bulk review remain to be completed.
-- Reader tabs/session persistence and command-backed document navigation remain to be connected.
+- Reader tabs/session persistence remain to be connected. Reader links now stay in the active tab with history updates, and tabs can load parsed documents through the native `read_document` command with explicit loading/error states.
 - Search UI is not yet backed by the native search command and still needs the full filter/coverage semantics. The native search boundary now has explicit blank-query handling, quoted user terms and phrases, safe operator handling, and punctuation-heavy prefix support such as `std::vec*`.
 - Native recursive file watching now reports supported document changes and filters Git/dependency/build folders; background indexing and polling reconciliation still need to consume those changes.
 - Windows/Linux validation and installed-package verification remain pending.

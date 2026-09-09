@@ -6,7 +6,7 @@ use crate::{
     filesystem::ManagedPath,
     git::{CancellationToken, GitRequest, GitService},
     persistence::{SearchDb, SourceRecord, UserDb},
-    tasks::TaskManager,
+    tasks::{CancellableTaskOperation, TaskManager},
 };
 use serde::Serialize;
 use std::{fs, path::PathBuf, sync::Arc};
@@ -14,7 +14,7 @@ use tauri::State;
 
 pub struct AppState {
     pub user_db: Arc<UserDb>,
-    pub search_db: SearchDb,
+    pub search_db: Arc<SearchDb>,
     pub library_root: PathBuf,
     pub task_manager: TaskManager,
 }
@@ -26,8 +26,9 @@ impl AppState {
             Arc::new(UserDb::open(data_dir.join("user.sqlite")).map_err(|error| error.message)?);
         Ok(Self {
             user_db: Arc::clone(&user_db),
-            search_db: SearchDb::open(data_dir.join("search.sqlite"))
-                .map_err(|error| error.message)?,
+            search_db: Arc::new(
+                SearchDb::open(data_dir.join("search.sqlite")).map_err(|error| error.message)?,
+            ),
             library_root: data_dir,
             task_manager: TaskManager::new_with_store(user_db),
         })
@@ -100,6 +101,61 @@ pub fn download_source(
         .find(|record| record.id == id)
         .ok_or("downloaded source was not persisted")?;
     Ok(DownloadReport { source, index })
+}
+
+#[tauri::command]
+pub fn start_download_source(
+    state: State<'_, AppState>,
+    id: String,
+    display_name: String,
+    vendor: String,
+    package: String,
+    source: String,
+    selected_ref: Option<String>,
+    shallow: Option<bool>,
+    capability: String,
+) -> String {
+    let library_root = state.library_root.clone();
+    let user_db = Arc::clone(&state.user_db);
+    let search_db = Arc::clone(&state.search_db);
+    let operation: CancellableTaskOperation = Arc::new(move |cancellation| {
+        let destination =
+            ManagedPath::for_remote(&library_root, &vendor, &package).map_err(|error| error)?;
+        fs::create_dir_all(destination.parent().ok_or_else(|| {
+            crate::diagnostics::error::XenicsError::new(
+                crate::diagnostics::error::ErrorCode::InvalidManagedPath,
+                crate::diagnostics::error::RetryClass::Permanent,
+            )
+        })?)
+        .map_err(|error| {
+            let mut result = crate::diagnostics::error::XenicsError::new(
+                crate::diagnostics::error::ErrorCode::Unknown,
+                crate::diagnostics::error::RetryClass::Automatic,
+            );
+            result.message = error.to_string();
+            result
+        })?;
+        GitService::clone(
+            &GitRequest {
+                source: source.clone(),
+                destination: destination.clone(),
+                reference: selected_ref.clone(),
+                shallow: shallow.unwrap_or(true),
+            },
+            &cancellation,
+        )?;
+        Indexer::new(&search_db, &destination).index_source(&id, &cancellation)?;
+        user_db.upsert_source(
+            &id,
+            &display_name,
+            &capability,
+            selected_ref.as_deref(),
+            Some(&source),
+            Some(&destination.display().to_string()),
+        )?;
+        Ok(())
+    });
+    state.task_manager.submit_cancellable(operation).0
 }
 
 #[tauri::command]

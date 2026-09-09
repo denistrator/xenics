@@ -49,7 +49,8 @@ data scope contains `user.sqlite` for source/task/user records and
 `search.sqlite` for disposable FTS5 records. A download request validates its
 managed destination, invokes system Git with explicit ref/shallow options,
 indexes supported documents, and persists the source only after those steps
-complete.
+complete. The queued variant stores task snapshots durably and responds to
+native cancellation before a task reaches its terminal canceled state.
 
 ## Platform targets
 

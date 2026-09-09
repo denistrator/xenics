@@ -5,8 +5,6 @@ import { repositories } from '../features/catalog/catalog-model'
 import { useLocationHash } from '../lib/use-location-hash'
 import { invokeCommand } from '../lib/tauri'
 
-type DownloadReport = { source: { id: string }; index: { indexedFiles: number; failedFiles: number } }
-
 export function App() {
   const activeHash = useLocationHash()
   const showSettings = activeHash === '#settings'
@@ -14,7 +12,7 @@ export function App() {
   async function downloadRepositories(repositoryIds: string[]): Promise<void> {
     const selectedRepositories = repositories.filter(({ id }) => repositoryIds.includes(id))
     await Promise.all(selectedRepositories.map(async (repository) => {
-      await invokeCommand<DownloadReport>('download_source', {
+      await invokeCommand<string>('start_download_source', {
         id: repository.id,
         displayName: repository.name,
         vendor: repository.vendor.toLowerCase().replace(/[^a-z0-9]+/g, '-'),

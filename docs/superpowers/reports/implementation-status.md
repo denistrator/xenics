@@ -11,11 +11,12 @@ Updated: 2026-09-10
 - Git refs are validated before argument construction, shallow mode is explicit, and subprocess output is drained concurrently.
 - Reader document paths reject absolute paths and traversal using either slash style.
 - Task state transitions can be persisted for recovery without forcing unit tests to use a database.
+- Queueable repository downloads now use cancellable task operations; native task listing, cancellation, and retry commands are registered.
 - Local macOS validation: 22 frontend tests, 36 Rust tests, and 5/5 desktop E2E specs pass.
 
 ## Still in progress
 
-- Downloads are currently synchronous command calls; task-backed progress/events and cancellation must wrap the full clone/index operation.
+- Queued downloads now wrap clone/index work in cancellable operations; structured progress events and frontend task-panel subscription remain to be connected.
 - Source updates, removals, local-folder sources, unsupported-repository explorer opening, and bulk review remain to be completed.
 - Reader tabs/session persistence and command-backed document navigation remain to be connected.
 - Search UI is not yet backed by the native search command and still needs the full exact/prefix/filter semantics.

@@ -1,4 +1,4 @@
-use super::{RetryPlan, TaskManager, TaskOperation};
+use super::{CancellableTaskOperation, RetryPlan, TaskManager, TaskOperation};
 use crate::{
     core::models::TaskState,
     diagnostics::error::{ErrorCode, RetryClass, XenicsError},
@@ -82,4 +82,36 @@ fn task_transitions_are_persisted_for_recovery() {
     }
 
     assert_eq!(database.task_record_count().unwrap(), 1);
+}
+
+#[test]
+fn cancellable_operations_receive_the_cancel_signal_before_completion() {
+    let finished = Arc::new(std::sync::atomic::AtomicBool::new(false));
+    let operation_finished = Arc::clone(&finished);
+    let operation: CancellableTaskOperation = Arc::new(move |cancellation| {
+        while !cancellation.is_cancelled() {
+            thread::yield_now();
+        }
+        operation_finished.store(true, std::sync::atomic::Ordering::Release);
+        Ok(())
+    });
+    let manager = TaskManager::new();
+    let task = manager.submit_cancellable(operation);
+
+    for _ in 0..20 {
+        if manager.snapshot_for(&task).unwrap().state == TaskState::Running {
+            break;
+        }
+        thread::sleep(Duration::from_millis(5));
+    }
+    manager.cancel(&task).unwrap();
+
+    for _ in 0..20 {
+        if manager.snapshot_for(&task).unwrap().state == TaskState::Canceled {
+            assert!(finished.load(std::sync::atomic::Ordering::Acquire));
+            return;
+        }
+        thread::sleep(Duration::from_millis(5));
+    }
+    panic!("cancellable task did not finish after its operation received cancellation");
 }

@@ -1,6 +1,7 @@
 use crate::{
     core::{ids::TaskId, models::TaskState},
     diagnostics::error::{ErrorCode, RetryClass, XenicsError},
+    git::CancellationToken,
     persistence::UserDb,
 };
 use serde::Serialize;
@@ -12,6 +13,8 @@ use std::{
 };
 
 pub type TaskOperation = Arc<dyn Fn() -> Result<(), XenicsError> + Send + Sync + 'static>;
+pub type CancellableTaskOperation =
+    Arc<dyn Fn(CancellationToken) -> Result<(), XenicsError> + Send + Sync + 'static>;
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -26,6 +29,8 @@ pub struct TaskSnapshot {
 struct TaskEntry {
     snapshot: TaskSnapshot,
     operation: TaskOperation,
+    cancellable_operation: Option<CancellableTaskOperation>,
+    cancellation: Option<CancellationToken>,
     cancel_requested: bool,
 }
 
@@ -57,7 +62,23 @@ impl TaskManager {
     }
 
     pub fn submit(&self, operation: TaskOperation) -> TaskId {
+        self.submit_inner(operation, None)
+    }
+
+    pub fn submit_cancellable(&self, operation: CancellableTaskOperation) -> TaskId {
+        let fallback_operation: TaskOperation = Arc::new(|| Ok(()));
+        self.submit_inner(fallback_operation, Some(operation))
+    }
+
+    fn submit_inner(
+        &self,
+        operation: TaskOperation,
+        cancellable_operation: Option<CancellableTaskOperation>,
+    ) -> TaskId {
         let task_id = TaskId::from(format!("task-{}", unique_suffix()).as_str());
+        let cancellation = cancellable_operation
+            .as_ref()
+            .map(|_| CancellationToken::default());
         let entry = TaskEntry {
             snapshot: TaskSnapshot {
                 task_id: task_id.clone(),
@@ -67,11 +88,14 @@ impl TaskManager {
                 error: None,
             },
             operation: operation.clone(),
+            cancellable_operation: cancellable_operation.clone(),
+            cancellation: cancellation.clone(),
             cancel_requested: false,
         };
         self.tasks.lock().unwrap().insert(task_id.clone(), entry);
         let tasks = Arc::clone(&self.tasks);
         let store = self.store.clone();
+        let worker_operation = cancellable_operation;
         persist_snapshot(store.as_ref(), &tasks.lock().unwrap()[&task_id].snapshot);
         let worker_id = task_id.clone();
         thread::spawn(move || {
@@ -84,7 +108,10 @@ impl TaskManager {
                     persist_snapshot(store.as_ref(), &entry.snapshot);
                 }
             }
-            let result = operation();
+            let result = match worker_operation {
+                Some(operation) => operation(cancellation.expect("cancellable token")),
+                None => operation(),
+            };
             let mut all = tasks.lock().unwrap();
             if let Some(entry) = all.get_mut(&worker_id) {
                 if entry.cancel_requested {
@@ -113,6 +140,9 @@ impl TaskManager {
             return Ok(());
         }
         entry.cancel_requested = true;
+        if let Some(cancellation) = &entry.cancellation {
+            cancellation.cancel();
+        }
         entry.snapshot.state = TaskState::Canceling;
         entry.snapshot.phase = "canceling".into();
         persist_snapshot(self.store.as_ref(), &entry.snapshot);
@@ -120,7 +150,7 @@ impl TaskManager {
     }
 
     pub fn retry(&self, task_id: &TaskId) -> Result<TaskId, XenicsError> {
-        let operation = {
+        let (operation, cancellable_operation) = {
             let all = self.tasks.lock().unwrap();
             let entry = all
                 .get(task_id)
@@ -134,9 +164,12 @@ impl TaskManager {
                     "only failed or interrupted tasks can be retried",
                 ));
             }
-            entry.operation.clone()
+            (entry.operation.clone(), entry.cancellable_operation.clone())
         };
-        Ok(self.submit(operation))
+        Ok(match cancellable_operation {
+            Some(operation) => self.submit_cancellable(operation),
+            None => self.submit(operation),
+        })
     }
 
     pub fn snapshot(&self) -> Vec<TaskSnapshot> {

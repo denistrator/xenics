@@ -16,6 +16,9 @@ pub enum ErrorCode {
     GitAuthentication,
     InvalidTaskEvent,
     Database,
+    ManagedPathCollision,
+    InvalidManagedPath,
+    ResetConfirmationRequired,
     Unknown,
 }
 

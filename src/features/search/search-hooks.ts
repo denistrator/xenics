@@ -8,6 +8,8 @@ export type NativeSearchHit = {
   title: string
   snippet: string
   rank: number
+  line?: number
+  column?: number
 }
 
 export function mapSearchHits(hits: NativeSearchHit[]): SearchResultModel[] {
@@ -18,7 +20,7 @@ export function mapSearchHits(hits: NativeSearchHit[]): SearchResultModel[] {
     path: hit.path,
     excerpt: hit.snippet,
     matchCount: 1,
-    location: { line: 1, column: 1 },
+    location: { line: hit.line ?? 1, column: hit.column ?? 1 },
     matchIndex: 0,
   }))
 }

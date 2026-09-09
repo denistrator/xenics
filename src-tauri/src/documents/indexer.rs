@@ -66,7 +66,19 @@ impl<'a> Indexer<'a> {
             })
             .unwrap_or("");
         let prose = document.reader_text();
-        self.database.replace_document(
+        let location = document
+            .search_records
+            .first()
+            .map(|record| &record.location)
+            .or_else(|| {
+                document.blocks.first().map(|block| match block {
+                    super::ReaderBlock::Heading { location, .. }
+                    | super::ReaderBlock::Paragraph { location, .. }
+                    | super::ReaderBlock::Code { location, .. } => location,
+                })
+            });
+        let (line, column) = location.map_or((1, 1), |location| (location.line, location.column));
+        self.database.replace_document_with_location(
             source_id,
             &self.relative_path(path),
             title,
@@ -74,6 +86,8 @@ impl<'a> Indexer<'a> {
             &prose,
             "",
             "",
+            line,
+            column,
         )?;
         Ok(true)
     }

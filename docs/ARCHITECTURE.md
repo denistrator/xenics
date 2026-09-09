@@ -46,6 +46,8 @@ Global search is command-backed through a deferred React query boundary. The pal
 
 Search records store source-relative document paths with normalized `/` separators. This keeps result navigation independent of the machine’s absolute library location and lets the reader enforce one consistent containment boundary.
 
+The derived search database stores one parser-derived location per document and returns it with each hit. Frontend result targets preserve that location so later reader views can focus the corresponding source area without exposing absolute paths.
+
 Xenics deep links are parsed and validated in Rust through `parse_deep_link`; the serialized target preserves the selected branch/tag, document path, and optional anchor for the reader/session layer.
 
 Bookmarks are user data, not search-derived data. Rust persists them in the durable user database with idempotent source/ref/path saves, while bookmark commands validate paths and anchors before writing.

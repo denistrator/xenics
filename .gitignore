@@ -35,6 +35,9 @@ build/
 .cache/
 .parcel-cache/
 .vite/
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
 
 # Rust / Tauri build artifacts
 target/

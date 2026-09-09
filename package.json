@@ -1,0 +1,49 @@
+{
+  "name": "xenics",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "typecheck:e2e": "tsc -p tsconfig.e2e.json --noEmit",
+    "test:e2e": "cargo build --manifest-path src-tauri/Cargo.toml --features e2e && wdio run tests/e2e/wdio.conf.ts",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-opener": "^2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.468.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tailwind-merge": "^2.6.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@tauri-apps/cli": "^2",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^26.5.0",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^6.0.2",
+    "@wdio/cli": "^9.31.7",
+    "@wdio/globals": "^9.31.3",
+    "@wdio/local-runner": "^9.31.7",
+    "@wdio/mocha-framework": "^9.31.7",
+    "@wdio/spec-reporter": "^9.31.2",
+    "@wdio/tauri-service": "^1.4.0",
+    "expect-webdriverio": "^6.0.10",
+    "jsdom": "^25.0.1",
+    "tailwindcss": "^4.0.0",
+    "typescript": "~6.0.3",
+    "vite": "^8.0.16",
+    "vitest": "^3.0.0",
+    "webdriverio": "^9.31.7"
+  }
+}

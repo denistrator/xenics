@@ -42,6 +42,7 @@ pub fn run() {
             commands::start_download_source,
             commands::search_documents,
             commands::read_document,
+            commands::deep_links::parse_deep_link,
             commands::tasks::get_tasks,
             commands::tasks::cancel_task,
             commands::tasks::retry_task,

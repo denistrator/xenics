@@ -22,6 +22,7 @@ Updated: 2026-09-10
 - Source updates, removals, local-folder sources, unsupported-repository explorer opening, and bulk review remain to be completed.
 - Reader tabs/session persistence remain to be connected. Reader links now stay in the active tab with history updates, and tabs can load parsed documents through the native `read_document` command with explicit loading/error states.
 - Search palette is now backed by the native search command with deferred requests and explicit loading/error states. Full filter/coverage semantics and exact source locations remain. The native search boundary has blank-query handling, quoted user terms and phrases, safe operator handling, and punctuation-heavy prefix support such as `std::vec*`.
+- Native deep-link parsing is now URL-based, validates encoded traversal and hostile authorities, and is exposed through the typed `parse_deep_link` command.
 - Native recursive file watching now reports supported document changes and filters Git/dependency/build folders; background indexing and polling reconciliation still need to consume those changes.
 - Windows/Linux validation and installed-package verification remain pending.
 

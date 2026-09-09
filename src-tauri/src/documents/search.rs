@@ -19,13 +19,18 @@ impl<'a> SearchService<'a> {
     }
 }
 fn normalize_query(query: &str) -> String {
-    query
-        .split_whitespace()
+    tokenize_query(query)
+        .into_iter()
         .filter_map(|token| {
-            let token = token.replace('"', "");
-            let (value, is_prefix) = token
+            let is_phrase = token.starts_with('"') && token.ends_with('"');
+            let token = token
+                .strip_prefix('"')
+                .and_then(|value| value.strip_suffix('"'))
+                .unwrap_or(&token);
+            let value = token.replace('"', "");
+            let (value, is_prefix) = value
                 .strip_suffix('*')
-                .map_or((token.as_str(), false), |value| (value, true));
+                .map_or((value.as_str(), false), |value| (value, !is_phrase));
             if value.is_empty() {
                 return None;
             }
@@ -38,4 +43,30 @@ fn normalize_query(query: &str) -> String {
         })
         .collect::<Vec<_>>()
         .join(" ")
+}
+
+fn tokenize_query(query: &str) -> Vec<String> {
+    let mut tokens = Vec::new();
+    let mut current = String::new();
+    let mut in_quotes = false;
+
+    for character in query.chars() {
+        match character {
+            '"' => {
+                in_quotes = !in_quotes;
+                current.push(character);
+            }
+            character if character.is_whitespace() && !in_quotes => {
+                if !current.is_empty() {
+                    tokens.push(std::mem::take(&mut current));
+                }
+            }
+            character => current.push(character),
+        }
+    }
+
+    if !current.is_empty() {
+        tokens.push(current);
+    }
+    tokens
 }

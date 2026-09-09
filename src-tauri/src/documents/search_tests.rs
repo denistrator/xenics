@@ -65,3 +65,23 @@ fn search_treats_fts_operators_as_user_text() {
 
     assert!(results.is_empty());
 }
+
+#[test]
+fn search_preserves_quoted_phrases() {
+    let root = tempdir().unwrap();
+    fs::write(
+        root.path().join("api.md"),
+        "# API\nUse std::vector here for contiguous storage.",
+    )
+    .unwrap();
+    let db = SearchDb::open_in_memory().unwrap();
+    Indexer::new(&db, root.path())
+        .index_source("cpp", &CancellationToken::default())
+        .unwrap();
+
+    let results = SearchService::new(&db)
+        .query("\"Use std::vector\"")
+        .unwrap();
+
+    assert_eq!(results.len(), 1);
+}

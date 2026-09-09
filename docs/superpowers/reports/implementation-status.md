@@ -14,14 +14,14 @@ Updated: 2026-09-10
 - Queueable repository downloads now use cancellable task operations; native task listing, cancellation, and retry commands are registered.
 - Native task events are emitted on `task://<task-id>` with monotonic sequences and are forwarded through the Tauri event bridge.
 - React now hydrates the task panel from native snapshots, subscribes only to active tasks, cleans up listeners, and ignores stale or terminal-reopening events.
-- Local macOS validation: 22 frontend tests, 36 Rust tests, and 5/5 desktop E2E specs pass.
+- Local macOS validation: 25 frontend tests, 43 Rust tests, and 5/5 desktop E2E specs pass.
 
 ## Still in progress
 
 - Queued downloads now wrap clone/index work in cancellable operations; detailed progress phases and richer notification-panel presentation remain to be connected.
 - Source updates, removals, local-folder sources, unsupported-repository explorer opening, and bulk review remain to be completed.
 - Reader tabs/session persistence and command-backed document navigation remain to be connected.
-- Search UI is not yet backed by the native search command and still needs the full filter/coverage semantics. The native search boundary now has explicit blank-query handling, quoted user terms, safe operator handling, and punctuation-heavy prefix support such as `std::vec*`.
+- Search UI is not yet backed by the native search command and still needs the full filter/coverage semantics. The native search boundary now has explicit blank-query handling, quoted user terms and phrases, safe operator handling, and punctuation-heavy prefix support such as `std::vec*`.
 - File watching and polling reconciliation need a live background implementation.
 - Windows/Linux validation and installed-package verification remain pending.
 

@@ -2,6 +2,7 @@ mod commands;
 pub mod core;
 pub mod diagnostics;
 pub mod filesystem;
+pub mod git;
 pub mod persistence;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

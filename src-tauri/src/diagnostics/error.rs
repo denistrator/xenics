@@ -14,6 +14,11 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum ErrorCode {
     GitAuthentication,
+    GitUnavailable,
+    GitCommandFailed,
+    GitCanceled,
+    InvalidGitSource,
+    InvalidGitRef,
     InvalidTaskEvent,
     Database,
     ManagedPathCollision,

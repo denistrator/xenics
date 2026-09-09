@@ -30,6 +30,8 @@ Library relocation is an explicit move followed by destination verification. Ful
 
 Repositories are untrusted input. Git arguments are passed without shell interpolation. Documentation rendering uses a safe Markdown/MDX subset with no arbitrary JavaScript or MDX execution. Tauri capabilities and filesystem scopes remain least-privilege.
 
+All Git operations go through the Rust-owned system-Git boundary. It preserves the host credential helpers and SSH configuration, classifies authentication failures as actionable, sanitizes diagnostics, and validates refs before invoking Git.
+
 ## Long-running work
 
 Downloads, updates, indexing, and reconciliation run as isolated tasks with ordered events, visible progress, cancellation, retry classification, and recovery states. A task is not considered canceled until its worker and any child process have actually stopped.

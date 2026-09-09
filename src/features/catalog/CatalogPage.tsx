@@ -1,6 +1,6 @@
 import { Download, RefreshCw, Search, SlidersHorizontal } from 'lucide-react'
 import { useDeferredValue, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { repositories } from './catalog-model'
+import { repositories, type Repository } from './catalog-model'
 import { RepositoryCard } from './RepositoryCard'
 import { defaultDownloadSelection, selectRange, toggleSelection } from './catalog-selection'
 import { SourceDetails } from './SourceDetails'
@@ -12,10 +12,11 @@ type CatalogPageProps = {
   onDownload?: (repositoryIds: string[]) => Promise<void> | void
   onUpdate?: (repositoryId: string) => Promise<void> | void
   onRemove?: (repositoryId: string) => Promise<void> | void
+  onAddLocalSource?: (input: { id: string; displayName: string; path: string }) => Promise<Repository> | Repository
 }
 
 function matchesRepositoryQuery(
-  repository: (typeof repositories)[number],
+  repository: Repository,
   query: string,
 ): boolean {
   const searchableText = [
@@ -29,7 +30,7 @@ function matchesRepositoryQuery(
   return searchableText.toLowerCase().includes(query)
 }
 
-export function CatalogPage({ onDownload, onUpdate, onRemove }: CatalogPageProps): ReactNode {
+export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource }: CatalogPageProps): ReactNode {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [selectionAnchorId, setSelectionAnchorId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -37,6 +38,11 @@ export function CatalogPage({ onDownload, onUpdate, onRemove }: CatalogPageProps
   const [detailsRepositoryId, setDetailsRepositoryId] = useState<string | null>(null)
   const [installedIds, setInstalledIds] = useState<Set<string>>(() => new Set())
   const [updateState, setUpdateState] = useState<DownloadState>('idle')
+  const [customRepositories, setCustomRepositories] = useState<Repository[]>([])
+  const [addSourceOpen, setAddSourceOpen] = useState(false)
+  const [sourceName, setSourceName] = useState('')
+  const [sourcePath, setSourcePath] = useState('')
+  const [sourceError, setSourceError] = useState<string | null>(null)
   const deferredSearchQuery = useDeferredValue(searchQuery.trim().toLowerCase())
 
   useEffect(() => {
@@ -51,11 +57,11 @@ export function CatalogPage({ onDownload, onUpdate, onRemove }: CatalogPageProps
   }, [])
 
   const catalogRepositories = useMemo(
-    () => repositories.map((repository) => ({
+    () => [...repositories, ...customRepositories].map((repository) => ({
       ...repository,
       status: installedIds.has(repository.id) ? 'Ready' as const : repository.status,
     })),
-    [installedIds],
+    [customRepositories, installedIds],
   )
 
   const visibleRepositories = useMemo(
@@ -127,6 +133,27 @@ export function CatalogPage({ onDownload, onUpdate, onRemove }: CatalogPageProps
     }
   }
 
+  async function addLocalSource(): Promise<void> {
+    const displayName = sourceName.trim()
+    const path = sourcePath.trim()
+    if (!displayName || !path || !onAddLocalSource) {
+      setSourceError('Enter a name and a local folder path.')
+      return
+    }
+    setSourceError(null)
+    try {
+      const id = `local-${displayName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+      const repository = await onAddLocalSource({ id, displayName, path })
+      setCustomRepositories((current) => [...current.filter(({ id: currentId }) => currentId !== repository.id), repository])
+      setInstalledIds((current) => new Set([...current, repository.id]))
+      setSourceName('')
+      setSourcePath('')
+      setAddSourceOpen(false)
+    } catch (error) {
+      setSourceError(error instanceof Error ? error.message : 'The source could not be added.')
+    }
+  }
+
   const downloadLabel = selectedIds.length
     ? `Download selected (${selectedIds.length})`
     : 'Download all'
@@ -168,6 +195,11 @@ export function CatalogPage({ onDownload, onUpdate, onRemove }: CatalogPageProps
             <Download aria-hidden="true" className="mr-2 inline" size={16} />
             {downloadButtonLabel}
           </button>
+          {onAddLocalSource && (
+            <button type="button" onClick={() => setAddSourceOpen(true)} className="rounded-xl border border-x-line bg-x-panel px-4 py-3 text-sm font-semibold hover:bg-x-paper">
+              Add local source
+            </button>
+          )}
           {installedIds.size > 0 && onUpdate && (
             <button
               type="button"
@@ -231,6 +263,20 @@ export function CatalogPage({ onDownload, onUpdate, onRemove }: CatalogPageProps
         </div>
       )}
       {detailsRepository && <SourceDetails repository={detailsRepository} onClose={() => setDetailsRepositoryId(null)} />}
+      {addSourceOpen && onAddLocalSource && (
+        <div className="fixed inset-0 z-30 grid place-items-center bg-x-ink/30 p-5" role="presentation">
+          <section role="dialog" aria-modal="true" aria-labelledby="add-source-title" className="w-full max-w-lg rounded-2xl border border-x-line bg-x-panel p-6 shadow-2xl">
+            <h2 id="add-source-title" className="font-display text-2xl tracking-tight">Add local source</h2>
+            <p className="mt-2 text-sm text-x-muted">The folder stays in its current location. Xenics will make it available as a Files-only source.</p>
+            <div className="mt-5 space-y-4">
+              <label className="block space-y-2 text-sm"><span className="font-semibold">Name</span><input value={sourceName} onChange={(event) => setSourceName(event.target.value)} className="block w-full rounded-lg border border-x-line bg-x-paper px-3 py-2" /></label>
+              <label className="block space-y-2 text-sm"><span className="font-semibold">Folder path</span><input value={sourcePath} onChange={(event) => setSourcePath(event.target.value)} placeholder="/Users/you/docs" className="block w-full rounded-lg border border-x-line bg-x-paper px-3 py-2" /></label>
+              {sourceError && <p role="alert" className="text-sm text-x-coral">{sourceError}</p>}
+            </div>
+            <div className="mt-6 flex justify-end gap-3"><button type="button" onClick={() => setAddSourceOpen(false)} className="rounded-lg border border-x-line px-4 py-2 text-sm font-semibold">Cancel</button><button type="button" onClick={() => void addLocalSource()} className="rounded-lg bg-x-ink px-4 py-2 text-sm font-semibold text-x-paper">Add source</button></div>
+          </section>
+        </div>
+      )}
     </div>
   )
 }

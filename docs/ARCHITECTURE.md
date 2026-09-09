@@ -36,6 +36,8 @@ The catalog treats the hardcoded technology list as presentation metadata and hy
 
 Catalog update and removal actions are thin UI adapters over native commands. Bulk update operates only on currently installed catalog IDs; destructive managed-file deletion remains an explicit native operation with canonical-root containment checks.
 
+The local-source dialog requires a display name and folder path, then delegates canonicalization and Git-remote detection to `add_local_source`. The returned source is presented in the same card grid, but remains outside managed-library deletion scope.
+
 The reader accepts only the parsed native document model. React renders text nodes and structured blocks, maps parser warnings to visible warning blocks, and resolves internal links into the active tab history; it never evaluates repository HTML or MDX as executable markup.
 
 Global search is command-backed through a deferred React query boundary. The palette presents loading and native error states, while the Rust service remains responsible for FTS normalization, ranking, and input safety.

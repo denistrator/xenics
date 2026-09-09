@@ -2,6 +2,7 @@ import { AppShell } from '../components/layout/AppShell'
 import { CatalogPage } from '../features/catalog/CatalogPage'
 import { SettingsPage } from '../features/settings/SettingsPage'
 import { repositories } from '../features/catalog/catalog-model'
+import type { Repository } from '../features/catalog/catalog-model'
 import { useLocationHash } from '../lib/use-location-hash'
 import { invokeCommand } from '../lib/tauri'
 import { TaskPanel } from '../features/tasks/TaskPanel'
@@ -36,9 +37,25 @@ export function App() {
     await invokeCommand('remove_source', { sourceId: repositoryId, deleteManagedFiles: true })
   }
 
+  async function addLocalSource(input: { id: string; displayName: string; path: string }): Promise<Repository> {
+    const source = await invokeCommand<{ id: string; displayName: string; capability: string }>('add_local_source', input)
+    return {
+      id: source.id,
+      name: source.displayName,
+      vendor: 'Local source',
+      description: 'A user-owned local documentation folder.',
+      category: 'Custom',
+      accent: 'violet',
+      status: 'Ready',
+      capability: 'Files only',
+      sourceUrl: '',
+      selectedRef: '',
+    }
+  }
+
   return (
     <AppShell activeHash={activeHash} notifications={tasks}>
-      {showSettings ? <SettingsPage /> : <CatalogPage onDownload={downloadRepositories} onUpdate={updateRepository} onRemove={removeRepository} />}
+      {showSettings ? <SettingsPage /> : <CatalogPage onDownload={downloadRepositories} onUpdate={updateRepository} onRemove={removeRepository} onAddLocalSource={addLocalSource} />}
       {tasks.length > 0 && (
         <div className="mx-auto max-w-[1500px] px-5 pb-8 md:px-10">
           <TaskPanel

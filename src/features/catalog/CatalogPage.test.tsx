@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { CatalogPage } from './CatalogPage'
+import type { Repository } from './catalog-model'
 
 describe('CatalogPage', () => {
   it('renders the catalog and bulk download action', () => {
@@ -46,5 +47,34 @@ describe('CatalogPage', () => {
 
     expect(screen.getByRole('dialog', { name: 'React details' })).toBeInTheDocument()
     expect(screen.getByText('https://github.com/facebook/react.git')).toBeInTheDocument()
+  })
+
+  it('adds a local source through the explicit source dialog', async () => {
+    const localSource: Repository = {
+      id: 'local-team-docs',
+      name: 'Team docs',
+      vendor: 'Local source',
+      description: 'A user-owned local documentation folder.',
+      category: 'Custom',
+      accent: 'violet',
+      status: 'Ready',
+      capability: 'Files only',
+      sourceUrl: '',
+      selectedRef: '',
+    }
+    const onAddLocalSource = vi.fn().mockResolvedValue(localSource)
+    render(<CatalogPage onAddLocalSource={onAddLocalSource} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add local source' }))
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Team docs' } })
+    fireEvent.change(screen.getByLabelText('Folder path'), { target: { value: '/tmp/team-docs' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add source' }))
+
+    await waitFor(() => expect(onAddLocalSource).toHaveBeenCalledWith({
+      id: 'local-team-docs',
+      displayName: 'Team docs',
+      path: '/tmp/team-docs',
+    }))
+    expect(await screen.findByRole('heading', { name: 'Team docs' })).toBeInTheDocument()
   })
 })

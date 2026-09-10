@@ -64,7 +64,7 @@ Organization actions are intentionally split at the hook boundary: creating a co
 
 Recovery UI uses structured action objects rather than inspecting human-readable error strings. Inline errors can render only the actions supplied by the owning feature, keeping retry and destructive operations explicit.
 
-The shell notification panel consumes task snapshots as a compact activity summary. It does not duplicate task mutation logic; cancel/retry and detailed diagnostics remain owned by the task panel.
+The shell notification panel consumes task snapshots as a compact activity summary. Active tasks show an indeterminate loader and expose cancel/retry actions through the same task-feed callbacks; detailed diagnostics remain owned by the task panel.
 
 Settings are persisted as allowlisted JSON keys in the durable user database. The native command boundary rejects unknown keys, control characters, and oversized string values before storage.
 

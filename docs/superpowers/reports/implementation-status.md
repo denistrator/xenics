@@ -34,7 +34,7 @@ Updated: 2026-09-10
 - Organization hooks and a dedicated route now hydrate native bookmarks, collection/tag records, and bookmark assignments into the existing panels; browser-only mode remains an empty local fallback.
 - Reader session state now has a durable native contract and the reader persists/restores validated tab targets and the active tab when running inside Tauri; browser-mode fixtures remain isolated from native storage.
 - Recovery presentation now has reusable `InlineError` and `RecoveryActions` primitives, and task failures use the same structured retry-action surface.
-- The app shell now exposes a toggleable notification panel fed by the ordered task feed, with recent phases and state summaries while detailed recovery remains in the task panel.
+- The app shell now exposes a toggleable notification panel fed by the ordered task feed, with an active-task loader, recent phases, and cancel/retry actions while detailed recovery remains in the task panel.
 - Native settings persistence now supports allowlisted get/update commands with validation for unknown keys, control characters, and oversized values. The UI is connected; native folder/editor/terminal command coverage remains partial.
 - React settings now hydrate from the native settings store and persist individual changes, while retaining local behavior and an inline warning when the native bridge cannot save.
 - Latest macOS release verification passed: 5/5 desktop E2E specs, with only the known non-failing WebDriver/Tauri invoke-timeout warnings.

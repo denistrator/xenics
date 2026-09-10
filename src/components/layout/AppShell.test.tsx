@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { act } from 'react'
 import { AppShell } from './AppShell'
 
@@ -20,5 +20,16 @@ describe('AppShell', () => {
       expect(screen.getByRole('heading', { name: 'Notifications' })).toBeInTheDocument()
       expect(screen.getByText('Indexing')).toBeInTheDocument()
     })
+  })
+
+  it('shows progress feedback and keeps active tasks cancelable', async () => {
+    const onCancelTask = vi.fn()
+    render(<AppShell notifications={[{ taskId: 'task-1' as never, sequence: 1, phase: 'Indexing', state: 'Running', attempts: 1 } as never]} onCancelTask={onCancelTask}>content</AppShell>)
+    await act(async () => {
+      screen.getByRole('button', { name: 'Open notifications' }).click()
+    })
+    expect(screen.getByLabelText('In progress')).toBeInTheDocument()
+    screen.getByRole('button', { name: 'Cancel' }).click()
+    expect(onCancelTask).toHaveBeenCalledWith('task-1')
   })
 })

@@ -1,9 +1,10 @@
-import { Bell, BookOpen, Command, FolderGit2, Settings2, type LucideIcon } from 'lucide-react'
+import { Bell, BookOpen, Command, FolderGit2, LoaderCircle, Settings2, type LucideIcon } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { SearchPalette } from '../../features/search/SearchPalette'
 import { useNativeSearch } from '../../features/search/search-hooks'
 import type { SearchResultModel } from '../../features/search/search-state'
 import type { TaskSnapshot } from '../../features/tasks/task-model'
+import type { TaskId } from '../../lib/contracts'
 
 type NavigationItem = {
   label: string
@@ -48,9 +49,11 @@ type AppShellProps = {
   activeHash?: string
   onSearchSelect?: (result: SearchResultModel) => void
   notifications?: TaskSnapshot[]
+  onCancelTask?: (taskId: TaskId) => void
+  onRetryTask?: (taskId: TaskId) => void
 }
 
-export function AppShell({ children, activeHash = '#catalog', onSearchSelect, notifications = [] }: AppShellProps): ReactNode {
+export function AppShell({ children, activeHash = '#catalog', onSearchSelect, notifications = [], onCancelTask, onRetryTask }: AppShellProps): ReactNode {
   const [searchOpen, setSearchOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const { query, setQuery, response, isSearching } = useNativeSearch()
@@ -121,8 +124,13 @@ export function AppShell({ children, activeHash = '#catalog', onSearchSelect, no
                 <ul className="mt-3 space-y-2">
                   {notifications.slice(0, 8).map((task) => (
                     <li key={task.taskId} className="rounded-xl bg-x-paper p-3 text-sm">
-                      <p className="font-medium">{task.phase}</p>
+                      <div className="flex items-center gap-2">
+                        {!['Succeeded', 'Failed', 'Canceled', 'Interrupted'].includes(task.state) && <LoaderCircle aria-label="In progress" className="animate-spin text-x-mint-strong" size={14} />}
+                        <p className="font-medium">{task.phase}</p>
+                      </div>
                       <p className="mt-1 text-xs text-x-muted">{task.state.replace(/([a-z])([A-Z])/g, '$1 $2')}</p>
+                      {onCancelTask && !['Succeeded', 'Failed', 'Canceled', 'Interrupted'].includes(task.state) && <button type="button" onClick={() => onCancelTask(task.taskId)} className="mt-2 text-xs font-semibold text-x-danger">Cancel</button>}
+                      {onRetryTask && ['Failed', 'Interrupted', 'NeedsAction'].includes(task.state) && <button type="button" onClick={() => onRetryTask(task.taskId)} className="mt-2 text-xs font-semibold text-x-mint-strong">Retry</button>}
                     </li>
                   ))}
                 </ul>

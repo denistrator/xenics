@@ -54,7 +54,7 @@ Search coverage messages expose indexed and total source counts while coverage i
 
 Native source listing enriches persisted source records with their database update timestamp and a symlink-safe recursive size calculation. The frontend displays these values as optional operational metadata and does not use them for identity, deletion, or editable presentation metadata.
 
-The local release-readiness gate includes native formatting, the full frontend suite, E2E typechecking, packaged-build checks, and the five macOS desktop smoke specs. Hosted Windows/Linux execution, clean-user installation, signing, and notarization remain distribution-environment checks.
+The local release-readiness gate includes native formatting, the full frontend suite, E2E typechecking, packaged-build checks, and the six macOS desktop E2E specs. Hosted Windows/Linux execution, clean-user installation, signing, and notarization remain distribution-environment checks.
 
 Reader navigation is optional document data composed of labeled relative paths and nested children. The workspace routes a selected item through the active tab’s existing history transition; absent navigation data, the sidebar continues to list open tabs.
 

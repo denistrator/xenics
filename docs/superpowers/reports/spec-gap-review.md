@@ -17,7 +17,8 @@ Linux or Windows desktop-launch harness.
 | Add local assets and syntax highlighting | ✅ Done | Safe relative assets with offline fallback; `highlight.js` highlighting; 75 frontend tests pass |
 | Connect native notifications to task outcomes | ✅ Done | Tauri notification plugin, permission flow, focus/setting policy, terminal deduplication; 77 frontend tests pass |
 | Add measured virtualization/lazy loading | ✅ Done | Shared virtual list/grid primitives; 81 frontend tests, build, and E2E typecheck pass |
-| Expand desktop acceptance coverage | ⬜ Pending | Linux/Windows launcher strategy remains separate |
+| Expand desktop acceptance coverage | ✅ Done | 6 WebDriver spec files and 9 macOS/native scenarios pass |
+| Design Linux/Windows launcher strategy | ⏸ Deferred | Existing hosted smoke limitation remains intentionally out of scope |
 
 ## Confirmed functional gaps
 
@@ -59,12 +60,14 @@ when layout metrics are unavailable in non-browser test environments.
 
 ### 6. Desktop acceptance coverage
 
-The macOS suite and release bundles pass. Linux and Windows release bundles
-also build, but their smoke launches cannot currently connect to the embedded
-WebDriver server. In addition, the checked-in E2E scenarios cover the shell and
-selected catalog/settings surfaces; the full acceptance matrix (local folders,
-repository lifecycle, recovery injections, exact search behavior, reset, deep
-links, and cross-platform native actions) is not yet represented end to end.
+The macOS suite and release bundles pass, and the checked-in scenarios now cover
+the shell, catalog filtering/details, settings scheduling, notification/reset
+affordances, and search-view entry. The full acceptance matrix (real local
+folders, repository mutations, recovery injections, exact search behavior,
+reset execution, deep links, and cross-platform native actions) is not yet
+represented end to end. Linux and Windows release bundles build, but their
+smoke launches cannot currently connect to the embedded WebDriver server; that
+launcher strategy is intentionally deferred.
 
 ## Intentionally not gaps
 
@@ -87,5 +90,6 @@ links, and cross-platform native actions) is not yet represented end to end.
 4. ✅ Connect native notifications to deduplicated task outcomes.
 5. ✅ Add virtualization/lazy loading after measuring representative catalog,
    results, and activity sizes.
-6. ⬜ Expand desktop acceptance scenarios and design a separate cross-platform
-   launcher strategy for Linux and Windows.
+6. ✅ Expand desktop acceptance scenarios.
+7. ⏸ Defer the separate cross-platform launcher strategy for Linux and Windows
+   until the platform-specific WebDriver startup issue is investigated.

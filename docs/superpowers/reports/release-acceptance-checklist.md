@@ -1,6 +1,6 @@
 # Xenics release acceptance checklist
 
-Updated: 2026-09-10
+Updated: 2026-09-11
 
 This checklist separates repository-verifiable release properties from checks
 that require an installed bundle and a platform distribution environment.
@@ -14,7 +14,7 @@ Pending items are not treated as automated passes.
 | Frontend production build | Passed | `npm run build` |
 | Rust test suite without E2E feature | Passed | 63 tests passed |
 | Frontend test suite | Passed | 71 tests passed |
-| Native desktop E2E | Passed | 6 spec files passed through the real Tauri WebDriver server |
+| Native desktop E2E | Passed | 6 spec files and 9 scenarios passed through the real Tauri WebDriver server; catalog/settings, notification/reset controls, and search-view entry are covered |
 | E2E typecheck | Passed | `npm run typecheck:e2e` |
 | Rust formatting | Passed | `cargo fmt --manifest-path src-tauri/Cargo.toml -- --check` |
 | Production dependency audit | Passed | `npm run audit:prod`; 0 vulnerabilities |

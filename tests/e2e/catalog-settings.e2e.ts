@@ -40,4 +40,16 @@ describe('Xenics catalog and settings', () => {
     await $('button[aria-label="SQLite details"]').click()
     await expect($('[role="dialog"][aria-label="SQLite details"]')).toBeDisplayed()
   })
+
+  it('opens the notification panel and exposes reset safety controls', async () => {
+    await expect($('[role="application"][aria-label="Xenics"]')).toBeDisplayed()
+    await $('button[aria-label="Open notifications"]').click()
+    await expect($('[aria-label="Notifications"]')).toBeDisplayed()
+    await expect($('[aria-label="Notifications"]')).toHaveText(expect.stringContaining('No recent activity'))
+
+    await clickVisibleNavigationLink('#settings')
+    await expect($('h1=Settings')).toBeDisplayed()
+    await expect($('input[type="checkbox"]')).toBeDisplayed()
+    await expect($('button*=Preview full reset')).toBeDisplayed()
+  })
 })

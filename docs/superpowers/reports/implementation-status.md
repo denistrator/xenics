@@ -34,6 +34,7 @@ Updated: 2026-09-10
 - Organization hooks and a dedicated route now hydrate native bookmarks, collection/tag records, and bookmark assignments into the existing panels; browser-only mode remains an empty local fallback.
 - Reader session state now has a durable native contract and the reader persists/restores validated tab targets and the active tab when running inside Tauri; browser-mode fixtures remain isolated from native storage.
 - Reader tabs now expose explicit per-tab back/forward controls, preserve navigable history, and discard stale forward entries when a new internal link is opened.
+- Reader code blocks now expose line numbers and an accessible line-wrapping toggle alongside copy/download actions.
 - Recovery presentation now has reusable `InlineError` and `RecoveryActions` primitives, and task failures use the same structured retry-action surface.
 - The app shell now exposes a toggleable notification panel fed by the ordered task feed, with an active-task loader, recent phases, and cancel/retry actions while detailed recovery remains in the task panel.
 - Native settings persistence supports allowlisted get/update commands with validation for unknown keys, control characters, and oversized values. The UI is connected, including the ownership-aware full reset flow.

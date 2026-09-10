@@ -1,4 +1,4 @@
-import { Check, Clipboard, Download } from 'lucide-react'
+import { Check, Clipboard, Download, WrapText } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 
 type CopyState = 'idle' | 'copied' | 'failed'
@@ -21,6 +21,7 @@ function getDownloadExtension(language: string): string {
 
 export function CodeBlock({ code, language = 'text' }: CodeBlockProps): ReactNode {
   const [copyState, setCopyState] = useState<CopyState>('idle')
+  const [wrapLines, setWrapLines] = useState(false)
   const resetCopyStateTimer = useRef<number | undefined>(undefined)
 
   useEffect(() => () => {
@@ -64,6 +65,9 @@ export function CodeBlock({ code, language = 'text' }: CodeBlockProps): ReactNod
       <header className="flex items-center justify-between border-b border-x-code-muted/20 px-4 py-3 text-xs">
         <span className="font-mono text-x-code-muted">{language}</span>
         <div className="flex gap-1">
+          <button type="button" aria-label={wrapLines ? 'Disable line wrapping' : 'Enable line wrapping'} aria-pressed={wrapLines} onClick={() => setWrapLines((current) => !current)} className="rounded-lg p-2 hover:bg-x-code-muted/20">
+            <WrapText aria-hidden="true" size={15} />
+          </button>
           <button
             type="button"
             aria-label={copyLabel}
@@ -82,7 +86,7 @@ export function CodeBlock({ code, language = 'text' }: CodeBlockProps): ReactNod
           </button>
         </div>
       </header>
-      <pre className="overflow-x-auto p-4 text-sm leading-6"><code>{code}</code></pre>
+      <pre className={`${wrapLines ? 'whitespace-pre-wrap break-words' : 'overflow-x-auto'} p-4 text-sm leading-6`}><code>{code.split('\n').map((line, index) => <span key={`${index}-${line}`} className="block"><span aria-hidden="true" className="mr-4 inline-block w-6 select-none text-right text-x-code-muted">{index + 1}</span>{line}</span>)}</code></pre>
     </section>
   )
 }

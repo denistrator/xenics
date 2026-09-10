@@ -3,6 +3,7 @@ import { spawn, type ChildProcess } from 'node:child_process'
 
 let viteProcess: ChildProcess | undefined
 let xenicsProcess: ChildProcess | undefined
+let xenicsOutput = ''
 
 async function waitForDevServer() {
   for (let attempt = 0; attempt < 30; attempt += 1) {
@@ -29,7 +30,7 @@ async function waitForEmbeddedWebDriver() {
     await new Promise((resolve) => setTimeout(resolve, 250))
   }
 
-  throw new Error('Embedded WebDriver did not become ready on port 4445')
+  throw new Error(`Embedded WebDriver did not become ready on port 4445. Tauri output: ${xenicsOutput || '(no output)'}`)
 }
 
 const binaryName = process.platform === 'win32' ? 'xenics.exe' : 'xenics'
@@ -69,8 +70,17 @@ export const config = {
       : []
     xenicsProcess = spawn(launchCommand, launchArgs, {
       cwd: process.cwd(),
-      stdio: 'ignore',
+      stdio: ['ignore', 'pipe', 'pipe'],
       env: { ...process.env, TAURI_WEBDRIVER_PORT: '4445' },
+    })
+    xenicsProcess.stdout?.on('data', (chunk: Buffer) => {
+      xenicsOutput = `${xenicsOutput}${chunk.toString()}`.slice(-4_000)
+    })
+    xenicsProcess.stderr?.on('data', (chunk: Buffer) => {
+      xenicsOutput = `${xenicsOutput}${chunk.toString()}`.slice(-4_000)
+    })
+    xenicsProcess.on('error', (error) => {
+      xenicsOutput = `${xenicsOutput}${error.message}`.slice(-4_000)
     })
     await waitForEmbeddedWebDriver()
   },

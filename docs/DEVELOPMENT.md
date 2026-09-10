@@ -46,6 +46,12 @@ npm run test:e2e
 
 The E2E harness uses an isolated test scope. Do not point it at a personal Xenics library.
 
+The repository also defines a desktop acceptance workflow for macOS, Ubuntu,
+and Windows. It runs the real desktop smoke suite and builds a normal release
+bundle on each runner. CI can verify build and runtime behavior, but clean-user
+installation, OS deep-link registration, signing, and notarization still need
+platform-owner checks and credentials.
+
 Native lifecycle commands are registered during Tauri startup. The application
 data scope contains `user.sqlite` for source/task/user records and
 `search.sqlite` for disposable FTS5 records. A download request validates its

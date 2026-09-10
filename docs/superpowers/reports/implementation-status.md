@@ -14,7 +14,7 @@ Updated: 2026-09-10
 - Queueable repository downloads now use cancellable task operations; native task listing, cancellation, and retry commands are registered.
 - Native task events are emitted on `task://<task-id>` with monotonic sequences and are forwarded through the Tauri event bridge.
 - React now hydrates the task panel from native snapshots, subscribes only to active tasks, cleans up listeners, and ignores stale or terminal-reopening events.
-- Historical local macOS validation covered the desktop shell; the current regression counts are recorded below. Native E2E shell assertions start successfully, but completion is currently blocked by the installed WebDriver service's focus-recovery timeout.
+- Historical local macOS validation covered the desktop shell; the current regression counts are recorded below. Native E2E shell assertions now start through the direct embedded WebDriver connection; macOS passes locally and in hosted CI, while Linux and Windows remain under platform-launch investigation.
 
 ## Implemented locally
 
@@ -90,7 +90,7 @@ Updated: 2026-09-10
 - Global Update all now opens a review dialog before queueing installed sources, clearly labels website-only sources as skipped, and keeps native policy enforcement authoritative.
 - Catalog filtering is now functional for category, capability, and installation state; organization bookmark cards now have an explicit open action instead of a no-op handler.
 - Final local acceptance verification passed for E2E typecheck, packaged-build verification, and all six macOS WebDriver specs, including catalog filtering/details and scheduled-update settings selection.
-- Cross-platform desktop acceptance is now configured in `.github/workflows/desktop-acceptance.yml` for macOS, Ubuntu, and Windows, including real smoke runs, Ubuntu Xvfb setup, and normal release-bundle builds. Those hosted jobs and clean-user installer/deep-link/signing checks remain pending until the workflow executes with the required runner and distribution credentials.
+- Cross-platform desktop acceptance is now configured in `.github/workflows/desktop-acceptance.yml` for macOS, Ubuntu, and Windows, including real smoke runs, Ubuntu Xvfb setup, and normal release-bundle builds. Hosted run [34444883153](https://github.com/denistrator/xenics/actions/runs/34444883153) passes macOS smoke and all three release bundles; Linux and Windows smoke still fail to expose the embedded WebDriver server and remain under investigation.
 - The native desktop suite connects directly to the embedded WebDriver server because the published service/plugin pair has an incompatible automatic window-focus hook; the workaround keeps the real Tauri binary and WebDriver protocol in coverage while avoiding that optional hook.
 - A retained [release acceptance checklist](release-acceptance-checklist.md) now records local macOS evidence separately from installed-bundle, hosted CI, and distribution-credential checks that remain pending.
 

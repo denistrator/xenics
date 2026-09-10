@@ -41,15 +41,14 @@ artifact, not inferred from a development run.
 
 | Check | Result |
 | --- | --- |
-| Hosted macOS acceptance workflow | Pending: no Git remote is configured in this checkout |
-| Hosted Ubuntu acceptance workflow | Pending: no Git remote is configured in this checkout |
-| Hosted Windows acceptance workflow | Pending: no Git remote is configured in this checkout |
+| Hosted macOS acceptance workflow | Passed: smoke and release bundle in [run 34444883153](https://github.com/denistrator/xenics/actions/runs/34444883153) |
+| Hosted Ubuntu acceptance workflow | Partial: release bundle passed; desktop smoke still fails before WebDriver session creation in [run 34444883153](https://github.com/denistrator/xenics/actions/runs/34444883153) |
+| Hosted Windows acceptance workflow | Partial: release bundle passed; desktop smoke still fails before WebDriver session creation in [run 34444883153](https://github.com/denistrator/xenics/actions/runs/34444883153) |
 | macOS signing | Pending: locally generated app is ad-hoc/linker-signed; distribution identity is not available |
 | macOS notarization | Pending: notarization credentials are not available |
 
 The workflow is defined in `.github/workflows/desktop-acceptance.yml`. It
 retains platform bundles for 14 days, installs Xvfb on Ubuntu for native WebView
 sessions, uses read-only repository permissions, cancels superseded runs, and
-bounds each job. Once a repository remote and distribution credentials are
-available, update this checklist with runner logs, artifact paths, OS versions,
-and the clean-profile results.
+bounds each job. Hosted CI is now available; update this checklist with the
+remaining clean-profile results and distribution credentials when available.

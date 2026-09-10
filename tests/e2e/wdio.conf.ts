@@ -1,9 +1,11 @@
+import { access } from 'node:fs/promises'
 import { join } from 'node:path'
 import { spawn, type ChildProcess } from 'node:child_process'
 
 let viteProcess: ChildProcess | undefined
 let xenicsProcess: ChildProcess | undefined
 let xenicsOutput = ''
+let xenicsExit: { code: number | null; signal: NodeJS.Signals | null } | undefined
 
 async function waitForDevServer() {
   for (let attempt = 0; attempt < 30; attempt += 1) {
@@ -30,7 +32,10 @@ async function waitForEmbeddedWebDriver() {
     await new Promise((resolve) => setTimeout(resolve, 250))
   }
 
-  throw new Error(`Embedded WebDriver did not become ready on port 4445. Tauri output: ${xenicsOutput || '(no output)'}`)
+  const exitDetails = xenicsExit
+    ? ` Process exited with code ${xenicsExit.code ?? 'null'} and signal ${xenicsExit.signal ?? 'none'}.`
+    : ''
+  throw new Error(`Embedded WebDriver did not become ready on port 4445.${exitDetails} Tauri output: ${xenicsOutput || '(no output)'}`)
 }
 
 const binaryName = process.platform === 'win32' ? 'xenics.exe' : 'xenics'
@@ -64,10 +69,18 @@ export const config = {
     })
     await waitForDevServer()
     const applicationPath = process.env.XENICS_APP_PATH ?? join(process.cwd(), 'src-tauri/target/debug', binaryName)
-    const launchCommand = process.platform === 'linux' ? 'xvfb-run' : applicationPath
+    await access(applicationPath)
+
+    const launchCommand = process.platform === 'linux'
+      ? 'xvfb-run'
+      : process.platform === 'win32'
+        ? process.env.ComSpec ?? 'cmd.exe'
+        : applicationPath
     const launchArgs = process.platform === 'linux'
       ? ['--auto-servernum', '--server-args=-screen 0 1280x800x24', applicationPath]
-      : []
+      : process.platform === 'win32'
+        ? ['/d', '/s', '/c', applicationPath]
+        : []
     xenicsProcess = spawn(launchCommand, launchArgs, {
       cwd: process.cwd(),
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -81,6 +94,9 @@ export const config = {
     })
     xenicsProcess.on('error', (error) => {
       xenicsOutput = `${xenicsOutput}${error.message}`.slice(-4_000)
+    })
+    xenicsProcess.on('exit', (code, signal) => {
+      xenicsExit = { code, signal }
     })
     await waitForEmbeddedWebDriver()
   },

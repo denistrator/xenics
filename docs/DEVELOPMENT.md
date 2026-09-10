@@ -89,6 +89,11 @@ The primary target is desktop macOS, Windows, and Linux. Mobile support is a fut
 
 ## Dependency and security review
 
-Use the committed lockfiles. Review `npm audit` and Rust advisories deliberately; do not apply forceful automatic upgrades without checking compatibility. Dependencies that parse untrusted documentation must be evaluated for safe, non-executable behavior.
+Use the committed lockfiles. Run `npm run audit:prod` before release; the
+current production dependency set has no high-severity advisories. The full
+`npm audit` also covers the development-only WebDriver/Vitest toolchain and may
+report transitive issues there; do not ship those packages or apply forceful
+automatic upgrades without checking compatibility. Dependencies that parse
+untrusted documentation must be evaluated for safe, non-executable behavior.
 
 Update this guide whenever setup, supported platforms, scripts, test requirements, or release prerequisites change.

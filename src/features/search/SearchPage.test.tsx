@@ -10,6 +10,7 @@ describe('SearchPage', () => {
         onOpen={() => undefined}
         query="hooks"
         onQueryChange={() => undefined}
+        categoryBySource={{}}
       />,
     )
 

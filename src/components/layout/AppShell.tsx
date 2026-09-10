@@ -5,6 +5,7 @@ import { useNativeSearch } from '../../features/search/search-hooks'
 import type { SearchResultModel } from '../../features/search/search-state'
 import type { SearchReaderTarget } from '../../features/search/search-state'
 import { SearchPage } from '../../features/search/SearchPage'
+import { repositories } from '../../features/catalog/catalog-model'
 import type { TaskSnapshot } from '../../features/tasks/task-model'
 import type { TaskId } from '../../lib/contracts'
 
@@ -143,7 +144,7 @@ export function AppShell({ children, activeHash = '#catalog', onSearchSelect, on
           )}
         </header>
 
-        <div className="mx-auto max-w-[1500px] px-5 py-8 md:px-10 md:py-12">{activeHash === '#search' ? <SearchPage response={response} query={query} onQueryChange={setQuery} onOpen={(target) => onSearchTarget?.(target)} /> : children}</div>
+        <div className="mx-auto max-w-[1500px] px-5 py-8 md:px-10 md:py-12">{activeHash === '#search' ? <SearchPage response={response} query={query} onQueryChange={setQuery} categoryBySource={Object.fromEntries(repositories.map((repository) => [repository.id, repository.category]))} onOpen={(target) => onSearchTarget?.(target)} /> : children}</div>
       </section>
       <SearchPalette
         open={searchOpen}

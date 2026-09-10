@@ -56,7 +56,7 @@ The reader accepts only the parsed native document model. React renders text nod
 
 Global search is command-backed through a deferred React query boundary. The palette presents loading and native error states, while the Rust service remains responsible for FTS normalization, ranking, and input safety.
 
-The full search results page is reachable at `#search` from primary navigation and shares the native query state with the command palette, so query changes and result opening use one application boundary.
+The full search results page is reachable at `#search` from primary navigation and shares the native query state with the command palette, so query changes and result opening use one application boundary. Its repository, document-type, and category filters operate on native result metadata plus the catalog’s source-category map.
 
 Reader presentation exposes both compact and comfortable density in addition to bounded zoom.
 

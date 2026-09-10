@@ -8,11 +8,11 @@ const results = [
 
 describe('filterSearchResults', () => {
   it('filters by source and document type', () => {
-    expect(filterSearchResults(results, 'reference', { source: 'react', documentType: 'md', exact: false })).toHaveLength(1)
+    expect(filterSearchResults(results, 'reference', { source: 'react', documentType: 'md', category: 'Frontend', exact: false }, { react: 'Frontend' })).toHaveLength(1)
   })
 
   it('requires the complete query when exact matching is enabled', () => {
-    expect(filterSearchResults(results, 'useEffect reference', { source: 'All', documentType: 'All', exact: true })).toHaveLength(1)
-    expect(filterSearchResults(results, 'effect reference', { source: 'All', documentType: 'All', exact: true })).toHaveLength(0)
+    expect(filterSearchResults(results, 'useEffect reference', { source: 'All', documentType: 'All', category: 'All', exact: true })).toHaveLength(1)
+    expect(filterSearchResults(results, 'effect reference', { source: 'All', documentType: 'All', category: 'All', exact: true })).toHaveLength(0)
   })
 })

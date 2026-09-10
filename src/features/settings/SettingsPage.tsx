@@ -136,6 +136,7 @@ export function SettingsPage({ initialSettings, onSettingsChange }: SettingsPage
           <label className="block space-y-2">
             <span className="font-semibold">Automatic update checks</span>
             <select
+              aria-label="Automatic update checks"
               value={settings.updateSchedule}
               onChange={handleScheduleChange}
               className="block w-full rounded-lg border border-x-line bg-x-paper px-3 py-2 sm:max-w-xs"

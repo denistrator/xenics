@@ -91,6 +91,7 @@ Updated: 2026-09-10
 - Catalog filtering is now functional for category, capability, and installation state; organization bookmark cards now have an explicit open action instead of a no-op handler.
 - Final local acceptance verification passed: E2E typecheck, packaged-build verifier, and all five macOS WebDriver specs. The suite still emits known non-failing Tauri invoke-timeout and mock-store cleanup warnings while the app remains healthy.
 - Cross-platform desktop acceptance is now configured in `.github/workflows/desktop-acceptance.yml` for macOS, Ubuntu, and Windows, including real smoke runs and normal release-bundle builds. Those hosted jobs and clean-user installer/deep-link/signing checks remain pending until the workflow executes with the required runner and distribution credentials.
+- The native desktop smoke suite remains intentionally limited to stable shell checks until the installed WebDriver service's automatic Tauri window-focus recovery is fixed upstream; its repeated five-second `core.invoke` timeout is non-failing but makes longer interaction scenarios unreliable. UI interaction coverage remains in component tests and should be promoted to native E2E after that harness issue is resolved.
 
 ## Safety note
 

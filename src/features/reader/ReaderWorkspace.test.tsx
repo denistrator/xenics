@@ -86,4 +86,14 @@ describe('ReaderWorkspace', () => {
     })
     await vi.waitFor(() => expect(writeText).toHaveBeenCalledWith('xenics://docs/react?ref=main&path=README.md'))
   })
+
+  it('exposes source folder and source URL actions for the active tab', () => {
+    const onOpenSourceFolder = vi.fn()
+    const onOpenSourceUrl = vi.fn()
+    render(<ReaderWorkspace initialTabs={[tab]} document={readerDocument} onOpenSourceFolder={onOpenSourceFolder} onOpenSourceUrl={onOpenSourceUrl} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Open source folder' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Open source URL' }))
+    expect(onOpenSourceFolder).toHaveBeenCalledWith('react')
+    expect(onOpenSourceUrl).toHaveBeenCalledWith('react')
+  })
 })

@@ -88,6 +88,8 @@ export function App() {
             history: [readerTarget.path],
           }]}
           onOpenExternalUrl={openExternalUrl}
+          onOpenSourceFolder={openSourceFolder}
+          onOpenSourceUrl={openSourceWebsite}
         />
       ) : showSettings ? <SettingsPage /> : showOrganization ? <OrganizationPage onOpenBookmark={(bookmark) => setReaderTarget({ ...bookmark, matchIndex: 0, location: { line: 1, column: 1 } })} /> : <CatalogPage onDownload={downloadRepositories} onUpdate={updateRepository} onRemove={removeRepository} onAddLocalSource={addLocalSource} onOpenFolder={openSourceFolder} onOpenWebsite={openSourceWebsite} />}
       {tasks.length > 0 && (

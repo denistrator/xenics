@@ -9,9 +9,11 @@ type ReaderWorkspaceProps = {
   initialTabs: ReaderTab[]
   document?: ReaderDocument
   onOpenExternalUrl?: (url: string) => void
+  onOpenSourceFolder?: (sourceId: string) => void
+  onOpenSourceUrl?: (sourceId: string) => void
 }
 
-export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl }: ReaderWorkspaceProps): ReactNode {
+export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl, onOpenSourceFolder, onOpenSourceUrl }: ReaderWorkspaceProps): ReactNode {
   const [tabs, setTabs] = useState<ReaderTab[]>(() => initialTabs)
   const [activeTabId, setActiveTabId] = useState<string | undefined>(() => initialTabs[0]?.id)
   const [closedTabs, setClosedTabs] = useState<ReaderTab[]>([])
@@ -207,6 +209,8 @@ export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl }: Re
           <button type="button" aria-label={deepLinkCopied ? 'Deep link copied' : 'Copy deep link'} onClick={() => void copyDeepLink()} className="rounded-lg p-2 text-x-muted hover:bg-x-panel">
             {deepLinkCopied ? <Check aria-hidden="true" size={15} /> : <Copy aria-hidden="true" size={15} />}
           </button>
+          <button type="button" aria-label="Open source folder" disabled={!currentTab || !onOpenSourceFolder} onClick={() => currentTab && onOpenSourceFolder?.(currentTab.sourceId)} className="rounded-lg px-2 text-xs text-x-muted hover:bg-x-panel disabled:opacity-40">Folder</button>
+          <button type="button" aria-label="Open source URL" disabled={!currentTab || !onOpenSourceUrl} onClick={() => currentTab && onOpenSourceUrl?.(currentTab.sourceId)} className="rounded-lg px-2 text-xs text-x-muted hover:bg-x-panel disabled:opacity-40">Source</button>
           <button type="button" aria-label="Zoom out" disabled={zoom <= 80} onClick={() => changeZoom(-10)} className="rounded-lg px-2 text-xs text-x-muted hover:bg-x-panel disabled:opacity-40">−</button>
           <span aria-label="Reader zoom" className="self-center px-1 text-xs text-x-muted">{zoom}%</span>
           <button type="button" aria-label="Zoom in" disabled={zoom >= 140} onClick={() => changeZoom(10)} className="rounded-lg px-2 text-xs text-x-muted hover:bg-x-panel disabled:opacity-40">+</button>

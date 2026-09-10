@@ -69,6 +69,7 @@ Updated: 2026-09-10
 - The packaged-release verifier now requires a real release bundle and checks the normal Cargo dependency graph for absence of the E2E WebDriver plugin, preventing test instrumentation from being mistaken for a distributable build.
 - Desktop deep-link registration is now configured for `xenics://`; incoming startup and runtime URLs are validated and routed to the reader, while invalid links are ignored safely. Clean installed-bundle verification remains platform-owner work.
 - Production dependency audit passed with zero high-severity vulnerabilities; the full audit’s remaining findings are development/test-toolchain transitive advisories and are documented separately from shipped runtime dependencies.
+- Native update commands now enforce the external-local-folder opt-in setting for both synchronous and queued updates; the policy is covered by a regression test at the command boundary.
 - Reader documents can now expose nested curated or generic navigation trees; the sidebar renders them with safe path/history navigation and falls back to open tabs when no tree is available.
 - Catalog installation hydration now consumes native source metadata, preserving selected refs and distinguishing local folders from Git sources while leaving editable display metadata independent.
 - Installed Files-only/custom sources now expose individual Update actions; Website-only entries remain excluded from update controls.

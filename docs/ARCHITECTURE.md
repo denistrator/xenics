@@ -138,6 +138,11 @@ Downloads, updates, indexing, and reconciliation run as isolated tasks with orde
 
 The task manager keeps operation identity, phase, attempt count, state, and structured failure data together. Automatic retry is limited to transient remote availability failures; authentication and other actionable failures remain manual.
 
+Update commands enforce the `allowLocalFolderUpdates` setting at the native
+boundary. Xenics-managed library sources may be updated normally; explicitly
+referenced folders outside that library are refused unless the user has opted
+in, even if a frontend caller attempts the command directly.
+
 Each task also emits ordered `TaskEvent` values on `task://<task-id>`. Sequence
 numbers are assigned by the task manager, and the Tauri adapter forwards the
 events without allowing the frontend to infer completion from dispatch alone.

@@ -416,6 +416,7 @@ pub fn update_source(
         .local_path
         .clone()
         .ok_or("source has no local path")?;
+    ensure_local_update_allowed(&state, &local_path)?;
     let remote_url = source
         .remote_url
         .clone()
@@ -462,6 +463,7 @@ pub fn start_update_source(
         .map_err(|error| error.message)?
         .ok_or("source is not installed")?;
     let local_path = source.local_path.ok_or("source has no local path")?;
+    ensure_local_update_allowed(&state, &local_path)?;
     let remote_url = source.remote_url.ok_or("source is not a Git source")?;
     let selected_ref = source.selected_ref;
     let shallow = source.clone_mode.as_deref() != Some("full");
@@ -580,9 +582,39 @@ fn is_safe_source_value(value: &str) -> bool {
     !value.trim().is_empty() && !value.chars().any(|character| character.is_control())
 }
 
+fn ensure_local_update_allowed(state: &AppState, local_path: &str) -> Result<(), String> {
+    let source_path = PathBuf::from(local_path)
+        .canonicalize()
+        .map_err(|error| error.to_string())?;
+    let library_root = state
+        .library_root
+        .canonicalize()
+        .map_err(|error| error.to_string())?;
+    if source_path.starts_with(&library_root) {
+        return Ok(());
+    }
+
+    let settings = state
+        .user_db
+        .get_settings()
+        .map_err(|error| error.message)?;
+    if settings
+        .get("allowLocalFolderUpdates")
+        .and_then(serde_json::Value::as_bool)
+        .unwrap_or(false)
+    {
+        Ok(())
+    } else {
+        Err("updates for external local folders are disabled in Settings".into())
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{is_safe_document_path, is_safe_source_value};
+    use super::{
+        ensure_local_update_allowed, is_safe_document_path, is_safe_source_value, AppState,
+    };
+    use tempfile::tempdir;
 
     #[test]
     fn document_paths_reject_absolute_and_cross_platform_traversal() {
@@ -597,5 +629,23 @@ mod tests {
         assert!(is_safe_source_value("local-docs"));
         assert!(!is_safe_source_value("  "));
         assert!(!is_safe_source_value("docs\n"));
+    }
+
+    #[test]
+    fn external_local_updates_require_explicit_setting() {
+        let temp = tempdir().unwrap();
+        let data_dir = temp.path().join("xenics-data");
+        let external = temp.path().join("external-repo");
+        std::fs::create_dir_all(&external).unwrap();
+        let state = AppState::open(data_dir).unwrap();
+
+        let error = ensure_local_update_allowed(&state, external.to_str().unwrap()).unwrap_err();
+        assert!(error.contains("disabled"));
+
+        state
+            .user_db
+            .update_settings(serde_json::json!({ "allowLocalFolderUpdates": true }))
+            .unwrap();
+        assert!(ensure_local_update_allowed(&state, external.to_str().unwrap()).is_ok());
     }
 }

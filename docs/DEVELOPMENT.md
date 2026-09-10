@@ -52,9 +52,10 @@ window-state IPC that the matching Rust plugin does not expose.
 
 The repository also defines a desktop acceptance workflow for macOS, Ubuntu,
 and Windows. It runs the real desktop smoke suite and builds a normal release
-bundle on each runner. CI can verify build and runtime behavior, but clean-user
-installation, OS deep-link registration, signing, and notarization still need
-platform-owner checks and credentials.
+bundle on each runner. The Ubuntu job installs Xvfb for the native WebView test
+session. CI can verify build and runtime behavior, but clean-user installation,
+OS deep-link registration, signing, and notarization still need platform-owner
+checks and credentials.
 
 `verify:packaged` also requires an actual release bundle, confirms the bundled
 SQLite configuration, and checks that the normal Cargo dependency graph does

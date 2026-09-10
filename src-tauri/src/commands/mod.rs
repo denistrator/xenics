@@ -184,6 +184,30 @@ pub fn open_source_website(state: State<'_, AppState>, source_id: String) -> Res
 }
 
 #[tauri::command]
+pub fn open_source_file(
+    state: State<'_, AppState>,
+    source_id: String,
+    path: String,
+) -> Result<(), String> {
+    if !is_safe_document_path(&path) {
+        return Err("document path is outside the source".into());
+    }
+    let source = state
+        .user_db
+        .find_source(&source_id)
+        .map_err(|error| error.message)?
+        .ok_or("source is not installed")?;
+    let root = PathBuf::from(source.local_path.ok_or("source has no local folder")?)
+        .canonicalize()
+        .map_err(|error| error.to_string())?;
+    let file = root.join(&path).canonicalize().map_err(|error| error.to_string())?;
+    if !file.starts_with(&root) || !file.is_file() {
+        return Err("source file does not exist".into());
+    }
+    tauri_plugin_opener::open_path(file, None::<&str>).map_err(|error| error.to_string())
+}
+
+#[tauri::command]
 pub fn download_source(
     state: State<'_, AppState>,
     id: String,

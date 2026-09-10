@@ -71,6 +71,10 @@ export function App() {
     void invokeCommand('open_external_url', { url })
   }
 
+  function openSourceFile(sourceId: string, path: string): void {
+    void invokeCommand('open_source_file', { sourceId, path })
+  }
+
   return (
     <AppShell
       activeHash={activeHash}
@@ -88,6 +92,7 @@ export function App() {
             history: [readerTarget.path],
           }]}
           onOpenExternalUrl={openExternalUrl}
+          onOpenSourceFile={openSourceFile}
           onOpenSourceFolder={openSourceFolder}
           onOpenSourceUrl={openSourceWebsite}
         />

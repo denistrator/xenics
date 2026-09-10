@@ -96,4 +96,11 @@ describe('ReaderWorkspace', () => {
     expect(onOpenSourceFolder).toHaveBeenCalledWith('react')
     expect(onOpenSourceUrl).toHaveBeenCalledWith('react')
   })
+
+  it('exposes the active source file action with its relative path', () => {
+    const onOpenSourceFile = vi.fn()
+    render(<ReaderWorkspace initialTabs={[tab]} document={readerDocument} onOpenSourceFile={onOpenSourceFile} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Open source file' }))
+    expect(onOpenSourceFile).toHaveBeenCalledWith('react', 'README.md')
+  })
 })

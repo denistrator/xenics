@@ -43,6 +43,7 @@ pub fn run() {
             commands::add_local_source,
             commands::open_source_folder,
             commands::open_source_website,
+            commands::open_source_file,
             commands::download_source,
             commands::start_download_source,
             commands::update_source,

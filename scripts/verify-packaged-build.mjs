@@ -24,6 +24,7 @@ const releaseChecks = {
   bundledSqlite: cargoManifest.includes('rusqlite') && cargoManifest.includes('bundled'),
   e2eFeatureIsOptional: cargoManifest.includes('e2e = ["dep:tauri-plugin-wdio-webdriver"]'),
   safeApplicationIdentifier: tauriConfig.identifier === 'com.xenics.desktop',
+  desktopDeepLinkConfigured: tauriConfig.plugins?.['deep-link']?.desktop?.schemes?.includes('xenics') === true,
   frontendBundlePresent: existsSync(join(root, 'dist/index.html')),
   releaseBundlePresent: bundleFiles.length > 0,
   e2eDriverAbsentFromReleaseDependencies: !releaseDependencyTree.includes('tauri-plugin-wdio-webdriver'),

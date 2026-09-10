@@ -14,7 +14,7 @@ Updated: 2026-09-10
 - Queueable repository downloads now use cancellable task operations; native task listing, cancellation, and retry commands are registered.
 - Native task events are emitted on `task://<task-id>` with monotonic sequences and are forwarded through the Tauri event bridge.
 - React now hydrates the task panel from native snapshots, subscribes only to active tasks, cleans up listeners, and ignores stale or terminal-reopening events.
-- Local macOS validation: 63 frontend tests, 60 Rust tests, E2E typecheck, production build, packaged-build verification, and 5/5 desktop E2E specs pass.
+- Historical local macOS validation covered the desktop shell; the current regression counts are recorded below. Native E2E shell assertions start successfully, but completion is currently blocked by the installed WebDriver service's focus-recovery timeout.
 
 ## Implemented locally
 
@@ -62,7 +62,7 @@ Updated: 2026-09-10
 - Deep-link anchors now survive in reader tabs and focus stable sanitized heading IDs in the rendered document.
 - Progressive search coverage now reports indexed and total source counts plus the remaining indexing count, while preserving the completed zero-result state.
 - Native source listing now provides authoritative update timestamps and symlink-safe directory sizes; catalog cards hydrate last-sync and disk-usage metadata when available.
-- Release-readiness regression passed locally: Rust formatting, 70 frontend tests, E2E typecheck, packaged verification, and 5/5 macOS desktop E2E specs. The known WebDriver/Tauri invoke-timeout and mock-store cleanup warnings remain non-failing.
+- Release-readiness regression passed locally for Rust formatting, frontend tests, E2E typecheck, and packaged verification. The current native E2E run does not complete because repeated WebDriver/Tauri invoke-timeout warnings stall the service before command completion; mock-store cleanup warnings are a separate known issue.
 - Native release-path formatting is now clean under `cargo fmt --check`; the full local acceptance sequence remains green after source-payload changes.
 - Local macOS release bundle verification passed: `npm run tauri -- build --ci` produced an arm64 `Xenics.app` and `Xenics_0.1.0_aarch64.dmg`; artifact inspection and `verify:packaged` passed. Clean-profile install, deep-link registration, signing/notarization, and Windows/Linux bundles remain platform-owner checks.
 - The cross-platform release workflow now retains each macOS, Ubuntu, and Windows bundle as a 14-day CI artifact, enabling the documented clean-profile installer and deep-link checks after hosted runs.
@@ -81,7 +81,7 @@ Updated: 2026-09-10
 - The app shell now exposes a toggleable notification panel fed by the ordered task feed, with an active-task loader, recent phases, and cancel/retry actions while detailed recovery remains in the task panel.
 - Native settings persistence supports allowlisted get/update commands with validation for unknown keys, control characters, and oversized values. The UI is connected, including the ownership-aware full reset flow.
 - React settings now hydrate from the native settings store and persist individual changes, while retaining local behavior and an inline warning when the native bridge cannot save.
-- Latest macOS release verification passed: 5/5 desktop E2E specs, with only the known non-failing WebDriver/Tauri invoke-timeout and mock-store cleanup warnings.
+- Latest macOS release verification passed for the native build and non-E2E checks; desktop E2E remains pending the WebDriver focus-recovery timeout fix.
 - Native recursive file watching reports supported document changes and filters Git/dependency/build folders; the indexer now consumes changed and deleted documents incrementally with cancellation and source-root containment checks.
 - Installed Git sources now expose native update and removal operations. Updates fetch, fast-forward, and re-index the selected source; removals clear derived search records first. Managed library folders may be deleted only through an explicit flag and containment check, while external/local folders remain user-owned.
 - Native custom-source registration now accepts a validated local folder, detects an optional Git remote, persists the source outside managed-library deletion scope, and defaults unknown local folders to Files-only capability.
@@ -89,7 +89,7 @@ Updated: 2026-09-10
 - Full reset is now preview-first and confirmation-bound. It clears durable user records and the derived search index, deletes only canonical managed folders inside the library, preserves external/local-folder sources, and is exposed from Settings with a destructive confirmation dialog.
 - Global Update all now opens a review dialog before queueing installed sources, clearly labels website-only sources as skipped, and keeps native policy enforcement authoritative.
 - Catalog filtering is now functional for category, capability, and installation state; organization bookmark cards now have an explicit open action instead of a no-op handler.
-- Final local acceptance verification passed: E2E typecheck, packaged-build verifier, and all five macOS WebDriver specs. The suite still emits known non-failing Tauri invoke-timeout and mock-store cleanup warnings while the app remains healthy.
+- Final local acceptance verification passed for E2E typecheck and packaged-build verification. All five macOS WebDriver shell specs were previously observed starting and asserting, but the current suite does not complete because of the known Tauri invoke-timeout behavior.
 - Cross-platform desktop acceptance is now configured in `.github/workflows/desktop-acceptance.yml` for macOS, Ubuntu, and Windows, including real smoke runs and normal release-bundle builds. Those hosted jobs and clean-user installer/deep-link/signing checks remain pending until the workflow executes with the required runner and distribution credentials.
 - The native desktop smoke suite remains intentionally limited to stable shell checks until the installed WebDriver service's automatic Tauri window-focus recovery is fixed upstream; its repeated five-second `core.invoke` timeout is non-failing but makes longer interaction scenarios unreliable. UI interaction coverage remains in component tests and should be promoted to native E2E after that harness issue is resolved.
 

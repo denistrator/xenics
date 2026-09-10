@@ -1,6 +1,6 @@
 import { ArrowLeft, ArrowRight, Check, Copy, PanelLeft, Pin, RotateCcw, X } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { DocumentView, type ReaderDocument, type ReaderLink } from './DocumentView'
+import { DocumentView, type ReaderDocument, type ReaderLink, type ReaderNavigationItem } from './DocumentView'
 import { closeOtherTabs, closeTab, closeTabsToRight, duplicateTab, pinTab, reorderTabs, type ReaderTab } from './tab-state'
 import { useReaderDocument } from './reader-hooks'
 import { hasNativeBridge, invokeCommand } from '../../lib/tauri'
@@ -113,6 +113,13 @@ export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl, onOp
     const nextPath = currentTab.history[currentIndex + direction]
     if (!nextPath) return
     setTabs((current) => current.map((tab) => tab.id === currentTab.id ? { ...tab, path: nextPath } : tab))
+  }
+
+  function openNavigationItem(item: ReaderNavigationItem): void {
+    if (!currentTab || item.path === currentTab.path) return
+    setTabs((current) => current.map((tab) => tab.id === currentTab.id
+      ? { ...tab, path: item.path, title: item.label, history: [...tab.history.slice(0, tab.history.indexOf(tab.path) + 1), item.path] }
+      : tab))
   }
 
   function focusAdjacentTab(currentTabId: string, direction: -1 | 1): void {
@@ -253,7 +260,7 @@ export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl, onOp
 
       {currentTab && visibleDocument ? (
         <div className={sidebarOpen ? 'grid md:grid-cols-[13rem_1fr]' : ''}>
-          {sidebarOpen && <aside aria-label="Reader sidebar" className="border-b border-x-line bg-x-paper p-4 md:border-b-0 md:border-r"><p className="mb-3 text-xs font-bold uppercase tracking-[.16em] text-x-muted">Open documents</p><nav className="space-y-1">{tabs.map((tab) => <button key={tab.id} type="button" onClick={() => setActiveTabId(tab.id)} className={`block w-full truncate rounded-lg px-3 py-2 text-left text-sm ${tab.id === currentTab.id ? 'bg-x-mint font-semibold text-x-ink' : 'text-x-muted hover:bg-x-panel'}`}>{tab.title}</button>)}</nav></aside>}
+          {sidebarOpen && <aside aria-label="Reader sidebar" className="border-b border-x-line bg-x-paper p-4 md:border-b-0 md:border-r"><p className="mb-3 text-xs font-bold uppercase tracking-[.16em] text-x-muted">{visibleDocument.navigation?.length ? 'Documentation' : 'Open documents'}</p><nav className="space-y-1">{visibleDocument.navigation?.length ? visibleDocument.navigation.map((item) => renderNavigationItem(item, openNavigationItem)) : tabs.map((tab) => <button key={tab.id} type="button" onClick={() => setActiveTabId(tab.id)} className={`block w-full truncate rounded-lg px-3 py-2 text-left text-sm ${tab.id === currentTab.id ? 'bg-x-mint font-semibold text-x-ink' : 'text-x-muted hover:bg-x-panel'}`}>{tab.title}</button>)}</nav></aside>}
           <div id={`panel-${currentTab.id}`} role="tabpanel" aria-labelledby={`tab-${currentTab.id}`} className="p-6 md:p-10"><DocumentView document={visibleDocument} onInternalLink={openInternalLink} onExternalLink={(link) => onOpenExternalUrl?.(link.target)} zoom={zoom} density={density} /></div>
         </div>
       ) : loadedDocument.loading ? (
@@ -264,6 +271,17 @@ export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl, onOp
         <p className="p-10 text-x-muted">Open a document to start reading.</p>
       )}
     </section>
+  )
+}
+
+function renderNavigationItem(item: ReaderNavigationItem, onOpen: (item: ReaderNavigationItem) => void, depth = 0): ReactNode {
+  return (
+    <div key={item.path} className="space-y-1">
+      <button type="button" onClick={() => onOpen(item)} className="block w-full truncate rounded-lg px-3 py-2 text-left text-sm text-x-muted hover:bg-x-panel" style={{ paddingLeft: `${0.75 + depth * 0.75}rem` }}>
+        {item.label}
+      </button>
+      {item.children?.map((child) => renderNavigationItem(child, onOpen, depth + 1))}
+    </div>
   )
 }
 

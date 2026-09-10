@@ -15,11 +15,18 @@ export type ReaderLink = {
   target: string
 }
 
+export type ReaderNavigationItem = {
+  label: string
+  path: string
+  children?: ReaderNavigationItem[]
+}
+
 export type ReaderDocument = {
   title: string
   source: string
   blocks: ReaderBlock[]
   links?: ReaderLink[]
+  navigation?: ReaderNavigationItem[]
 }
 
 const headingTags = {

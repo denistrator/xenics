@@ -58,6 +58,7 @@ Updated: 2026-09-10
 - Bookmark organization now offers a session-scoped quick action for assigning the last-used collection, alongside the explicit collection selector.
 - Reader documents now support safe unsupported-embed blocks with an offline explanation and an explicit validated browser-opening action.
 - Search results now highlight query terms in titles and excerpts using escaped, plain-text rendering; native ranking and retrieval remain unchanged.
+- Reader documents can now expose nested curated or generic navigation trees; the sidebar renders them with safe path/history navigation and falls back to open tabs when no tree is available.
 - Recovery presentation now has reusable `InlineError` and `RecoveryActions` primitives, and task failures use the same structured retry-action surface.
 - The app shell now exposes a toggleable notification panel fed by the ordered task feed, with an active-task loader, recent phases, and cancel/retry actions while detailed recovery remains in the task panel.
 - Native settings persistence supports allowlisted get/update commands with validation for unknown keys, control characters, and oversized values. The UI is connected, including the ownership-aware full reset flow.

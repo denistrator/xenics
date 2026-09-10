@@ -46,6 +46,8 @@ Unsupported reader embeds are represented as plain structured blocks. The render
 
 Search-result highlighting is a presentational transformation over already-sanitized title and excerpt strings. Query terms are regex-escaped before splitting, and the renderer uses text nodes plus `mark` elements without injecting HTML.
 
+Reader navigation is optional document data composed of labeled relative paths and nested children. The workspace routes a selected item through the active tab’s existing history transition; absent navigation data, the sidebar continues to list open tabs.
+
 Repository cards derive a safe source-type label from the source contract and render optional operational fields only when native state provides them. Paths are shown as summaries in the card and remain separate from editable display metadata.
 
 The global update action opens a review before queueing work. The review identifies every installed source known to the catalog, labels website-only sources as skipped, and leaves final eligibility enforcement to the native update policy.

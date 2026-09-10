@@ -141,4 +141,11 @@ describe('ReaderWorkspace', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Switch to compact density' }))
     expect(screen.getByRole('button', { name: 'Switch to comfortable density' })).toBeInTheDocument()
   })
+
+  it('uses supplied nested navigation instead of limiting the sidebar to open tabs', () => {
+    render(<ReaderWorkspace initialTabs={[tab]} document={{ ...readerDocument, navigation: [{ label: 'Guides', path: 'guides/index.md', children: [{ label: 'Hooks', path: 'guides/hooks.md' }] }] }} />)
+    expect(screen.getByRole('button', { name: 'Guides' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Hooks' }))
+    expect(screen.getByRole('tab', { name: 'Hooks' })).toHaveAttribute('aria-selected', 'true')
+  })
 })

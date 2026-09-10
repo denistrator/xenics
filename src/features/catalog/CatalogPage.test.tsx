@@ -125,4 +125,14 @@ describe('CatalogPage', () => {
     await waitFor(() => expect(onAddRemoteSource).toHaveBeenCalledWith({ id: 'custom-team-docs', displayName: 'Team docs', source: 'git@github.com:org/team-docs.git', selectedRef: 'main' }))
     expect(await screen.findByRole('heading', { name: 'Team docs' })).toBeInTheDocument()
   })
+
+  it('opens the local-source dialog when a folder path is dropped', () => {
+    render(<CatalogPage onAddLocalSource={vi.fn()} />)
+    const catalog = document.getElementById('catalog')!
+    const droppedFile = new File([], 'team-docs') as File & { path?: string }
+    Object.defineProperty(droppedFile, 'path', { value: '/tmp/team-docs' })
+    fireEvent.drop(catalog, { dataTransfer: { files: [droppedFile] } })
+    expect(screen.getByRole('dialog', { name: 'Add local source' })).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Folder path' })).toHaveValue('/tmp/team-docs')
+  })
 })

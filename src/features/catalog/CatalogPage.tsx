@@ -56,6 +56,7 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
   const [sourceName, setSourceName] = useState('')
   const [sourcePath, setSourcePath] = useState('')
   const [sourceError, setSourceError] = useState<string | null>(null)
+  const [dropActive, setDropActive] = useState(false)
   const [remoteSourceOpen, setRemoteSourceOpen] = useState(false)
   const [remoteSourceUrl, setRemoteSourceUrl] = useState('')
   const [remoteSourceName, setRemoteSourceName] = useState('')
@@ -268,7 +269,7 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
     : catalogRepositories.find(({ id }) => id === detailsRepositoryId)
 
   return (
-    <div id="catalog" className="space-y-9">
+    <div id="catalog" className={`space-y-9 ${dropActive ? 'rounded-2xl ring-2 ring-x-mint-strong ring-offset-4' : ''}`} onDragEnter={(event) => { event.preventDefault(); setDropActive(true) }} onDragOver={(event) => event.preventDefault()} onDragLeave={(event) => { if (event.currentTarget === event.target) setDropActive(false) }} onDrop={(event) => { event.preventDefault(); setDropActive(false); const droppedFile = event.dataTransfer.files[0] as (File & { path?: string }) | undefined; if (droppedFile?.path && onAddLocalSource) { setSourcePath(droppedFile.path); setSourceName(droppedFile.name || 'Local source'); setAddSourceOpen(true) } }}>
       <section className="grid gap-8 xl:grid-cols-[1fr_auto] xl:items-end">
         <div>
           <p className="mb-4 text-xs font-bold uppercase tracking-[.2em] text-x-mint-strong">

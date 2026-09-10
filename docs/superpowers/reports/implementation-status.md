@@ -70,7 +70,7 @@ Updated: 2026-09-10
 - Desktop deep-link registration is now configured for `xenics://`; incoming startup and runtime URLs are validated and routed to the reader, while invalid links are ignored safely. Clean installed-bundle verification remains platform-owner work.
 - Production dependency audit passed with zero high-severity vulnerabilities; the full audit’s remaining findings are development/test-toolchain transitive advisories and are documented separately from shipped runtime dependencies.
 - Native update commands now enforce the external-local-folder opt-in setting for both synchronous and queued updates; the policy is covered by a regression test at the command boundary.
-- Native search responses now use the derived database’s document count for coverage metadata instead of incorrectly equating coverage with matching-result count.
+- Native search responses now report distinct indexed readable sources versus readable installed sources for coverage metadata instead of incorrectly equating coverage with matching-result count.
 - Scheduled update availability is now wired end to end: the native service performs non-mutating Git remote comparisons according to the saved schedule, and the catalog refreshes visible update status while the app is open.
 - Packaged verification now machine-checks that the desktop `xenics` deep-link scheme is configured, and release CI runs the production dependency audit before building bundles.
 - Update-check snapshots now persist and restore last-attempt, last-success, availability, and next-due state across app restarts; scheduler round-trip coverage passes in Rust tests.

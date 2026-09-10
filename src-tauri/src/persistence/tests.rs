@@ -235,3 +235,17 @@ fn clearing_search_data_removes_documents_and_locations() {
 
     assert!(db.query_documents("alpha").unwrap().is_empty());
 }
+
+#[test]
+fn indexed_source_count_is_distinct_from_document_and_match_counts() {
+    let db = SearchDb::open_in_memory().unwrap();
+    db.replace_document("react", "a.md", "A", "", "", "", "")
+        .unwrap();
+    db.replace_document("react", "b.md", "B", "", "", "", "")
+        .unwrap();
+    db.replace_document("rust", "a.md", "A", "", "", "", "")
+        .unwrap();
+
+    assert_eq!(db.document_count().unwrap(), 3);
+    assert_eq!(db.indexed_source_count().unwrap(), 2);
+}

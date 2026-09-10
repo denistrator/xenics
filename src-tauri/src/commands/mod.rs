@@ -673,13 +673,25 @@ pub fn search_documents(state: State<'_, AppState>, query: String) -> Result<Sea
         .map_err(|error| error.message)?;
     let indexed = state
         .search_db
-        .document_count()
+        .indexed_source_count()
         .map_err(|error| error.message)?;
+    let total = state
+        .user_db
+        .list_sources()
+        .map_err(|error| error.message)?
+        .into_iter()
+        .filter(|source| {
+            matches!(
+                source.capability.as_str(),
+                "Readable" | "Partially readable"
+            )
+        })
+        .count() as u64;
     Ok(SearchReport {
         hits,
         indexed,
-        total: indexed,
-        complete: true,
+        total,
+        complete: indexed >= total,
     })
 }
 

@@ -94,9 +94,9 @@ Search records store source-relative document paths with normalized `/` separato
 
 The derived search database stores one parser-derived location per document and returns it with each hit. Frontend result targets preserve that location so later reader views can focus the corresponding source area without exposing absolute paths.
 
-Search responses also report the authoritative indexed-document count from the
-derived database; matching-hit counts are never used as an approximation of
-index coverage.
+Search responses report the authoritative count of readable sources represented
+in the derived database versus readable installed sources; matching-hit counts
+are never used as an approximation of index coverage.
 
 The application owns search-result navigation: selecting a result creates a reader tab from the typed target rather than coupling the palette directly to document loading. This keeps search replacement and reader recovery independently testable.
 

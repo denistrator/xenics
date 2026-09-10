@@ -220,6 +220,31 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
     }
   }
 
+  async function updateSelectedRepositories(): Promise<void> {
+    const installedSelection = catalogRepositories
+      .filter(({ id, status }) => selectedIds.includes(id) && status === 'Ready')
+      .map(({ id }) => id)
+    await updateRepositories(installedSelection)
+  }
+
+  function hideSelectedRepositories(): void {
+    setHiddenIds((current) => {
+      const next = new Set(current)
+      selectedIds.forEach((id) => next.add(id))
+      persistOrganization(pinnedIds, next)
+      return next
+    })
+    setSelectedIds([])
+    setSelectionAnchorId(null)
+  }
+
+  async function removeSelectedRepositories(): Promise<void> {
+    const selected = [...selectedIds]
+    await Promise.all(selected.map((repositoryId) => removeRepository(repositoryId)))
+    setSelectedIds([])
+    setSelectionAnchorId(null)
+  }
+
   async function addLocalSource(): Promise<void> {
     const displayName = sourceName.trim()
     const path = sourcePath.trim()
@@ -309,6 +334,11 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
             <Download aria-hidden="true" className="mr-2 inline" size={16} />
             {downloadButtonLabel}
           </button>
+          {selectedIds.length > 0 && <>
+            {onUpdate && <button type="button" onClick={() => void updateSelectedRepositories()} disabled={updateState === 'loading'} className="rounded-xl border border-x-line bg-x-panel px-4 py-3 text-sm font-semibold hover:bg-x-paper">Update selected ({selectedIds.length})</button>}
+            <button type="button" onClick={hideSelectedRepositories} className="rounded-xl border border-x-line bg-x-panel px-4 py-3 text-sm font-semibold hover:bg-x-paper">Hide selected ({selectedIds.length})</button>
+            {onRemove && <button type="button" onClick={() => void removeSelectedRepositories()} className="rounded-xl border border-x-line bg-x-panel px-4 py-3 text-sm font-semibold text-x-coral hover:bg-x-coral/10">Remove selected ({selectedIds.length})</button>}
+          </>}
           {onAddLocalSource && <><button type="button" onClick={() => setAddSourceOpen(true)} className="rounded-xl border border-x-line bg-x-panel px-4 py-3 text-sm font-semibold hover:bg-x-paper">Add local source</button><label className="cursor-pointer rounded-xl border border-x-line bg-x-panel px-4 py-3 text-sm font-semibold hover:bg-x-paper">Choose folder<input aria-label="Choose local folder" type="file" {...({ webkitdirectory: 'true', directory: 'true' } as InputHTMLAttributes<HTMLInputElement>)} onChange={handleFolderSelection} className="sr-only" /></label></>}
           {onAddRemoteSource && <button type="button" onClick={() => setRemoteSourceOpen(true)} className="rounded-xl border border-x-line bg-x-panel px-4 py-3 text-sm font-semibold hover:bg-x-paper">Add Git repository</button>}
           {installedIds.size > 0 && onUpdate && (

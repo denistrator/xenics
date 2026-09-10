@@ -54,6 +54,7 @@ Updated: 2026-09-10
 - Full search filtering now includes repository, document type, and catalog category.
 - Technology groups now show aggregate installation status and capability summaries, with group-level Download and Update actions that only target applicable sources.
 - Repository cards now expose typed operational metadata fields for source type, ref, local location, sync time, update availability, and disk usage; unavailable values remain omitted rather than guessed.
+- Multi-select catalog actions now support Update selected, Hide selected, and Remove selected with installed-source eligibility and selection cleanup after destructive organization actions.
 - Recovery presentation now has reusable `InlineError` and `RecoveryActions` primitives, and task failures use the same structured retry-action surface.
 - The app shell now exposes a toggleable notification panel fed by the ordered task feed, with an active-task loader, recent phases, and cancel/retry actions while detailed recovery remains in the task panel.
 - Native settings persistence supports allowlisted get/update commands with validation for unknown keys, control characters, and oversized values. The UI is connected, including the ownership-aware full reset flow.

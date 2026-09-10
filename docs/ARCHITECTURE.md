@@ -38,6 +38,8 @@ Catalog update and removal actions are thin UI adapters over native commands. Bu
 
 Technology groups are a presentation-level aggregation over stable repository IDs. Group actions expand to the same per-source download and update callbacks used by individual cards, so capability and installed-state eligibility remains visible and does not create a second lifecycle path.
 
+Selected catalog IDs remain UI-only state. Bulk update expands to installed IDs, while hide and remove reuse the individual organization/lifecycle callbacks and then clear selection to prevent stale actions.
+
 Repository cards derive a safe source-type label from the source contract and render optional operational fields only when native state provides them. Paths are shown as summaries in the card and remain separate from editable display metadata.
 
 The global update action opens a review before queueing work. The review identifies every installed source known to the catalog, labels website-only sources as skipped, and leaves final eligibility enforcement to the native update policy.

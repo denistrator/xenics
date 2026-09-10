@@ -170,4 +170,24 @@ describe('CatalogPage', () => {
     expect(within(reactCard).getByText('Git source')).toBeInTheDocument()
     expect(within(reactCard).getByText('Ref: main')).toBeInTheDocument()
   })
+
+  it('supports bulk update, hide, and remove actions for selected sources', async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined)
+    const onRemove = vi.fn().mockResolvedValue(undefined)
+    render(<CatalogPage onUpdate={onUpdate} onRemove={onRemove} />)
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Select React' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Select TypeScript' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Update selected (2)' }))
+    await waitFor(() => expect(onUpdate).toHaveBeenCalledWith('react'))
+    expect(onUpdate).toHaveBeenCalledWith('typescript')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Hide selected (2)' }))
+    expect(screen.queryByRole('heading', { name: 'React' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Filter repositories' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Show hidden sources' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Select React' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Remove selected (1)' }))
+    await waitFor(() => expect(onRemove).toHaveBeenCalledWith('react'))
+  })
 })

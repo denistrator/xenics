@@ -14,7 +14,7 @@ Updated: 2026-09-10
 - Queueable repository downloads now use cancellable task operations; native task listing, cancellation, and retry commands are registered.
 - Native task events are emitted on `task://<task-id>` with monotonic sequences and are forwarded through the Tauri event bridge.
 - React now hydrates the task panel from native snapshots, subscribes only to active tasks, cleans up listeners, and ignores stale or terminal-reopening events.
-- Local macOS validation: 58 frontend tests, 60 Rust tests, E2E typecheck, production build, packaged-build verification, and 5/5 desktop E2E specs pass.
+- Local macOS validation: 63 frontend tests, 60 Rust tests, E2E typecheck, production build, packaged-build verification, and 5/5 desktop E2E specs pass.
 
 ## Implemented locally
 

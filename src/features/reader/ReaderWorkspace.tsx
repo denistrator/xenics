@@ -1,4 +1,4 @@
-import { Copy, Pin, RotateCcw, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Copy, Pin, RotateCcw, X } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { DocumentView, type ReaderDocument, type ReaderLink } from './DocumentView'
 import { closeTab, duplicateTab, pinTab, type ReaderTab } from './tab-state'
@@ -82,8 +82,16 @@ export function ReaderWorkspace({ initialTabs, document }: ReaderWorkspaceProps)
     if (!nextPath) return
 
     setTabs((current) => current.map((tab) => tab.id === currentTab.id
-      ? { ...tab, path: nextPath, title: link.label, history: [...tab.history, nextPath] }
+      ? { ...tab, path: nextPath, title: link.label, history: [...tab.history.slice(0, tab.history.indexOf(tab.path) + 1), nextPath] }
       : tab))
+  }
+
+  function navigateHistory(direction: -1 | 1): void {
+    if (!currentTab) return
+    const currentIndex = currentTab.history.indexOf(currentTab.path)
+    const nextPath = currentTab.history[currentIndex + direction]
+    if (!nextPath) return
+    setTabs((current) => current.map((tab) => tab.id === currentTab.id ? { ...tab, path: nextPath } : tab))
   }
 
   function focusAdjacentTab(currentTabId: string, direction: -1 | 1): void {
@@ -162,6 +170,12 @@ export function ReaderWorkspace({ initialTabs, document }: ReaderWorkspaceProps)
           )
         })}
         <div className="ml-auto flex shrink-0 gap-1" role="toolbar" aria-label="Tab actions">
+          <button type="button" aria-label="Go back" disabled={!currentTab || currentTab.history.indexOf(currentTab.path) <= 0} onClick={() => navigateHistory(-1)} className="rounded-lg p-2 text-x-muted hover:bg-x-panel disabled:opacity-40">
+            <ArrowLeft aria-hidden="true" size={15} />
+          </button>
+          <button type="button" aria-label="Go forward" disabled={!currentTab || currentTab.history.indexOf(currentTab.path) >= (currentTab.history.length - 1)} onClick={() => navigateHistory(1)} className="rounded-lg p-2 text-x-muted hover:bg-x-panel disabled:opacity-40">
+            <ArrowRight aria-hidden="true" size={15} />
+          </button>
           <button type="button" aria-label="Reopen closed tab" onClick={reopenClosedTab} className="rounded-lg p-2 text-x-muted hover:bg-x-panel">
             <RotateCcw aria-hidden="true" size={15} />
           </button>

@@ -40,4 +40,24 @@ describe('ReaderWorkspace', () => {
     expect(screen.getAllByRole('tab')).toHaveLength(1)
     expect(screen.getByRole('tab', { name: /useEffect/i })).toHaveAttribute('aria-selected', 'true')
   })
+
+  it('supports back and forward navigation within the active tab', () => {
+    render(
+      <ReaderWorkspace
+        initialTabs={[tab]}
+        document={{
+          ...readerDocument,
+          links: [{ label: 'useEffect', target: 'hooks/use-effect.md' }],
+          blocks: [{ type: 'paragraph' as const, text: '[useEffect](hooks/use-effect.md)' }],
+        }}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('link', { name: 'useEffect' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
+    expect(screen.getByRole('button', { name: 'Go back' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Go forward' })).not.toBeDisabled()
+    fireEvent.click(screen.getByRole('button', { name: 'Go forward' }))
+    expect(screen.getByRole('tab', { name: /useEffect/i })).toHaveAttribute('aria-selected', 'true')
+  })
 })

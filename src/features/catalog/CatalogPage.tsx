@@ -8,6 +8,7 @@ import { TechnologyGroupCard } from './TechnologyGroupCard'
 import { defaultDownloadSelection, selectRange, toggleSelection } from './catalog-selection'
 import { SourceDetails } from './SourceDetails'
 import { hasNativeBridge, invokeCommand } from '../../lib/tauri'
+import { VirtualizedGrid } from '../../components/performance/VirtualizedGrid'
 
 type UpdateAvailabilityReport = {
   sourceId: string
@@ -447,8 +448,9 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
               onUpdate={onUpdate ? () => void updateRepositories(groupRepositories.filter(({ status }) => status === 'Ready').map(({ id }) => id)) : () => undefined}
             />
           ))}
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {visibleRepositories.map((repository, index) => (
+          <VirtualizedGrid
+            items={visibleRepositories}
+            renderItem={(repository, index) => (
               <RepositoryCard
                 key={repository.id}
                 repo={repository}
@@ -466,8 +468,8 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
                 onHide={() => hideRepository(repository.id)}
                 hidden={hiddenIds.has(repository.id)}
               />
-            ))}
-          </div>
+            )}
+          />
         </div>
       )}
       {detailsRepository && <SourceDetails repository={detailsRepository} categories={categories} onClose={() => setDetailsRepositoryId(null)} onSaveMetadata={(metadata) => { const next = { ...metadataById, [detailsRepository.id]: metadata }; setMetadataById(next); const nextCategories = metadata.category && !categories.includes(metadata.category) ? [...customCategories, metadata.category] : customCategories; setCustomCategories(nextCategories); persistMetadata(next, nextCategories) }} onResetMetadata={() => { const next = { ...metadataById }; delete next[detailsRepository.id]; setMetadataById(next); persistMetadata(next) }} />}

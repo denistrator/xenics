@@ -15,6 +15,7 @@
     "audit:prod": "npm audit --omit=dev --audit-level=high"
   },
   "dependencies": {
+    "@tanstack/react-virtual": "^3.14.11",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-deep-link": "^2.4.10",
     "@tauri-apps/plugin-notification": "^2.4.0",

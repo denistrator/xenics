@@ -89,6 +89,7 @@ Updated: 2026-09-10
 - Full reset is now preview-first and confirmation-bound. It clears durable user records and the derived search index, deletes only canonical managed folders inside the library, preserves external/local-folder sources, and is exposed from Settings with a destructive confirmation dialog.
 - Global Update all now opens a review dialog before queueing installed sources, clearly labels website-only sources as skipped, and keeps native policy enforcement authoritative.
 - Catalog filtering is now functional for category, capability, and installation state; organization bookmark cards now have an explicit open action instead of a no-op handler.
+- Large catalog grids, search results, and task activity now use shared TanStack virtual list/grid primitives above a threshold, while small collections retain their existing responsive layouts and test environments receive a safe zero-viewport fallback.
 - Final local acceptance verification passed for E2E typecheck, packaged-build verification, and all six macOS WebDriver specs, including catalog filtering/details and scheduled-update settings selection.
 - Cross-platform desktop acceptance is now configured in `.github/workflows/desktop-acceptance.yml` for macOS, Ubuntu, and Windows, including real smoke runs, Ubuntu Xvfb setup, and normal release-bundle builds. Hosted run [34444883153](https://github.com/denistrator/xenics/actions/runs/34444883153) passes macOS smoke and all three release bundles; Linux and Windows smoke still fail to expose the embedded WebDriver server and remain under investigation.
 - The native desktop suite connects directly to the embedded WebDriver server because the published service/plugin pair has an incompatible automatic window-focus hook; the workaround keeps the real Tauri binary and WebDriver protocol in coverage while avoiding that optional hook.
@@ -97,12 +98,11 @@ Updated: 2026-09-10
 ## Specification gap review
 
 The current implementation has confirmed follow-up gaps in full Markdown/MDX
-rendering fidelity, local assets, syntax highlighting, native notification
-delivery, large-list
-virtualization, and complete cross-platform acceptance coverage. See the
-[specification gap review](spec-gap-review.md) for evidence and the recommended
-implementation order. These items are not being represented as complete merely
-because the surrounding architecture and prototype tests exist.
+rendering fidelity and complete cross-platform acceptance coverage. See the
+[specification gap review](spec-gap-review.md) for evidence and the remaining
+implementation order. Linux and Windows launcher debugging remains explicitly
+deferred; the next milestone expands acceptance coverage that can be verified
+without changing that harness.
 - The document pipeline now parses through `markdown-rs` into a shared AST-backed
 model, preserves readable structure and source locations, exposes safe image
 metadata, and reports unsupported MDX/unsafe HTML without executing repository

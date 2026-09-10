@@ -5,6 +5,7 @@ import { coverageMessage } from './search-state'
 import type { ReactNode } from 'react'
 import { SearchResult } from './SearchResult'
 import { filterSearchResults, type SearchFilters } from './search-filter'
+import { VirtualizedList } from '../../components/performance/VirtualizedList'
 
 type SearchPageProps = {
   response: SearchResponse
@@ -74,11 +75,11 @@ export function SearchPage({ response, onOpen, query, onQueryChange, categoryByS
       )}
 
       {showResults && (
-        <div className="space-y-3">
-          {filteredResults.map((result) => (
-            <SearchResult key={result.id} result={result} query={response.query} onOpen={onOpen} />
-          ))}
-        </div>
+        <VirtualizedList
+          items={filteredResults}
+          estimateSize={120}
+          renderItem={(result) => <SearchResult key={result.id} result={result} query={response.query} onOpen={onOpen} />}
+        />
       )}
     </section>
   )

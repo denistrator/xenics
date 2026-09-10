@@ -1,6 +1,6 @@
 # Xenics specification gap review
 
-Updated: 2026-09-10
+Updated: 2026-09-11
 
 This review compares the approved design and error-handling specifications with
 the implementation currently on `main`. It intentionally does not change the
@@ -16,7 +16,7 @@ Linux or Windows desktop-launch harness.
 | Populate complete search fields and exact block locations | ✅ Done | All FTS fields are populated; per-block match locations drive exact navigation; 67 Rust tests pass |
 | Add local assets and syntax highlighting | ✅ Done | Safe relative assets with offline fallback; `highlight.js` highlighting; 75 frontend tests pass |
 | Connect native notifications to task outcomes | ✅ Done | Tauri notification plugin, permission flow, focus/setting policy, terminal deduplication; 77 frontend tests pass |
-| Add measured virtualization/lazy loading | ⬜ Pending | Pending performance baseline and UI tests |
+| Add measured virtualization/lazy loading | ✅ Done | Shared virtual list/grid primitives; 81 frontend tests, build, and E2E typecheck pass |
 | Expand desktop acceptance coverage | ⬜ Pending | Linux/Windows launcher strategy remains separate |
 
 ## Confirmed functional gaps
@@ -28,38 +28,34 @@ headings, paragraphs, lists, block quotes, fenced code, links, images, and MDX
 warnings. It does not yet provide the full reader model for tables, emphasis,
 downloadable assets, richer links, or curated component mappings.
 
-The reader has no local image or asset block model. Repository content is shown
-as escaped text, so untrusted markup is not executed, but the required local
-asset experience is not implemented yet.
+Local image blocks are now represented safely, resolve only within the source
+root, and fall back to an offline placeholder when an asset cannot be loaded.
+Remaining work is limited to the broader Markdown/MDX fidelity matrix and
+curated component mappings.
 
 ### 2. Code presentation
 
-Code blocks currently provide language labels, line numbers, copying,
-downloading, wrapping, and editor actions. They do not perform syntax
-highlighting, which is an explicit reader requirement.
+Code blocks provide language labels, line numbers, copying, downloading,
+wrapping, editor actions, and bounded `highlight.js` syntax highlighting.
 
 ### 3. Search-field completeness and exact locations
 
-The FTS schema already has title, headings, prose, code, metadata, and API-name
-columns, but the indexer currently writes the title and combined reader text
-only; code, metadata, and API-name fields remain empty. Heading records are not
-stored as a complete heading field, and document locations currently point to a
-single first location rather than the exact matching block.
-
-This means the search architecture exists, but the required ranking and
-identifier-aware exact navigation are not yet fully backed by indexed data.
+All FTS fields are populated from the shared document model, including
+punctuation-bearing API names, and disposable per-block locations drive exact
+reader navigation. Remaining acceptance work is to broaden the end-to-end
+scenario matrix.
 
 ### 4. Native notification delivery
 
-The native notification module currently exposes policy logic and tests only.
-Task completion/failure is surfaced in the in-app panel, but there is no native
-notification dispatch connected to task outcomes when the app is unfocused.
+Task terminal outcomes now connect to the official Tauri notification plugin,
+respect permission and focus settings, and deduplicate retries by task ID.
 
 ### 5. Performance-oriented UI behavior
 
-The current frontend does not include virtualization for large catalog grids,
-search-result lists, or activity history. The specification calls for
-virtualization and lazy loading as the catalog and indexed corpus grow.
+Large catalog grids, search-result lists, and activity history now use shared
+windowed rendering above a conservative threshold while preserving the normal
+responsive layouts for small collections. The primitives also fall back safely
+when layout metrics are unavailable in non-browser test environments.
 
 ### 6. Desktop acceptance coverage
 
@@ -82,14 +78,14 @@ links, and cross-platform native actions) is not yet represented end to end.
 
 ## Recommended implementation order
 
-1. Replace the line-oriented parser with a shared safe document model and add
+1. ✅ Replace the line-oriented parser with a shared safe document model and add
    Markdown/MDX compatibility fixtures, including assets and component
    fallbacks.
-2. Populate all search fields and per-block locations from that model, then
+2. ✅ Populate all search fields and per-block locations from that model, then
    validate punctuation-bearing identifiers, ranking, and exact navigation.
-3. Add safe local-asset rendering and syntax highlighting.
-4. Connect native notifications to deduplicated task outcomes.
-5. Add virtualization/lazy loading after measuring representative catalog,
+3. ✅ Add safe local-asset rendering and syntax highlighting.
+4. ✅ Connect native notifications to deduplicated task outcomes.
+5. ✅ Add virtualization/lazy loading after measuring representative catalog,
    results, and activity sizes.
-6. Expand desktop acceptance scenarios and design a separate cross-platform
+6. ⬜ Expand desktop acceptance scenarios and design a separate cross-platform
    launcher strategy for Linux and Windows.

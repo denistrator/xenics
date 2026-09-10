@@ -2,6 +2,7 @@ import type { TaskId } from '../../lib/contracts'
 import type { ReactNode } from 'react'
 import type { TaskSnapshot } from './task-model'
 import { TaskRow } from './TaskRow'
+import { VirtualizedList } from '../../components/performance/VirtualizedList'
 
 type TaskPanelProps = {
   tasks: TaskSnapshot[]
@@ -22,11 +23,10 @@ export function TaskPanel({ tasks, onCancel, onRetry }: TaskPanelProps): ReactNo
           No recent tasks.
         </p>
       ) : (
-        <div className="space-y-3">
-          {tasks.map((task) => (
-            <TaskRow key={task.taskId} task={task} onCancel={onCancel} onRetry={onRetry} />
-          ))}
-        </div>
+        <VirtualizedList
+          items={tasks}
+          renderItem={(task) => <TaskRow key={task.taskId} task={task} onCancel={onCancel} onRetry={onRetry} />}
+        />
       )}
     </section>
   )

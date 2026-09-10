@@ -13,6 +13,7 @@ type CatalogPageProps = {
   onUpdate?: (repositoryId: string) => Promise<void> | void
   onRemove?: (repositoryId: string) => Promise<void> | void
   onAddLocalSource?: (input: { id: string; displayName: string; path: string }) => Promise<Repository> | Repository
+  onAddRemoteSource?: (input: { id: string; displayName: string; source: string; selectedRef: string }) => Promise<Repository> | Repository
   onOpenFolder?: (repositoryId: string) => Promise<void> | void
   onOpenWebsite?: (repository: Repository) => Promise<void> | void
 }
@@ -32,7 +33,7 @@ function matchesRepositoryQuery(
   return searchableText.toLowerCase().includes(query)
 }
 
-export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, onOpenFolder, onOpenWebsite }: CatalogPageProps): ReactNode {
+export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, onAddRemoteSource, onOpenFolder, onOpenWebsite }: CatalogPageProps): ReactNode {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [selectionAnchorId, setSelectionAnchorId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -55,6 +56,10 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
   const [sourceName, setSourceName] = useState('')
   const [sourcePath, setSourcePath] = useState('')
   const [sourceError, setSourceError] = useState<string | null>(null)
+  const [remoteSourceOpen, setRemoteSourceOpen] = useState(false)
+  const [remoteSourceUrl, setRemoteSourceUrl] = useState('')
+  const [remoteSourceName, setRemoteSourceName] = useState('')
+  const [remoteSourceRef, setRemoteSourceRef] = useState('main')
   const deferredSearchQuery = useDeferredValue(searchQuery.trim().toLowerCase())
 
   useEffect(() => {
@@ -225,6 +230,30 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
     }
   }
 
+  async function addRemoteSource(): Promise<void> {
+    const displayName = remoteSourceName.trim()
+    const source = remoteSourceUrl.trim()
+    const selectedRef = remoteSourceRef.trim()
+    const validSource = /^https:\/\//i.test(source) || /^ssh:\/\//i.test(source) || /^git@[^:]+:.+/.test(source)
+    if (!displayName || !validSource || !selectedRef || !onAddRemoteSource) {
+      setSourceError('Enter a name, an HTTPS or SSH Git URL, and a branch or tag.')
+      return
+    }
+    setSourceError(null)
+    try {
+      const id = `custom-${displayName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+      const repository = await onAddRemoteSource({ id, displayName, source, selectedRef })
+      setCustomRepositories((current) => [...current.filter(({ id: currentId }) => currentId !== repository.id), repository])
+      setInstalledIds((current) => new Set([...current, repository.id]))
+      setRemoteSourceOpen(false)
+      setRemoteSourceName('')
+      setRemoteSourceUrl('')
+      setRemoteSourceRef('main')
+    } catch (error) {
+      setSourceError(error instanceof Error ? error.message : 'The repository could not be added.')
+    }
+  }
+
   const downloadLabel = selectedIds.length
     ? `Download selected (${selectedIds.length})`
     : 'Download all'
@@ -271,6 +300,7 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
               Add local source
             </button>
           )}
+          {onAddRemoteSource && <button type="button" onClick={() => setRemoteSourceOpen(true)} className="rounded-xl border border-x-line bg-x-panel px-4 py-3 text-sm font-semibold hover:bg-x-paper">Add Git repository</button>}
           {installedIds.size > 0 && onUpdate && (
             <button
               type="button"
@@ -360,6 +390,7 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
           </section>
         </div>
       )}
+      {remoteSourceOpen && onAddRemoteSource && <div className="fixed inset-0 z-30 grid place-items-center bg-x-ink/30 p-5" role="presentation"><section role="dialog" aria-modal="true" aria-labelledby="add-remote-title" className="w-full max-w-lg rounded-2xl border border-x-line bg-x-panel p-6 shadow-2xl"><h2 id="add-remote-title" className="font-display text-2xl tracking-tight">Add Git repository</h2><p className="mt-2 text-sm text-x-muted">Unsupported repositories remain manageable and open in the system explorer. HTTPS and SSH sources use your existing Git credentials.</p><div className="mt-5 space-y-4"><label className="block space-y-2 text-sm"><span className="font-semibold">Name</span><input aria-label="Git repository name" value={remoteSourceName} onChange={(event) => setRemoteSourceName(event.target.value)} className="block w-full rounded-lg border border-x-line bg-x-paper px-3 py-2" /></label><label className="block space-y-2 text-sm"><span className="font-semibold">Git URL</span><input aria-label="Git repository URL" value={remoteSourceUrl} onChange={(event) => setRemoteSourceUrl(event.target.value)} placeholder="https://github.com/org/repo.git or git@github.com:org/repo.git" className="block w-full rounded-lg border border-x-line bg-x-paper px-3 py-2" /></label><label className="block space-y-2 text-sm"><span className="font-semibold">Branch or tag</span><input aria-label="Git branch or tag" value={remoteSourceRef} onChange={(event) => setRemoteSourceRef(event.target.value)} className="block w-full rounded-lg border border-x-line bg-x-paper px-3 py-2" /></label>{sourceError && <p role="alert" className="text-sm text-x-coral">{sourceError}</p>}</div><div className="mt-6 flex justify-end gap-3"><button type="button" onClick={() => setRemoteSourceOpen(false)} className="rounded-lg border border-x-line px-4 py-2 text-sm font-semibold">Cancel</button><button type="button" onClick={() => void addRemoteSource()} className="rounded-lg bg-x-ink px-4 py-2 text-sm font-semibold text-x-paper">Download repository</button></div></section></div>}
       {updateReviewOpen && onUpdate && (
         <div className="fixed inset-0 z-30 grid place-items-center bg-x-ink/30 p-5" role="presentation">
           <section role="dialog" aria-modal="true" aria-labelledby="update-review-title" className="w-full max-w-lg rounded-2xl border border-x-line bg-x-panel p-6 shadow-2xl">

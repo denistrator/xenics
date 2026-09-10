@@ -59,6 +59,11 @@ export function App() {
     }
   }
 
+  async function addRemoteSource(input: { id: string; displayName: string; source: string; selectedRef: string }): Promise<Repository> {
+    await invokeCommand('start_download_source', { ...input, vendor: 'custom', package: input.id, shallow: true, capability: 'FilesOnly' })
+    return { id: input.id, name: input.displayName, vendor: 'Custom source', description: 'A user-added Git repository.', category: 'Custom', accent: 'violet', status: 'Ready', capability: 'Files only', sourceUrl: input.source, selectedRef: input.selectedRef }
+  }
+
   async function openSourceFolder(repositoryId: string): Promise<void> {
     await invokeCommand('open_source_folder', { sourceId: repositoryId })
   }
@@ -101,7 +106,7 @@ export function App() {
           onOpenSourceFolder={openSourceFolder}
           onOpenSourceUrl={openReaderSourceWebsite}
         />
-      ) : showSettings ? <SettingsPage /> : showOrganization ? <OrganizationPage onOpenBookmark={(bookmark) => setReaderTarget({ ...bookmark, matchIndex: 0, location: { line: 1, column: 1 } })} /> : <CatalogPage onDownload={downloadRepositories} onUpdate={updateRepository} onRemove={removeRepository} onAddLocalSource={addLocalSource} onOpenFolder={openSourceFolder} onOpenWebsite={openSourceWebsite} />}
+      ) : showSettings ? <SettingsPage /> : showOrganization ? <OrganizationPage onOpenBookmark={(bookmark) => setReaderTarget({ ...bookmark, matchIndex: 0, location: { line: 1, column: 1 } })} /> : <CatalogPage onDownload={downloadRepositories} onUpdate={updateRepository} onRemove={removeRepository} onAddLocalSource={addLocalSource} onAddRemoteSource={addRemoteSource} onOpenFolder={openSourceFolder} onOpenWebsite={openSourceWebsite} />}
       {tasks.length > 0 && (
         <div className="mx-auto max-w-[1500px] px-5 pb-8 md:px-10">
           <TaskPanel

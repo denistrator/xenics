@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { CatalogPage } from './CatalogPage'
 import type { Repository } from './catalog-model'
@@ -112,5 +112,17 @@ describe('CatalogPage', () => {
     expect(screen.getAllByRole('heading', { name: 'React Core' })).toHaveLength(2)
     expect(screen.getAllByText('UI libraries')).toHaveLength(2)
     expect(screen.getByText('#hooks')).toBeInTheDocument()
+  })
+
+  it('adds an unsupported remote repository through HTTPS or SSH', async () => {
+    const repository: Repository = { id: 'custom-team-docs', name: 'Team docs', vendor: 'Custom source', description: 'A user-added Git repository.', category: 'Custom', accent: 'violet', status: 'Ready', capability: 'Files only', sourceUrl: 'git@github.com:org/team-docs.git', selectedRef: 'main' }
+    const onAddRemoteSource = vi.fn().mockResolvedValue(repository)
+    render(<CatalogPage onAddRemoteSource={onAddRemoteSource} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Add Git repository' }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Git repository name' }), { target: { value: 'Team docs' } })
+    fireEvent.change(screen.getByRole('textbox', { name: 'Git repository URL' }), { target: { value: 'git@github.com:org/team-docs.git' } })
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Add Git repository' })).getByRole('button', { name: 'Download repository' }))
+    await waitFor(() => expect(onAddRemoteSource).toHaveBeenCalledWith({ id: 'custom-team-docs', displayName: 'Team docs', source: 'git@github.com:org/team-docs.git', selectedRef: 'main' }))
+    expect(await screen.findByRole('heading', { name: 'Team docs' })).toBeInTheDocument()
   })
 })

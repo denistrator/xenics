@@ -60,6 +60,8 @@ Bookmark organization uses separate many-to-many join tables for collections and
 
 The organization route hydrates these records through typed feature hooks and keeps native persistence out of presentational panels. When the native bridge is unavailable, the route remains renderable with empty state rather than failing application startup.
 
+Organization actions are intentionally split at the hook boundary: creating a collection or tag and assigning a bookmark call validated native commands in desktop mode, while browser mode keeps an in-memory fallback. Bookmark cards expose assignment controls without nesting interactive elements, and native bookmark IDs remain separate from display-stable frontend IDs.
+
 Recovery UI uses structured action objects rather than inspecting human-readable error strings. Inline errors can render only the actions supplied by the owning feature, keeping retry and destructive operations explicit.
 
 The shell notification panel consumes task snapshots as a compact activity summary. It does not duplicate task mutation logic; cancel/retry and detailed diagnostics remain owned by the task panel.

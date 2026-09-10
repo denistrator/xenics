@@ -6,10 +6,15 @@ import type { Collection, Tag } from './organization-model'
 import { useBookmarks, useNamedOrganizationRecords } from './organization-hooks'
 
 export function OrganizationPage(): ReactNode {
-  const { bookmarks } = useBookmarks()
-  const collections = useNamedOrganizationRecords<Collection>('list_collections')
-  const tags = useNamedOrganizationRecords<Tag>('list_tags')
-  const selectedTags = bookmarks.flatMap(({ tagIds }) => tagIds)
+  const { bookmarks, assignCollection, toggleTag } = useBookmarks()
+  const { records: collections, createRecord: createCollection } = useNamedOrganizationRecords<Collection>('list_collections', 'create_collection')
+  const { records: tags, createRecord: createTag } = useNamedOrganizationRecords<Tag>('list_tags', 'create_tag')
+  const selectedTags = [...new Set(bookmarks.flatMap(({ tagIds }) => tagIds))]
+
+  function askForName(label: string, create: (name: string) => void): void {
+    const name = window.prompt(`Name for the new ${label}`)
+    if (name !== null) create(name)
+  }
 
   return (
     <section aria-labelledby="organization-title" className="mx-auto max-w-5xl space-y-8">
@@ -18,11 +23,22 @@ export function OrganizationPage(): ReactNode {
         <h1 id="organization-title" className="mt-2 font-display text-4xl tracking-tight">Bookmarks and collections</h1>
       </header>
       <div className="grid gap-5 lg:grid-cols-2">
-        <BookmarksPanel bookmarks={bookmarks} onOpen={() => undefined} />
+        <BookmarksPanel
+          bookmarks={bookmarks}
+          onOpen={() => undefined}
+          onCreateCollection={() => askForName('collection', createCollection)}
+          collections={collections}
+          onCollectionChange={assignCollection}
+        />
         <CollectionsPanel collections={collections} />
       </div>
       <section className="rounded-2xl border border-x-line bg-x-panel p-5">
-        <TagPicker tags={tags} selected={selectedTags} onToggle={() => undefined} />
+        <TagPicker
+          tags={tags}
+          selected={selectedTags}
+          onToggle={(tagId) => bookmarks.forEach((bookmark) => toggleTag(bookmark, tagId))}
+          onCreateTag={() => askForName('tag', createTag)}
+        />
       </section>
     </section>
   )

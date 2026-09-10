@@ -29,7 +29,8 @@ export function useBookmarks() {
             invokeCommand<string[]>('list_bookmark_tags', { bookmarkId: record.id }),
           ])
           return {
-            id: String(record.id),
+            id: `${record.sourceId}:${record.refName}:${record.documentPath}`,
+            nativeId: record.id,
             sourceId: record.sourceId,
             refName: record.refName,
             path: record.documentPath,
@@ -63,7 +64,7 @@ export function useBookmarks() {
         : value)
     })
     if (hasNativeBridge()) {
-      void invokeCommand('save_bookmark', {
+      void invokeCommand<number>('save_bookmark', {
         sourceId: target.sourceId,
         refName: target.refName,
         documentPath: target.path,
@@ -73,16 +74,45 @@ export function useBookmarks() {
     return bookmark
   }, [])
 
-  return { bookmarks, saveBookmark }
+  const assignCollection = useCallback((bookmark: Bookmark, collectionId: string | undefined) => {
+    setBookmarks((current) => current.map((value) => value.id === bookmark.id ? { ...value, collectionId } : value))
+    if (hasNativeBridge() && bookmark.nativeId !== undefined && collectionId) {
+      void invokeCommand('assign_bookmark_collection', { bookmarkId: bookmark.nativeId, collectionId, assigned: true }).catch(() => undefined)
+    }
+  }, [])
+
+  const toggleTag = useCallback((bookmark: Bookmark, tagId: string) => {
+    const assigned = !bookmark.tagIds.includes(tagId)
+    setBookmarks((current) => current.map((value) => value.id === bookmark.id
+      ? { ...value, tagIds: assigned ? [...value.tagIds, tagId] : value.tagIds.filter((id) => id !== tagId) }
+      : value))
+    if (hasNativeBridge() && bookmark.nativeId !== undefined) {
+      void invokeCommand('assign_bookmark_tag', { bookmarkId: bookmark.nativeId, tagId, assigned }).catch(() => undefined)
+    }
+  }, [])
+
+  return { bookmarks, saveBookmark, assignCollection, toggleTag }
 }
 
-export function useNamedOrganizationRecords<T extends { id: string; name: string }>(command: string): T[] {
+export function useNamedOrganizationRecords<T extends { id: string; name: string }>(command: string, createCommand: string) {
   const [records, setRecords] = useState<T[]>([])
   useEffect(() => {
     if (!hasNativeBridge()) return
     void invokeCommand<T[]>(command).then(setRecords).catch(() => undefined)
   }, [command])
-  return records
+  const createRecord = useCallback((name: string) => {
+    if (!name.trim()) return
+    if (hasNativeBridge()) {
+      void invokeCommand<string>(createCommand, { name: name.trim() })
+        .then((id) => setRecords((current) => [...current, { id, name: name.trim() } as T]))
+        .catch(() => undefined)
+      return
+    }
+    const id = `${command}:${name.trim().toLowerCase().replace(/\s+/g, '-')}`
+    setRecords((current) => current.some((record) => record.id === id) ? current : [...current, { id, name: name.trim() } as T])
+  }, [command, createCommand])
+
+  return { records, createRecord }
 }
 
 export function parseXenicsUrl(url: string): Omit<ReaderTarget, 'title'> {

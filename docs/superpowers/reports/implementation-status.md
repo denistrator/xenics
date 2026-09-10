@@ -112,6 +112,11 @@ fallback.
 fields, preserves source-relative metadata, and stores disposable per-block
 match locations. Search results use those locations for exact reader navigation;
 Rust search coverage includes code matches and punctuation-bearing identifiers.
+- Reader code blocks now use a registered, bounded `highlight.js` language set
+with line-by-line highlighting so source lines and controls remain stable.
+Unrecognized languages remain escaped plain text. Local images accept only safe
+relative paths, load lazily, and show an offline fallback for external or
+traversal targets.
 
 ## Safety note
 

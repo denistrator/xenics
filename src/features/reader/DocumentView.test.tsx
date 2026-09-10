@@ -16,4 +16,15 @@ describe('DocumentView', () => {
     render(<DocumentView document={{ title: 'Guide', source: 'docs', blocks: [{ type: 'image', text: 'Architecture diagram', url: './assets/architecture.png' }] }} />)
     expect(screen.getByRole('img', { name: 'Architecture diagram' })).toHaveAttribute('src', './assets/architecture.png')
   })
+
+  it('does not load external or traversal image URLs', () => {
+    render(<DocumentView document={{ title: 'Guide', source: 'docs', blocks: [
+      { type: 'image', text: 'External', url: 'https://example.com/image.png' },
+      { type: 'image', text: 'Traversal', url: '../outside.png' },
+    ] }} />)
+
+    expect(screen.queryAllByRole('img')).toHaveLength(0)
+    expect(screen.getByText('Image unavailable offline: External')).toBeInTheDocument()
+    expect(screen.getByText('Image unavailable offline: Traversal')).toBeInTheDocument()
+  })
 })

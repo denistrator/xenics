@@ -42,6 +42,7 @@ Updated: 2026-09-10
 - Reader page actions now include a safe source-file opener constrained to the installed source root.
 - Reader tabs now support drag-and-drop reordering in addition to persisted tab order.
 - Search results now support repository/document-type filters, exact whole-word matching, and previous/next keyboard navigation across the filtered set.
+- Catalog details now support editing display name, description, category, and tags, including custom categories and reset-to-default; overrides remain separate from built-in metadata.
 - Recovery presentation now has reusable `InlineError` and `RecoveryActions` primitives, and task failures use the same structured retry-action surface.
 - The app shell now exposes a toggleable notification panel fed by the ordered task feed, with an active-task loader, recent phases, and cancel/retry actions while detailed recovery remains in the task panel.
 - Native settings persistence supports allowlisted get/update commands with validation for unknown keys, control characters, and oversized values. The UI is connected, including the ownership-aware full reset flow.

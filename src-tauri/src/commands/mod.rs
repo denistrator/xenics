@@ -53,6 +53,15 @@ pub struct DownloadReport {
     pub index: IndexReport,
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchReport {
+    pub hits: Vec<crate::persistence::SearchHit>,
+    pub indexed: u64,
+    pub total: u64,
+    pub complete: bool,
+}
+
 #[tauri::command]
 pub fn list_sources(state: State<'_, AppState>) -> Result<Vec<SourceRecord>, String> {
     state
@@ -533,13 +542,20 @@ pub fn remove_source(
 }
 
 #[tauri::command]
-pub fn search_documents(
-    state: State<'_, AppState>,
-    query: String,
-) -> Result<Vec<crate::persistence::SearchHit>, String> {
-    SearchService::new(&state.search_db)
+pub fn search_documents(state: State<'_, AppState>, query: String) -> Result<SearchReport, String> {
+    let hits = SearchService::new(&state.search_db)
         .query(&query)
-        .map_err(|error| error.message)
+        .map_err(|error| error.message)?;
+    let indexed = state
+        .search_db
+        .document_count()
+        .map_err(|error| error.message)?;
+    Ok(SearchReport {
+        hits,
+        indexed,
+        total: indexed,
+        complete: true,
+    })
 }
 
 #[tauri::command]

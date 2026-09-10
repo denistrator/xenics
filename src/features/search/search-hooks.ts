@@ -12,6 +12,13 @@ export type NativeSearchHit = {
   column?: number
 }
 
+export type NativeSearchResponse = {
+  hits: NativeSearchHit[]
+  indexed: number
+  total: number
+  complete: boolean
+}
+
 export function mapSearchHits(hits: NativeSearchHit[]): SearchResultModel[] {
   return hits.map((hit) => ({
     id: `${hit.sourceId}:${hit.path}`,
@@ -39,12 +46,16 @@ export function useNativeSearch() {
     }
 
     let disposed = false
-    void invokeCommand<NativeSearchHit[]>('search_documents', { query: deferredQuery })
-      .then((hits) => {
+    void invokeCommand<NativeSearchResponse>('search_documents', { query: deferredQuery })
+      .then((searchResponse) => {
         if (!disposed) setResponse({
           query,
-          results: mapSearchHits(hits),
-          coverage: { complete: true, indexed: hits.length, total: hits.length },
+          results: mapSearchHits(searchResponse.hits),
+          coverage: {
+            complete: searchResponse.complete,
+            indexed: searchResponse.indexed,
+            total: searchResponse.total,
+          },
         })
       })
       .catch((error: unknown) => {

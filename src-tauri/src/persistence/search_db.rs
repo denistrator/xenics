@@ -184,6 +184,16 @@ impl SearchDb {
             .map_err(database_error)?;
         rows.collect::<Result<Vec<_>, _>>().map_err(database_error)
     }
+
+    pub fn document_count(&self) -> Result<u64, XenicsError> {
+        let connection = self.connection.lock().expect("search database mutex");
+        connection
+            .query_row("SELECT COUNT(*) FROM documents", [], |row| {
+                row.get::<_, i64>(0)
+            })
+            .map(|count| count.max(0) as u64)
+            .map_err(database_error)
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize)]

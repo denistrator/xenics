@@ -1,4 +1,5 @@
 use crate::core::ids::SourceId;
+use serde::{Deserialize, Serialize};
 use std::{
     collections::{HashMap, HashSet},
     sync::{Arc, Mutex},
@@ -13,14 +14,14 @@ pub enum UpdateSchedule {
     Disabled,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum Availability {
     Unknown,
     Available,
     UpToDate,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct AvailabilitySnapshot {
     pub source_id: SourceId,
     pub availability: Availability,
@@ -79,6 +80,13 @@ impl<C: Clock> UpdateCheckService<C> {
                 last_successful_check: None,
                 next_due: None,
             });
+    }
+
+    pub fn restore_snapshots(&self, snapshots: impl IntoIterator<Item = AvailabilitySnapshot>) {
+        let mut stored = self.snapshots.lock().unwrap();
+        for snapshot in snapshots {
+            stored.insert(snapshot.source_id.clone(), snapshot);
+        }
     }
 
     pub fn apply_schedule(&self, schedule: UpdateSchedule) {

@@ -73,6 +73,7 @@ Updated: 2026-09-10
 - Native search responses now use the derived database’s document count for coverage metadata instead of incorrectly equating coverage with matching-result count.
 - Scheduled update availability is now wired end to end: the native service performs non-mutating Git remote comparisons according to the saved schedule, and the catalog refreshes visible update status while the app is open.
 - Packaged verification now machine-checks that the desktop `xenics` deep-link scheme is configured, and release CI runs the production dependency audit before building bundles.
+- Update-check snapshots now persist and restore last-attempt, last-success, availability, and next-due state across app restarts; scheduler round-trip coverage passes in Rust tests.
 - Reader documents can now expose nested curated or generic navigation trees; the sidebar renders them with safe path/history navigation and falls back to open tabs when no tree is available.
 - Catalog installation hydration now consumes native source metadata, preserving selected refs and distinguishing local folders from Git sources while leaving editable display metadata independent.
 - Installed Files-only/custom sources now expose individual Update actions; Website-only entries remain excluded from update controls.

@@ -152,6 +152,8 @@ catalog invokes this at launch and on a one-minute cadence while Xenics is
 open; the native scheduler applies on-launch, daily, weekly, and disabled modes,
 deduplicates sources, fetches remote metadata without changing checked-out
 content, and reports unknown availability after failures.
+Last-attempt, last-success, availability, and next-due values are serialized in
+the durable user database and restored when the app starts again.
 
 Each task also emits ordered `TaskEvent` values on `task://<task-id>`. Sequence
 numbers are assigned by the task manager, and the Tauri adapter forwards the

@@ -101,6 +101,17 @@ pub fn check_due_updates(
         .user_db
         .get_settings()
         .map_err(|error| error.message)?;
+    if let Some(values) = settings
+        .get("updateCheckSnapshots")
+        .and_then(serde_json::Value::as_array)
+    {
+        if let Ok(snapshots) = serde_json::from_value::<
+            Vec<crate::core::update_checks::AvailabilitySnapshot>,
+        >(serde_json::Value::Array(values.clone()))
+        {
+            state.update_checks.restore_snapshots(snapshots);
+        }
+    }
     let schedule = parse_update_schedule(settings.get("updateSchedule"));
     if state.update_checks.schedule() != schedule {
         state.update_checks.apply_schedule(schedule);
@@ -163,6 +174,12 @@ pub fn check_due_updates(
             checked_at: now,
         });
     }
+    state
+        .user_db
+        .update_settings(serde_json::json!({
+            "updateCheckSnapshots": state.update_checks.snapshots()
+        }))
+        .map_err(|error| error.message)?;
     Ok(reports)
 }
 

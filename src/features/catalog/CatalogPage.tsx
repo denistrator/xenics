@@ -2,7 +2,7 @@ import { Download, RefreshCw, Search, SlidersHorizontal } from 'lucide-react'
 import { useDeferredValue, useEffect, useMemo, useState, type ChangeEvent, type InputHTMLAttributes, type ReactNode } from 'react'
 import { repositories, type Repository, type RepositoryMetadataOverride } from './catalog-model'
 import { getGroupRepositories, technologyGroups } from './catalog-groups'
-import { applyNativeSourceMetadata, type NativeSourceMetadata } from './catalog-source-metadata'
+import { applyNativeSourceMetadata, nativeSourceToRepository, type NativeSourceMetadata } from './catalog-source-metadata'
 import { RepositoryCard } from './RepositoryCard'
 import { TechnologyGroupCard } from './TechnologyGroupCard'
 import { defaultDownloadSelection, selectRange, toggleSelection } from './catalog-selection'
@@ -78,11 +78,15 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
   useEffect(() => {
     if (!hasNativeBridge()) return
     let active = true
-    void invokeCommand<NativeSourceMetadata[]>('list_sources')
+    void invokeCommand<Array<NativeSourceMetadata & { displayName?: string; capability?: string }>>('list_sources')
       .then((sources) => {
         if (active) {
           setInstalledIds(new Set(sources.map(({ id }) => id)))
           setNativeSourceMetadata(Object.fromEntries(sources.map((source) => [source.id, source])))
+          const builtInIds = new Set(repositories.map(({ id }) => id))
+          setCustomRepositories(sources
+            .filter(({ id }) => !builtInIds.has(id))
+            .map(nativeSourceToRepository))
         }
       })
       .catch(() => undefined)

@@ -9,6 +9,31 @@ export type NativeSourceMetadata = {
   diskUsageBytes?: number
 }
 
+const nativeCapabilities = new Set<Repository['capability']>([
+  'Readable',
+  'Partially readable',
+  'Files only',
+  'Website only',
+])
+
+export function nativeSourceToRepository(source: NativeSourceMetadata & { displayName?: string; capability?: string }): Repository {
+  const capability = nativeCapabilities.has(source.capability as Repository['capability'])
+    ? source.capability as Repository['capability']
+    : 'Files only'
+  return {
+    id: source.id,
+    name: source.displayName?.trim() || source.id,
+    vendor: 'Custom source',
+    description: source.localPath ? 'A user-owned local documentation folder.' : 'A user-added Git repository.',
+    category: 'Custom',
+    accent: 'violet',
+    status: 'Ready',
+    capability,
+    sourceUrl: source.remoteUrl ?? '',
+    selectedRef: source.selectedRef ?? '',
+  }
+}
+
 export function applyNativeSourceMetadata(repository: Repository, source: NativeSourceMetadata): Repository {
   const sourceType: RepositorySourceType = source.localPath && !source.remoteUrl ? 'Local folder' : repository.capability === 'Website only' ? 'Website' : 'Git source'
   return {

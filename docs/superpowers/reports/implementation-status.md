@@ -14,7 +14,7 @@ Updated: 2026-09-10
 - Queueable repository downloads now use cancellable task operations; native task listing, cancellation, and retry commands are registered.
 - Native task events are emitted on `task://<task-id>` with monotonic sequences and are forwarded through the Tauri event bridge.
 - React now hydrates the task panel from native snapshots, subscribes only to active tasks, cleans up listeners, and ignores stale or terminal-reopening events.
- - Local macOS validation: 35 frontend tests, 59 Rust tests, production build, and 5/5 desktop E2E specs pass.
+- Local macOS validation: 36 frontend tests, 59 Rust tests, E2E typecheck, production build, packaged-build verification, and 5/5 desktop E2E specs pass.
 
 ## Still in progress
 
@@ -44,6 +44,7 @@ Updated: 2026-09-10
 - Native external URL and folder actions now validate their target before delegating to the Tauri opener plugin, keeping browser and system-explorer launches outside shell interpolation.
 - Full reset is now preview-first and confirmation-bound. It clears durable user records and the derived search index, deletes only canonical managed folders inside the library, preserves external/local-folder sources, and is exposed from Settings with a destructive confirmation dialog.
 - Global Update all now opens a review dialog before queueing installed sources, clearly labels website-only sources as skipped, and keeps native policy enforcement authoritative.
+- Final local acceptance verification passed: E2E typecheck, packaged-build verifier, and all five macOS WebDriver specs. The suite still emits known non-failing Tauri invoke-timeout and mock-store cleanup warnings while the app remains healthy.
 - Windows/Linux validation and installed-package verification remain pending.
 
 ## Safety note

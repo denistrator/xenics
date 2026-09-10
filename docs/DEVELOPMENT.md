@@ -33,6 +33,8 @@ npm run tauri dev
 npm test -- --run
 npm run build
 cargo test --manifest-path src-tauri/Cargo.toml
+npm run typecheck:e2e
+npm run verify:packaged
 ```
 
 Run the real desktop smoke suite after building the debug application:

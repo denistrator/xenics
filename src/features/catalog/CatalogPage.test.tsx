@@ -108,10 +108,12 @@ describe('CatalogPage', () => {
     fireEvent.change(screen.getByRole('textbox', { name: 'Edit display name' }), { target: { value: 'React Core' } })
     fireEvent.change(screen.getByRole('combobox', { name: 'Edit category' }), { target: { value: 'UI libraries' } })
     fireEvent.change(screen.getByRole('textbox', { name: 'Edit tags' }), { target: { value: 'hooks, ui' } })
+    fireEvent.change(screen.getByRole('textbox', { name: 'Edit icon' }), { target: { value: '⚛' } })
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
     expect(screen.getAllByRole('heading', { name: 'React Core' })).toHaveLength(2)
     expect(screen.getAllByText('UI libraries')).toHaveLength(2)
     expect(screen.getByText('#hooks')).toBeInTheDocument()
+    expect(screen.getAllByText('⚛')).toHaveLength(2)
   })
 
   it('adds an unsupported remote repository through HTTPS or SSH', async () => {

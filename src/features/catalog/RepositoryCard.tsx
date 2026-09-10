@@ -72,7 +72,7 @@ export function RepositoryCard({
           aria-hidden="true"
           className={`grid size-12 place-items-center rounded-2xl text-lg font-bold text-x-ink ${accentClasses[repo.accent]}`}
         >
-          {repo.name.slice(0, 1)}
+          {repo.icon ?? repo.name.slice(0, 1)}
         </span>
         {isDownloadable && (
           <label className="grid size-11 place-items-center rounded-xl hover:bg-x-paper">

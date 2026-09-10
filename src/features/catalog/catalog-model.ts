@@ -5,6 +5,7 @@ export type RepositoryAccent = 'mint' | 'sky' | 'coral' | 'amber' | 'teal' | 'vi
 export interface Repository {
   id: string
   name: string
+  icon?: string
   vendor: string
   description: string
   category: string
@@ -16,7 +17,7 @@ export interface Repository {
   tags?: string[]
 }
 
-export type RepositoryMetadataOverride = Partial<Pick<Repository, 'name' | 'description' | 'category' | 'tags'>>
+export type RepositoryMetadataOverride = Partial<Pick<Repository, 'name' | 'icon' | 'description' | 'category' | 'tags'>>
 
 export const repositories: Repository[] = [
   {

@@ -42,7 +42,7 @@ Updated: 2026-09-10
 - Reader page actions now include a safe source-file opener constrained to the installed source root.
 - Reader tabs now support drag-and-drop reordering in addition to persisted tab order.
 - Search results now support repository/document-type filters, exact whole-word matching, and previous/next keyboard navigation across the filtered set.
-- Catalog details now support editing display name, description, category, and tags, including custom categories and reset-to-default; overrides remain separate from built-in metadata.
+- Catalog details now support editing display name, icon, description, category, and tags, including custom categories and reset-to-default; overrides remain separate from built-in metadata.
 - The built-in catalog now includes the full planned technology candidate list as curated entries or safe Website-only discovery cards; Website-only cards open validated public URLs directly and remain excluded from bulk downloads.
 - The catalog now accepts unsupported HTTPS/SSH Git repositories with a selected branch/tag and manages them as Files-only custom sources.
 - Local-source onboarding now supports desktop drag-and-drop into the explicit confirmation dialog.

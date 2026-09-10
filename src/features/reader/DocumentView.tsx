@@ -8,6 +8,7 @@ type ReaderBlock = {
   level?: number
   language?: string
   target?: string
+  location?: { line: number; column: number }
 }
 
 export type ReaderLink = {
@@ -27,6 +28,7 @@ export type ReaderDocument = {
   blocks: ReaderBlock[]
   links?: ReaderLink[]
   navigation?: ReaderNavigationItem[]
+  focusLocation?: { line: number; column: number }
 }
 
 const headingTags = {
@@ -87,15 +89,18 @@ function renderBlock(
   links: ReaderLink[] | undefined,
   onInternalLink: ((link: ReaderLink) => void) | undefined,
   onExternalLink: ((link: ReaderLink) => void) | undefined,
+  focusLocation: { line: number; column: number } | undefined,
 ): ReactNode {
   const key = `${block.type}-${index}`
+  const isFocused = focusLocation !== undefined && block.location?.line === focusLocation.line
+  const focusProps = block.location ? { 'data-reader-line': block.location.line, 'data-reader-focused': isFocused ? 'true' : 'false' } : {}
 
   switch (block.type) {
     case 'code':
-      return <CodeBlock key={key} code={block.text} language={block.language} />
+      return <div key={key} {...focusProps} className={isFocused ? 'rounded-lg ring-2 ring-x-amber/60 ring-offset-2' : ''}><CodeBlock code={block.text} language={block.language} /></div>
     case 'warning':
       return (
-        <aside
+        <aside {...focusProps}
           key={key}
           aria-label="Content warning"
           className="flex gap-3 rounded-xl border border-x-amber/40 bg-x-amber/10 p-4 text-sm"
@@ -115,7 +120,7 @@ function renderBlock(
     case 'heading': {
       const Heading = getHeadingTag(block.level)
       return (
-        <Heading key={key} className="pt-4 text-2xl font-semibold tracking-tight">
+        <Heading key={key} {...focusProps} className="pt-4 text-2xl font-semibold tracking-tight">
           {block.text}
         </Heading>
       )
@@ -123,7 +128,7 @@ function renderBlock(
     case 'paragraph':
       // React escapes text nodes, so untrusted repository content is never treated as HTML.
       return (
-      <p key={key} className="text-base leading-8 text-x-muted">
+        <p key={key} {...focusProps} className="text-base leading-8 text-x-muted">
           {renderParagraph(block.text, links, onInternalLink, onExternalLink)}
         </p>
       )
@@ -136,12 +141,14 @@ export function DocumentView({
   onExternalLink,
   zoom = 100,
   density = 'comfortable',
+  focusLocation,
 }: {
   document: ReaderDocument
   onInternalLink?: (link: ReaderLink) => void
   onExternalLink?: (link: ReaderLink) => void
   zoom?: number
   density?: 'comfortable' | 'compact'
+  focusLocation?: { line: number; column: number }
 }): ReactNode {
   const densityClass = density === 'compact' ? 'space-y-3' : 'space-y-6'
   return (
@@ -153,7 +160,7 @@ export function DocumentView({
         <h1 className="mt-3 font-display text-4xl tracking-tight">{document.title}</h1>
       </div>
       <div className={densityClass} style={{ fontSize: `${zoom}%` }}>
-        {document.blocks.map((block, index) => renderBlock(block, index, document.links, onInternalLink, onExternalLink))}
+        {document.blocks.map((block, index) => renderBlock(block, index, document.links, onInternalLink, onExternalLink, focusLocation))}
       </div>
     </article>
   )

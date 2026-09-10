@@ -35,9 +35,11 @@ export function toReaderDocument(document: NativeDocument, target: ReaderTarget)
         text: block.text,
         ...(block.level === undefined ? {} : { level: block.level }),
         ...(block.language === undefined ? {} : { language: block.language }),
+        location: block.location,
       })),
       ...document.warnings.map((warning) => ({ type: 'warning' as const, text: warning.message })),
     ],
+    focusLocation: target.location,
   }
 }
 

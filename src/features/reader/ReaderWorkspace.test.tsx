@@ -148,4 +148,9 @@ describe('ReaderWorkspace', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Hooks' }))
     expect(screen.getByRole('tab', { name: 'Hooks' })).toHaveAttribute('aria-selected', 'true')
   })
+
+  it('marks the block at the search result location', () => {
+    render(<ReaderWorkspace initialTabs={[{ ...tab, location: { line: 8, column: 1 } }]} document={{ ...readerDocument, blocks: [{ type: 'heading' as const, text: 'Install', level: 2, location: { line: 8, column: 1 } }, { type: 'paragraph' as const, text: 'Other', location: { line: 12, column: 1 } }] }} />)
+    expect(screen.getByText('Install').closest('[data-reader-line]')).toHaveAttribute('data-reader-focused', 'true')
+  })
 })

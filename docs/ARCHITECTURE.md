@@ -46,6 +46,8 @@ Unsupported reader embeds are represented as plain structured blocks. The render
 
 Search-result highlighting is a presentational transformation over already-sanitized title and excerpt strings. Query terms are regex-escaped before splitting, and the renderer uses text nodes plus `mark` elements without injecting HTML.
 
+Native block locations are retained in the reader document model, and search targets carry their line/column location into the active tab. The reader uses the line as a visual focus marker without executing or injecting source content.
+
 Reader navigation is optional document data composed of labeled relative paths and nested children. The workspace routes a selected item through the active tab’s existing history transition; absent navigation data, the sidebar continues to list open tabs.
 
 The catalog’s native hydration boundary accepts source identity, selected ref, local path, and remote URL. It derives only a display-level source type; user-edited names, descriptions, icons, categories, and tags remain applied afterward and never affect source identity or storage paths.

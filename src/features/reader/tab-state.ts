@@ -3,6 +3,7 @@ export type ReaderTarget = {
   refName: string
   path: string
   title: string
+  location?: { line: number; column: number }
 }
 
 export type ReaderTab = ReaderTarget & {

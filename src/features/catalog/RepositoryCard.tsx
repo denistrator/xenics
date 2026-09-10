@@ -126,7 +126,7 @@ export function RepositoryCard({
           )}
         </span>
         <div className="flex items-center gap-1">
-          {isInstalled && onUpdate && !isFilesOnly && (
+          {isInstalled && onUpdate && !isWebsiteOnly && (
             <button type="button" onClick={onUpdate} className="rounded-lg p-2 text-x-muted hover:bg-x-mint hover:text-x-ink" aria-label={`Update ${repo.name}`}>
               <RefreshCw aria-hidden="true" size={16} />
             </button>

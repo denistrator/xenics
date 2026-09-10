@@ -50,6 +50,8 @@ Reader navigation is optional document data composed of labeled relative paths a
 
 The catalog’s native hydration boundary accepts source identity, selected ref, local path, and remote URL. It derives only a display-level source type; user-edited names, descriptions, icons, categories, and tags remain applied afterward and never affect source identity or storage paths.
 
+Card-level update availability follows capability policy: installed Git-backed Files-only sources may update, while Website-only entries have no update action. Native policy remains authoritative for local-folder opt-in and other lifecycle restrictions.
+
 Repository cards derive a safe source-type label from the source contract and render optional operational fields only when native state provides them. Paths are shown as summaries in the card and remain separate from editable display metadata.
 
 The global update action opens a review before queueing work. The review identifies every installed source known to the catalog, labels website-only sources as skipped, and leaves final eligibility enforcement to the native update policy.

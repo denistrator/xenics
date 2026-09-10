@@ -190,4 +190,17 @@ describe('CatalogPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Remove selected (1)' }))
     await waitFor(() => expect(onRemove).toHaveBeenCalledWith('react'))
   })
+
+  it('offers individual updates for installed Files-only repositories', async () => {
+    const onUpdate = vi.fn().mockResolvedValue(undefined)
+    const localSource: Repository = { id: 'local-team-docs', name: 'Team docs', vendor: 'Local source', description: 'Docs', category: 'Custom', accent: 'violet', status: 'Ready', capability: 'Files only', sourceUrl: '', selectedRef: '' }
+    render(<CatalogPage onUpdate={onUpdate} onAddLocalSource={vi.fn().mockResolvedValue(localSource)} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Add local source' }))
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Team docs' } })
+    fireEvent.change(screen.getByLabelText('Folder path'), { target: { value: '/tmp/team-docs' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add source' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Update Team docs' })).toBeInTheDocument())
+    fireEvent.click(screen.getByRole('button', { name: 'Update Team docs' }))
+    await waitFor(() => expect(onUpdate).toHaveBeenCalledWith('local-team-docs'))
+  })
 })

@@ -47,7 +47,8 @@ artifact, not inferred from a development run.
 | macOS notarization | Pending: notarization credentials are not available |
 
 The workflow is defined in `.github/workflows/desktop-acceptance.yml`. It
-retains platform bundles for 14 days and installs Xvfb on Ubuntu for native
-WebView sessions. Once a repository remote and distribution credentials are
+retains platform bundles for 14 days, installs Xvfb on Ubuntu for native WebView
+sessions, uses read-only repository permissions, cancels superseded runs, and
+bounds each job. Once a repository remote and distribution credentials are
 available, update this checklist with runner logs, artifact paths, OS versions,
 and the clean-profile results.

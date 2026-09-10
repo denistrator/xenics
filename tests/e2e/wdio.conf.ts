@@ -21,7 +21,7 @@ async function waitForDevServer() {
 }
 
 async function waitForEmbeddedWebDriver() {
-  for (let attempt = 0; attempt < 40; attempt += 1) {
+  for (let attempt = 0; attempt < 480; attempt += 1) {
     try {
       const response = await fetch('http://127.0.0.1:4445/status')
       if (response.ok) return
@@ -82,7 +82,6 @@ export const config = {
     xenicsProcess = spawn(launchCommand, launchArgs, {
       cwd: process.cwd(),
       stdio: process.platform === 'win32' ? 'ignore' : ['ignore', 'pipe', 'pipe'],
-      windowsHide: true,
       env: { ...process.env, TAURI_WEBDRIVER_PORT: '4445' },
     })
     xenicsProcess.stdout?.on('data', (chunk: Buffer) => {

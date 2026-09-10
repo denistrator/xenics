@@ -46,6 +46,7 @@ Updated: 2026-09-10
 - The built-in catalog now includes the full planned technology candidate list as curated entries or safe Website-only discovery cards; Website-only cards open validated public URLs directly and remain excluded from bulk downloads.
 - The catalog now accepts unsupported HTTPS/SSH Git repositories with a selected branch/tag and manages them as Files-only custom sources.
 - Local-source onboarding now supports desktop drag-and-drop into the explicit confirmation dialog.
+- Reader presentation now supports compact and comfortable density modes alongside zoom controls.
 - Recovery presentation now has reusable `InlineError` and `RecoveryActions` primitives, and task failures use the same structured retry-action surface.
 - The app shell now exposes a toggleable notification panel fed by the ordered task feed, with an active-task loader, recent phases, and cancel/retry actions while detailed recovery remains in the task panel.
 - Native settings persistence supports allowlisted get/update commands with validation for unknown keys, control characters, and oversized values. The UI is connected, including the ownership-aware full reset flow.

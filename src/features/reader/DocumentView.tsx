@@ -119,12 +119,15 @@ export function DocumentView({
   onInternalLink,
   onExternalLink,
   zoom = 100,
+  density = 'comfortable',
 }: {
   document: ReaderDocument
   onInternalLink?: (link: ReaderLink) => void
   onExternalLink?: (link: ReaderLink) => void
   zoom?: number
+  density?: 'comfortable' | 'compact'
 }): ReactNode {
+  const densityClass = density === 'compact' ? 'space-y-3' : 'space-y-6'
   return (
     <article className="mx-auto max-w-3xl animate-[fade-in_.2s_ease-out]">
       <div className="mb-10 border-b border-x-line pb-7">
@@ -133,7 +136,7 @@ export function DocumentView({
         </p>
         <h1 className="mt-3 font-display text-4xl tracking-tight">{document.title}</h1>
       </div>
-      <div className="space-y-6" style={{ fontSize: `${zoom}%` }}>
+      <div className={densityClass} style={{ fontSize: `${zoom}%` }}>
         {document.blocks.map((block, index) => renderBlock(block, index, document.links, onInternalLink, onExternalLink))}
       </div>
     </article>

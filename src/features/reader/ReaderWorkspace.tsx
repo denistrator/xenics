@@ -22,6 +22,7 @@ export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl, onOp
   const [deepLinkCopied, setDeepLinkCopied] = useState(false)
   const [draggedTabId, setDraggedTabId] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [density, setDensity] = useState<'comfortable' | 'compact'>('comfortable')
   const sessionHydrated = useRef(!hasNativeBridge())
   const currentTab = tabs.find((tab) => tab.id === activeTabId) ?? tabs[0]
   const loadedDocument = useReaderDocument(document ? undefined : currentTab)
@@ -241,6 +242,7 @@ export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl, onOp
           <button type="button" aria-label="Open source file" disabled={!currentTab || !onOpenSourceFile} onClick={() => currentTab && onOpenSourceFile?.(currentTab.sourceId, currentTab.path)} className="rounded-lg px-2 text-xs text-x-muted hover:bg-x-panel disabled:opacity-40">File</button>
           <button type="button" aria-label="Zoom out" disabled={zoom <= 80} onClick={() => changeZoom(-10)} className="rounded-lg px-2 text-xs text-x-muted hover:bg-x-panel disabled:opacity-40">−</button>
           <span aria-label="Reader zoom" className="self-center px-1 text-xs text-x-muted">{zoom}%</span>
+          <button type="button" aria-label={`Switch to ${density === 'comfortable' ? 'compact' : 'comfortable'} density`} onClick={() => setDensity((current) => current === 'comfortable' ? 'compact' : 'comfortable')} className="rounded-lg px-2 text-xs text-x-muted hover:bg-x-panel">{density === 'comfortable' ? 'Compact' : 'Comfortable'}</button>
           <button type="button" aria-label="Zoom in" disabled={zoom >= 140} onClick={() => changeZoom(10)} className="rounded-lg px-2 text-xs text-x-muted hover:bg-x-panel disabled:opacity-40">+</button>
         </div>
       </header>
@@ -248,7 +250,7 @@ export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl, onOp
       {currentTab && visibleDocument ? (
         <div className={sidebarOpen ? 'grid md:grid-cols-[13rem_1fr]' : ''}>
           {sidebarOpen && <aside aria-label="Reader sidebar" className="border-b border-x-line bg-x-paper p-4 md:border-b-0 md:border-r"><p className="mb-3 text-xs font-bold uppercase tracking-[.16em] text-x-muted">Open documents</p><nav className="space-y-1">{tabs.map((tab) => <button key={tab.id} type="button" onClick={() => setActiveTabId(tab.id)} className={`block w-full truncate rounded-lg px-3 py-2 text-left text-sm ${tab.id === currentTab.id ? 'bg-x-mint font-semibold text-x-ink' : 'text-x-muted hover:bg-x-panel'}`}>{tab.title}</button>)}</nav></aside>}
-          <div id={`panel-${currentTab.id}`} role="tabpanel" aria-labelledby={`tab-${currentTab.id}`} className="p-6 md:p-10"><DocumentView document={visibleDocument} onInternalLink={openInternalLink} onExternalLink={(link) => onOpenExternalUrl?.(link.target)} zoom={zoom} /></div>
+          <div id={`panel-${currentTab.id}`} role="tabpanel" aria-labelledby={`tab-${currentTab.id}`} className="p-6 md:p-10"><DocumentView document={visibleDocument} onInternalLink={openInternalLink} onExternalLink={(link) => onOpenExternalUrl?.(link.target)} zoom={zoom} density={density} /></div>
         </div>
       ) : loadedDocument.loading ? (
         <p className="p-10 text-x-muted" role="status">Loading document…</p>

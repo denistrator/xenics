@@ -121,4 +121,10 @@ describe('ReaderWorkspace', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Expand reader sidebar' }))
     expect(screen.getByRole('complementary', { name: 'Reader sidebar' })).toBeInTheDocument()
   })
+
+  it('toggles reader density', () => {
+    render(<ReaderWorkspace initialTabs={[tab]} document={readerDocument} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Switch to compact density' }))
+    expect(screen.getByRole('button', { name: 'Switch to comfortable density' })).toBeInTheDocument()
+  })
 })

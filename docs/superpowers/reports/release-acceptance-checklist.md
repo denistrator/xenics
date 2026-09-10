@@ -20,7 +20,8 @@ Pending items are not treated as automated passes.
 | Production dependency audit | Passed | `npm run audit:prod`; 0 vulnerabilities |
 | Release dependency isolation | Passed | `npm run verify:packaged`; E2E driver absent from normal Cargo dependencies |
 | Bundled SQLite and FTS5 configuration | Passed | `npm run verify:packaged` |
-| `xenics://` bundle declaration | Passed | `npm run verify:packaged` |
+| `xenics://` bundle declaration | Passed | `Info.plist` contains `CFBundleURLSchemes = xenics` |
+| Release binary contains no WebDriver instrumentation | Passed | `nm` found no WebDriver symbols in the release executable |
 
 ## Installed-bundle checks
 

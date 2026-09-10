@@ -63,7 +63,8 @@ pub fn list_sources(state: State<'_, AppState>) -> Result<Vec<SourceRecord>, Str
                 .into_iter()
                 .map(|mut source| {
                     if let Some(path) = source.local_path.as_deref() {
-                        source.disk_usage_bytes = Some(directory_size(PathBuf::from(path).as_path()));
+                        source.disk_usage_bytes =
+                            Some(directory_size(PathBuf::from(path).as_path()));
                     }
                     source
                 })
@@ -73,9 +74,15 @@ pub fn list_sources(state: State<'_, AppState>) -> Result<Vec<SourceRecord>, Str
 }
 
 fn directory_size(path: &std::path::Path) -> u64 {
-    let Ok(metadata) = fs::symlink_metadata(path) else { return 0 };
-    if metadata.is_file() { return metadata.len() }
-    if !metadata.is_dir() { return 0 }
+    let Ok(metadata) = fs::symlink_metadata(path) else {
+        return 0;
+    };
+    if metadata.is_file() {
+        return metadata.len();
+    }
+    if !metadata.is_dir() {
+        return 0;
+    }
     fs::read_dir(path)
         .into_iter()
         .flatten()
@@ -226,7 +233,10 @@ pub fn open_source_file(
     let root = PathBuf::from(source.local_path.ok_or("source has no local folder")?)
         .canonicalize()
         .map_err(|error| error.to_string())?;
-    let file = root.join(&path).canonicalize().map_err(|error| error.to_string())?;
+    let file = root
+        .join(&path)
+        .canonicalize()
+        .map_err(|error| error.to_string())?;
     if !file.starts_with(&root) || !file.is_file() {
         return Err("source file does not exist".into());
     }
@@ -242,19 +252,42 @@ pub fn open_source_file_in_editor(
     if !is_safe_document_path(&path) {
         return Err("document path is outside the source".into());
     }
-    let source = state.user_db.find_source(&source_id).map_err(|error| error.message)?.ok_or("source is not installed")?;
-    let root = PathBuf::from(source.local_path.ok_or("source has no local folder")?).canonicalize().map_err(|error| error.to_string())?;
-    let file = root.join(&path).canonicalize().map_err(|error| error.to_string())?;
-    if !file.starts_with(&root) || !file.is_file() { return Err("source file does not exist".into()); }
-    let settings = state.user_db.get_settings().map_err(|error| error.message)?;
-    let editor = settings.get("editorCommand").and_then(|value| value.as_str()).ok_or("configure an editor command in Settings first")?;
+    let source = state
+        .user_db
+        .find_source(&source_id)
+        .map_err(|error| error.message)?
+        .ok_or("source is not installed")?;
+    let root = PathBuf::from(source.local_path.ok_or("source has no local folder")?)
+        .canonicalize()
+        .map_err(|error| error.to_string())?;
+    let file = root
+        .join(&path)
+        .canonicalize()
+        .map_err(|error| error.to_string())?;
+    if !file.starts_with(&root) || !file.is_file() {
+        return Err("source file does not exist".into());
+    }
+    let settings = state
+        .user_db
+        .get_settings()
+        .map_err(|error| error.message)?;
+    let editor = settings
+        .get("editorCommand")
+        .and_then(|value| value.as_str())
+        .ok_or("configure an editor command in Settings first")?;
     crate::desktop::external_actions::open_configured_editor(editor, &file)
 }
 
 #[tauri::command]
 pub fn open_source_terminal(state: State<'_, AppState>, source_id: String) -> Result<(), String> {
-    let source = state.user_db.find_source(&source_id).map_err(|error| error.message)?.ok_or("source is not installed")?;
-    let root = PathBuf::from(source.local_path.ok_or("source has no local folder")?).canonicalize().map_err(|error| error.to_string())?;
+    let source = state
+        .user_db
+        .find_source(&source_id)
+        .map_err(|error| error.message)?
+        .ok_or("source is not installed")?;
+    let root = PathBuf::from(source.local_path.ok_or("source has no local folder")?)
+        .canonicalize()
+        .map_err(|error| error.to_string())?;
     crate::desktop::external_actions::open_terminal(&root)
 }
 

@@ -62,6 +62,7 @@ Updated: 2026-09-10
 - Deep-link anchors now survive in reader tabs and focus stable sanitized heading IDs in the rendered document.
 - Progressive search coverage now reports indexed and total source counts plus the remaining indexing count, while preserving the completed zero-result state.
 - Native source listing now provides authoritative update timestamps and symlink-safe directory sizes; catalog cards hydrate last-sync and disk-usage metadata when available.
+- Release-readiness regression passed locally: Rust formatting, 70 frontend tests, E2E typecheck, packaged verification, and 5/5 macOS desktop E2E specs. The known WebDriver/Tauri invoke-timeout and mock-store cleanup warnings remain non-failing.
 - Reader documents can now expose nested curated or generic navigation trees; the sidebar renders them with safe path/history navigation and falls back to open tabs when no tree is available.
 - Catalog installation hydration now consumes native source metadata, preserving selected refs and distinguishing local folders from Git sources while leaving editable display metadata independent.
 - Installed Files-only/custom sources now expose individual Update actions; Website-only entries remain excluded from update controls.

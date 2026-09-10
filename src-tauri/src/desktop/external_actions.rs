@@ -40,18 +40,40 @@ pub fn open_configured_editor(command: &str, path: &Path) -> Result<(), String> 
     if executable.is_empty() {
         return Err("configured editor command is invalid".into());
     }
-    Command::new(executable).arg(path).spawn().map(|_| ()).map_err(|error| error.to_string())
+    Command::new(executable)
+        .arg(path)
+        .spawn()
+        .map(|_| ())
+        .map_err(|error| error.to_string())
 }
 
 pub fn open_terminal(folder: &Path) -> Result<(), String> {
     open_folder_request(folder).map_err(|error| error.message)?;
     #[cfg(target_os = "macos")]
-    let mut process = { let mut command = Command::new("open"); command.args(["-a", "Terminal"]); command.arg(folder); command };
+    let mut process = {
+        let mut command = Command::new("open");
+        command.args(["-a", "Terminal"]);
+        command.arg(folder);
+        command
+    };
     #[cfg(target_os = "windows")]
-    let mut process = { let mut command = Command::new("cmd"); command.args(["/C", "start", "", "/D"]); command.arg(folder); command };
+    let mut process = {
+        let mut command = Command::new("cmd");
+        command.args(["/C", "start", "", "/D"]);
+        command.arg(folder);
+        command
+    };
     #[cfg(all(unix, not(target_os = "macos")))]
-    let mut process = { let mut command = Command::new("x-terminal-emulator"); command.arg("--working-directory"); command.arg(folder); command };
-    process.spawn().map(|_| ()).map_err(|error| error.to_string())
+    let mut process = {
+        let mut command = Command::new("x-terminal-emulator");
+        command.arg("--working-directory");
+        command.arg(folder);
+        command
+    };
+    process
+        .spawn()
+        .map(|_| ())
+        .map_err(|error| error.to_string())
 }
 
 fn invalid_url() -> XenicsError {

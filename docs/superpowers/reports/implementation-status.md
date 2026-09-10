@@ -62,7 +62,7 @@ Updated: 2026-09-10
 - Deep-link anchors now survive in reader tabs and focus stable sanitized heading IDs in the rendered document.
 - Progressive search coverage now reports indexed and total source counts plus the remaining indexing count, while preserving the completed zero-result state.
 - Native source listing now provides authoritative update timestamps and symlink-safe directory sizes; catalog cards hydrate last-sync and disk-usage metadata when available.
-- Release-readiness regression passed locally for Rust formatting, frontend tests, E2E typecheck, and packaged verification. The current native E2E run does not complete because repeated WebDriver/Tauri invoke-timeout warnings stall the service before command completion; mock-store cleanup warnings are a separate known issue.
+- Release-readiness regression passed locally for Rust formatting, frontend tests, E2E typecheck, and packaged verification. Native E2E now connects directly to the embedded Tauri WebDriver server, avoiding the mismatched service focus hook; the expanded macOS suite passes 6/6 spec files.
 - Native release-path formatting is now clean under `cargo fmt --check`; the full local acceptance sequence remains green after source-payload changes.
 - Local macOS release bundle verification passed: `npm run tauri -- build --ci` produced an arm64 `Xenics.app` and `Xenics_0.1.0_aarch64.dmg`; artifact inspection and `verify:packaged` passed. Clean-profile install, deep-link registration, signing/notarization, and Windows/Linux bundles remain platform-owner checks.
 - The cross-platform release workflow now retains each macOS, Ubuntu, and Windows bundle as a 14-day CI artifact, enabling the documented clean-profile installer and deep-link checks after hosted runs.
@@ -81,7 +81,7 @@ Updated: 2026-09-10
 - The app shell now exposes a toggleable notification panel fed by the ordered task feed, with an active-task loader, recent phases, and cancel/retry actions while detailed recovery remains in the task panel.
 - Native settings persistence supports allowlisted get/update commands with validation for unknown keys, control characters, and oversized values. The UI is connected, including the ownership-aware full reset flow.
 - React settings now hydrate from the native settings store and persist individual changes, while retaining local behavior and an inline warning when the native bridge cannot save.
-- Latest macOS release verification passed for the native build and non-E2E checks; desktop E2E remains pending the WebDriver focus-recovery timeout fix.
+- Latest macOS release verification passed for the native build and expanded 6/6 desktop E2E suite; the direct embedded-server connection is documented as a workaround for the published service/plugin mismatch.
 - Native recursive file watching reports supported document changes and filters Git/dependency/build folders; the indexer now consumes changed and deleted documents incrementally with cancellation and source-root containment checks.
 - Installed Git sources now expose native update and removal operations. Updates fetch, fast-forward, and re-index the selected source; removals clear derived search records first. Managed library folders may be deleted only through an explicit flag and containment check, while external/local folders remain user-owned.
 - Native custom-source registration now accepts a validated local folder, detects an optional Git remote, persists the source outside managed-library deletion scope, and defaults unknown local folders to Files-only capability.
@@ -89,9 +89,9 @@ Updated: 2026-09-10
 - Full reset is now preview-first and confirmation-bound. It clears durable user records and the derived search index, deletes only canonical managed folders inside the library, preserves external/local-folder sources, and is exposed from Settings with a destructive confirmation dialog.
 - Global Update all now opens a review dialog before queueing installed sources, clearly labels website-only sources as skipped, and keeps native policy enforcement authoritative.
 - Catalog filtering is now functional for category, capability, and installation state; organization bookmark cards now have an explicit open action instead of a no-op handler.
-- Final local acceptance verification passed for E2E typecheck and packaged-build verification. All five macOS WebDriver shell specs were previously observed starting and asserting, but the current suite does not complete because of the known Tauri invoke-timeout behavior.
+- Final local acceptance verification passed for E2E typecheck, packaged-build verification, and all six macOS WebDriver specs, including catalog filtering/details and scheduled-update settings selection.
 - Cross-platform desktop acceptance is now configured in `.github/workflows/desktop-acceptance.yml` for macOS, Ubuntu, and Windows, including real smoke runs and normal release-bundle builds. Those hosted jobs and clean-user installer/deep-link/signing checks remain pending until the workflow executes with the required runner and distribution credentials.
-- The native desktop smoke suite remains intentionally limited to stable shell checks until the installed WebDriver service's automatic Tauri window-focus recovery is fixed upstream; its repeated five-second `core.invoke` timeout is non-failing but makes longer interaction scenarios unreliable. UI interaction coverage remains in component tests and should be promoted to native E2E after that harness issue is resolved.
+- The native desktop suite connects directly to the embedded WebDriver server because the published service/plugin pair has an incompatible automatic window-focus hook; the workaround keeps the real Tauri binary and WebDriver protocol in coverage while avoiding that optional hook.
 
 ## Safety note
 

@@ -2,6 +2,7 @@ import { join } from 'node:path'
 import { spawn, type ChildProcess } from 'node:child_process'
 
 let viteProcess: ChildProcess | undefined
+let xenicsProcess: ChildProcess | undefined
 
 async function waitForDevServer() {
   for (let attempt = 0; attempt < 30; attempt += 1) {
@@ -16,6 +17,21 @@ async function waitForDevServer() {
   throw new Error('Vite dev server did not become ready on port 1420')
 }
 
+async function waitForEmbeddedWebDriver() {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    try {
+      const response = await fetch('http://127.0.0.1:4445/status')
+      if (response.ok) return
+    } catch {
+      // The embedded server is expected to refuse connections while Tauri starts.
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 250))
+  }
+
+  throw new Error('Embedded WebDriver did not become ready on port 4445')
+}
+
 const binaryName = process.platform === 'win32' ? 'xenics.exe' : 'xenics'
 
 export const config = {
@@ -24,14 +40,16 @@ export const config = {
   maxInstances: 1,
   framework: 'mocha',
   reporters: ['spec'],
-  services: ['@wdio/tauri-service'],
+  hostname: '127.0.0.1',
+  port: 4445,
+  path: '/',
+  // @wdio/tauri-service@1.4.0 installs a focus hook that calls an IPC command
+  // missing from tauri-plugin-wdio-webdriver@1.4.0. Connect directly to the
+  // real embedded server until the packages expose matching window-state APIs.
+  services: [],
   capabilities: [
     {
       browserName: 'tauri',
-      'tauri:options': {
-        application:
-          process.env.XENICS_APP_PATH ?? join(process.cwd(), 'src-tauri/target/debug', binaryName),
-      },
     },
   ],
   mochaOpts: {
@@ -43,8 +61,19 @@ export const config = {
       stdio: 'ignore',
     })
     await waitForDevServer()
+    xenicsProcess = spawn(
+      process.env.XENICS_APP_PATH ?? join(process.cwd(), 'src-tauri/target/debug', binaryName),
+      [],
+      {
+        cwd: process.cwd(),
+        stdio: 'ignore',
+        env: { ...process.env, TAURI_WEBDRIVER_PORT: '4445' },
+      },
+    )
+    await waitForEmbeddedWebDriver()
   },
   onComplete: () => {
+    xenicsProcess?.kill()
     viteProcess?.kill()
   },
 }

@@ -45,6 +45,10 @@ npm run test:e2e
 ```
 
 The E2E harness uses an isolated test scope. Do not point it at a personal Xenics library.
+It launches the test-feature Tauri binary and connects WebdriverIO directly to
+the embedded `tauri-plugin-wdio-webdriver` server. The currently published
+`@wdio/tauri-service` package is not used because its automatic focus hook calls
+window-state IPC that the matching Rust plugin does not expose.
 
 The repository also defines a desktop acceptance workflow for macOS, Ubuntu,
 and Windows. It runs the real desktop smoke suite and builds a normal release

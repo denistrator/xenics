@@ -40,6 +40,7 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
   const [detailsRepositoryId, setDetailsRepositoryId] = useState<string | null>(null)
   const [installedIds, setInstalledIds] = useState<Set<string>>(() => new Set())
   const [updateState, setUpdateState] = useState<DownloadState>('idle')
+  const [updateReviewOpen, setUpdateReviewOpen] = useState(false)
   const [customRepositories, setCustomRepositories] = useState<Repository[]>([])
   const [addSourceOpen, setAddSourceOpen] = useState(false)
   const [sourceName, setSourceName] = useState('')
@@ -205,7 +206,7 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
           {installedIds.size > 0 && onUpdate && (
             <button
               type="button"
-              onClick={() => void updateRepositories([...installedIds])}
+              onClick={() => setUpdateReviewOpen(true)}
               disabled={updateState === 'loading'}
               aria-busy={updateState === 'loading'}
               className="rounded-xl border border-x-line bg-x-panel px-4 py-3 text-sm font-semibold hover:bg-x-paper"
@@ -278,6 +279,22 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
               {sourceError && <p role="alert" className="text-sm text-x-coral">{sourceError}</p>}
             </div>
             <div className="mt-6 flex justify-end gap-3"><button type="button" onClick={() => setAddSourceOpen(false)} className="rounded-lg border border-x-line px-4 py-2 text-sm font-semibold">Cancel</button><button type="button" onClick={() => void addLocalSource()} className="rounded-lg bg-x-ink px-4 py-2 text-sm font-semibold text-x-paper">Add source</button></div>
+          </section>
+        </div>
+      )}
+      {updateReviewOpen && onUpdate && (
+        <div className="fixed inset-0 z-30 grid place-items-center bg-x-ink/30 p-5" role="presentation">
+          <section role="dialog" aria-modal="true" aria-labelledby="update-review-title" className="w-full max-w-lg rounded-2xl border border-x-line bg-x-panel p-6 shadow-2xl">
+            <h2 id="update-review-title" className="font-display text-2xl tracking-tight">Review update all</h2>
+            <p className="mt-2 text-sm text-x-muted">Xenics will check each installed source. Files-only and explicitly referenced local folders are included only when their update policy allows it; website-only sources are skipped.</p>
+            <div className="mt-5 max-h-48 space-y-2 overflow-auto">
+              {[...installedIds].map((id) => {
+                const repository = catalogRepositories.find(({ id: repositoryId }) => repositoryId === id)
+                const skipped = repository?.capability === 'Website only'
+                return <div key={id} className="flex items-center justify-between rounded-lg bg-x-paper px-3 py-2 text-sm"><span>{repository?.name ?? id}</span><span className="text-xs text-x-muted">{skipped ? 'Skipped' : 'Included'}</span></div>
+              })}
+            </div>
+            <div className="mt-6 flex justify-end gap-3"><button type="button" onClick={() => setUpdateReviewOpen(false)} className="rounded-lg border border-x-line px-4 py-2 text-sm font-semibold">Cancel</button><button type="button" onClick={() => { setUpdateReviewOpen(false); void updateRepositories([...installedIds]) }} className="rounded-lg bg-x-ink px-4 py-2 text-sm font-semibold text-x-paper">Start updates</button></div>
           </section>
         </div>
       )}

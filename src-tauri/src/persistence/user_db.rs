@@ -346,6 +346,22 @@ impl UserDb {
             .unwrap_or_else(|| Value::Object(Map::new())))
     }
 
+    pub fn clear_user_data(&self) -> Result<(), XenicsError> {
+        let connection = self.connection.lock().expect("user database mutex");
+        connection
+            .execute_batch(
+                "DELETE FROM bookmark_collections;
+                 DELETE FROM bookmark_tags;
+                 DELETE FROM bookmarks;
+                 DELETE FROM collections;
+                 DELETE FROM tags;
+                 DELETE FROM settings;
+                 DELETE FROM task_records;
+                 DELETE FROM sources;",
+            )
+            .map_err(database_error)
+    }
+
     pub fn journal_mode(&self) -> Result<String, XenicsError> {
         let connection = self.connection.lock().expect("user database mutex");
         connection

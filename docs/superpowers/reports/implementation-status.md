@@ -14,7 +14,7 @@ Updated: 2026-09-10
 - Queueable repository downloads now use cancellable task operations; native task listing, cancellation, and retry commands are registered.
 - Native task events are emitted on `task://<task-id>` with monotonic sequences and are forwarded through the Tauri event bridge.
 - React now hydrates the task panel from native snapshots, subscribes only to active tasks, cleans up listeners, and ignores stale or terminal-reopening events.
- - Local macOS validation: 34 frontend tests, 56 Rust tests, production build, and 5/5 desktop E2E specs pass.
+ - Local macOS validation: 35 frontend tests, 59 Rust tests, production build, and 5/5 desktop E2E specs pass.
 
 ## Still in progress
 
@@ -42,6 +42,7 @@ Updated: 2026-09-10
 - Installed Git sources now expose native update and removal operations. Updates fetch, fast-forward, and re-index the selected source; removals clear derived search records first. Managed library folders may be deleted only through an explicit flag and containment check, while external/local folders remain user-owned.
 - Native custom-source registration now accepts a validated local folder, detects an optional Git remote, persists the source outside managed-library deletion scope, and defaults unknown local folders to Files-only capability.
 - Native external URL and folder actions now validate their target before delegating to the Tauri opener plugin, keeping browser and system-explorer launches outside shell interpolation.
+- Full reset is now preview-first and confirmation-bound. It clears durable user records and the derived search index, deletes only canonical managed folders inside the library, preserves external/local-folder sources, and is exposed from Settings with a destructive confirmation dialog.
 - Windows/Linux validation and installed-package verification remain pending.
 
 ## Safety note

@@ -1,13 +1,17 @@
 use super::{delete_explicit_path, filesystem_error};
 use crate::diagnostics::error::ErrorCode;
+use serde::Serialize;
 use std::path::{Path, PathBuf};
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ResetPreview {
     pub deletable_paths: Vec<PathBuf>,
+    pub confirmation_token: String,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ResetReport {
     pub deleted_paths: Vec<PathBuf>,
 }
@@ -18,6 +22,13 @@ pub struct ResetService {
 }
 
 impl ResetService {
+    pub fn new(deletable_paths: Vec<PathBuf>, referenced_external_paths: Vec<PathBuf>) -> Self {
+        Self {
+            deletable_paths,
+            referenced_external_paths,
+        }
+    }
+
     pub fn for_test(external_path: impl AsRef<Path>) -> Self {
         Self::for_test_with_paths(Vec::new(), external_path)
     }
@@ -33,21 +44,15 @@ impl ResetService {
     }
 
     pub fn preview(&self) -> ResetPreview {
+        let deletable_paths = self.safe_paths();
         ResetPreview {
-            deletable_paths: self.safe_paths(),
+            confirmation_token: token_for_paths(&deletable_paths),
+            deletable_paths,
         }
     }
 
     pub fn confirmation_token(&self) -> String {
-        format!(
-            "xenics-reset-v1:{}",
-            self.preview()
-                .deletable_paths
-                .iter()
-                .map(|path| path.display().to_string())
-                .collect::<Vec<_>>()
-                .join("|")
-        )
+        token_for_paths(&self.safe_paths())
     }
 
     pub fn execute(
@@ -82,4 +87,15 @@ impl ResetService {
             .cloned()
             .collect()
     }
+}
+
+fn token_for_paths(paths: &[PathBuf]) -> String {
+    format!(
+        "xenics-reset-v1:{}",
+        paths
+            .iter()
+            .map(|path| path.display().to_string())
+            .collect::<Vec<_>>()
+            .join("|")
+    )
 }

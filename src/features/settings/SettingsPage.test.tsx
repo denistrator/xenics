@@ -19,4 +19,12 @@ describe('SettingsPage', () => {
     fireEvent.change(screen.getByLabelText('Theme'), { target: { value: 'dark' } })
     expect(screen.getByLabelText('Theme')).toHaveValue('dark')
   })
+
+  it('explains that full reset requires the desktop app in browser mode', async () => {
+    render(<SettingsPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Preview full reset' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Full reset is available in the desktop app.')
+  })
 })

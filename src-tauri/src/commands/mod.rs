@@ -59,6 +59,71 @@ pub fn list_sources(state: State<'_, AppState>) -> Result<Vec<SourceRecord>, Str
 }
 
 #[tauri::command]
+pub fn preview_reset(
+    state: State<'_, AppState>,
+) -> Result<crate::filesystem::ResetPreview, String> {
+    let root = state
+        .library_root
+        .canonicalize()
+        .map_err(|error| error.to_string())?;
+    let sources = state
+        .user_db
+        .list_sources()
+        .map_err(|error| error.message)?;
+    let deletable_paths = sources
+        .iter()
+        .filter_map(|source| source.local_path.as_ref())
+        .filter_map(|path| PathBuf::from(path).canonicalize().ok())
+        .filter(|path| path.starts_with(&root) && *path != root)
+        .collect();
+    let external_paths = sources
+        .iter()
+        .filter_map(|source| source.local_path.as_ref())
+        .filter_map(|path| PathBuf::from(path).canonicalize().ok())
+        .filter(|path| !path.starts_with(&root))
+        .collect();
+    let service = crate::filesystem::ResetService::new(deletable_paths, external_paths);
+    Ok(service.preview())
+}
+
+#[tauri::command]
+pub fn execute_reset(
+    state: State<'_, AppState>,
+    confirmation_token: String,
+) -> Result<crate::filesystem::ResetReport, String> {
+    let root = state
+        .library_root
+        .canonicalize()
+        .map_err(|error| error.to_string())?;
+    let sources = state
+        .user_db
+        .list_sources()
+        .map_err(|error| error.message)?;
+    let deletable_paths = sources
+        .iter()
+        .filter_map(|source| source.local_path.as_ref())
+        .filter_map(|path| PathBuf::from(path).canonicalize().ok())
+        .filter(|path| path.starts_with(&root) && *path != root)
+        .collect();
+    let external_paths = sources
+        .iter()
+        .filter_map(|source| source.local_path.as_ref())
+        .filter_map(|path| PathBuf::from(path).canonicalize().ok())
+        .filter(|path| !path.starts_with(&root))
+        .collect();
+    let service = crate::filesystem::ResetService::new(deletable_paths, external_paths);
+    let report = service
+        .execute(&confirmation_token)
+        .map_err(|error| error.message)?;
+    state
+        .user_db
+        .clear_user_data()
+        .map_err(|error| error.message)?;
+    state.search_db.clear().map_err(|error| error.message)?;
+    Ok(report)
+}
+
+#[tauri::command]
 pub fn add_local_source(
     state: State<'_, AppState>,
     id: String,

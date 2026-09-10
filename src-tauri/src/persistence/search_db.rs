@@ -97,6 +97,18 @@ impl SearchDb {
             .map_err(database_error)
     }
 
+    pub fn clear(&self) -> Result<(), XenicsError> {
+        let connection = self.connection.lock().expect("search database mutex");
+        let transaction = connection.unchecked_transaction().map_err(database_error)?;
+        transaction
+            .execute("DELETE FROM documents", [])
+            .map_err(database_error)?;
+        transaction
+            .execute("DELETE FROM document_locations", [])
+            .map_err(database_error)?;
+        transaction.commit().map_err(database_error)
+    }
+
     pub fn journal_mode(&self) -> Result<String, XenicsError> {
         let connection = self.connection.lock().expect("search database mutex");
         connection

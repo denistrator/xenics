@@ -76,7 +76,7 @@ Durable user data includes source metadata, settings, bookmarks, collections, ta
 
 Managed remote repositories use stable `library/vendor/package/` paths. Referenced local folders are never owned or deleted by Xenics.
 
-Library relocation is an explicit move followed by destination verification. Full reset is preview-based: Xenics presents the exact disposable and managed paths, requires a confirmation token tied to that preview, and excludes referenced external folders from deletion.
+Library relocation is an explicit move followed by destination verification. Full reset is preview-based: Xenics presents the exact disposable and managed paths, requires a confirmation token tied to that preview, clears both durable records and derived search data, and excludes referenced external folders from deletion.
 
 ## Trust boundaries
 

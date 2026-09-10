@@ -150,6 +150,27 @@ fn settings_are_upserted_and_read_as_json_values() {
 }
 
 #[test]
+fn clearing_user_data_removes_records_but_keeps_the_database_usable() {
+    let db = UserDb::open_in_memory().unwrap();
+    db.upsert_source("react", "React", "Readable", Some("main"), None, None)
+        .unwrap();
+    db.save_bookmark("react", "main", "docs/start.md", None)
+        .unwrap();
+    db.create_collection("Reading list").unwrap();
+    db.create_tag("Important").unwrap();
+    db.update_settings(serde_json::json!({ "theme": "dark" }))
+        .unwrap();
+
+    db.clear_user_data().unwrap();
+
+    assert!(db.list_sources().unwrap().is_empty());
+    assert!(db.list_bookmarks().unwrap().is_empty());
+    assert!(db.list_collections().unwrap().is_empty());
+    assert!(db.list_tags().unwrap().is_empty());
+    assert_eq!(db.get_settings().unwrap(), serde_json::json!({}));
+}
+
+#[test]
 fn reader_session_is_durable_and_defaults_to_an_empty_object() {
     let db = UserDb::open_in_memory().unwrap();
     assert_eq!(db.get_session().unwrap(), serde_json::json!({}));
@@ -192,4 +213,25 @@ fn removing_one_search_document_preserves_other_documents() {
     assert!(db.remove_document("react", "a.md").unwrap());
     assert!(!db.remove_document("react", "a.md").unwrap());
     assert_eq!(db.query_documents("beta").unwrap().len(), 1);
+}
+
+#[test]
+fn clearing_search_data_removes_documents_and_locations() {
+    let db = SearchDb::open_in_memory().unwrap();
+    db.replace_document_with_location(
+        "react",
+        "docs/start.md",
+        "Start",
+        "",
+        "alpha",
+        "",
+        "",
+        12,
+        4,
+    )
+    .unwrap();
+
+    db.clear().unwrap();
+
+    assert!(db.query_documents("alpha").unwrap().is_empty());
 }

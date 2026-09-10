@@ -60,6 +60,13 @@ Git-source update/reindex (including cancellable queued updates), derived-search
 removal. External/local folders remain user-owned and are never deleted by
 default.
 
+The Settings screen exposes a preview-first full reset. The native layer returns
+the exact managed folders eligible for deletion and a confirmation token tied to
+that preview. Execution clears managed folders, durable user records, and the
+derived search index; referenced folders outside the managed library are never
+deleted. Browser-mode settings keep the action unavailable because reset is a
+desktop filesystem operation.
+
 ## Platform targets
 
 The primary target is desktop macOS, Windows, and Linux. Mobile support is a future read-only/synced companion target; do not assume desktop filesystem, explorer, editor, terminal, or long-running background behavior exists on iOS.

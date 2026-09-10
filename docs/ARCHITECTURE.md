@@ -40,6 +40,8 @@ Technology groups are a presentation-level aggregation over stable repository ID
 
 Selected catalog IDs remain UI-only state. Bulk update expands to installed IDs, while hide and remove reuse the individual organization/lifecycle callbacks and then clear selection to prevent stale actions.
 
+Bookmark collection assignment remains owned by the organization feature. It keeps the last selected collection in local UI state for a quick follow-up action, while persistence still flows through the existing native-backed assignment callback.
+
 Repository cards derive a safe source-type label from the source contract and render optional operational fields only when native state provides them. Paths are shown as summaries in the card and remain separate from editable display metadata.
 
 The global update action opens a review before queueing work. The review identifies every installed source known to the catalog, labels website-only sources as skipped, and leaves final eligibility enforcement to the native update policy.

@@ -5,12 +5,14 @@ import { TagPicker } from './TagPicker'
 import type { Collection, Tag } from './organization-model'
 import { useBookmarks, useNamedOrganizationRecords } from './organization-hooks'
 import type { Bookmark } from './organization-model'
+import { useState } from 'react'
 
 export function OrganizationPage({ onOpenBookmark }: { onOpenBookmark?: (bookmark: Bookmark) => void }): ReactNode {
   const { bookmarks, assignCollection, toggleTag } = useBookmarks()
   const { records: collections, createRecord: createCollection } = useNamedOrganizationRecords<Collection>('list_collections', 'create_collection')
   const { records: tags, createRecord: createTag } = useNamedOrganizationRecords<Tag>('list_tags', 'create_tag')
   const selectedTags = [...new Set(bookmarks.flatMap(({ tagIds }) => tagIds))]
+  const [lastUsedCollectionId, setLastUsedCollectionId] = useState<string | undefined>()
 
   function openBookmark(bookmark: typeof bookmarks[number]): void {
     if (!bookmark.available) return
@@ -20,6 +22,11 @@ export function OrganizationPage({ onOpenBookmark }: { onOpenBookmark?: (bookmar
   function askForName(label: string, create: (name: string) => void): void {
     const name = window.prompt(`Name for the new ${label}`)
     if (name !== null) create(name)
+  }
+
+  function changeBookmarkCollection(bookmark: Bookmark, collectionId: string | undefined): void {
+    setLastUsedCollectionId(collectionId)
+    assignCollection(bookmark, collectionId)
   }
 
   return (
@@ -34,7 +41,8 @@ export function OrganizationPage({ onOpenBookmark }: { onOpenBookmark?: (bookmar
           onOpen={openBookmark}
           onCreateCollection={() => askForName('collection', createCollection)}
           collections={collections}
-          onCollectionChange={assignCollection}
+          onCollectionChange={changeBookmarkCollection}
+          lastUsedCollectionId={lastUsedCollectionId}
         />
         <CollectionsPanel collections={collections} />
       </div>

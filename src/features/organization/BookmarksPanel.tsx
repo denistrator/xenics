@@ -9,9 +9,11 @@ type BookmarksPanelProps = {
   onCreateCollection?: () => void
   collections?: Collection[]
   onCollectionChange?: (bookmark: Bookmark, collectionId: string | undefined) => void
+  lastUsedCollectionId?: string
 }
 
-export function BookmarksPanel({ bookmarks, onOpen, onCreateCollection, collections = [], onCollectionChange }: BookmarksPanelProps): ReactNode {
+export function BookmarksPanel({ bookmarks, onOpen, onCreateCollection, collections = [], onCollectionChange, lastUsedCollectionId }: BookmarksPanelProps): ReactNode {
+  const lastUsedCollection = collections.find(({ id }) => id === lastUsedCollectionId)
   return (
     <section aria-labelledby="bookmarks-title" className="rounded-2xl border border-x-line bg-x-panel p-5">
       <div className="flex items-center justify-between">
@@ -43,16 +45,19 @@ export function BookmarksPanel({ bookmarks, onOpen, onCreateCollection, collecti
                 {!bookmark.available && ' · Unavailable'}
               </p>
               {collections.length > 0 && onCollectionChange && (
-                <select
-                  aria-label={`Collection for ${bookmark.title}`}
-                  value={bookmark.collectionId ?? ''}
-                  onClick={(event) => event.stopPropagation()}
-                  onChange={(event) => onCollectionChange(bookmark, event.target.value || undefined)}
-                  className="mt-2 rounded-md border border-x-line bg-x-panel px-2 py-1 text-xs"
-                >
-                  <option value="">No collection</option>
-                  {collections.map((collection) => <option key={collection.id} value={collection.id}>{collection.name}</option>)}
-                </select>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <select
+                    aria-label={`Collection for ${bookmark.title}`}
+                    value={bookmark.collectionId ?? ''}
+                    onClick={(event) => event.stopPropagation()}
+                    onChange={(event) => onCollectionChange(bookmark, event.target.value || undefined)}
+                    className="rounded-md border border-x-line bg-x-panel px-2 py-1 text-xs"
+                  >
+                    <option value="">No collection</option>
+                    {collections.map((collection) => <option key={collection.id} value={collection.id}>{collection.name}</option>)}
+                  </select>
+                  {lastUsedCollection && lastUsedCollection.id !== bookmark.collectionId && <button type="button" onClick={() => onCollectionChange(bookmark, lastUsedCollection.id)} className="rounded-md bg-x-mint px-2 py-1 text-xs font-semibold text-x-ink">Add to {lastUsedCollection.name}</button>}
+                </div>
               )}
             </div>
           ))}

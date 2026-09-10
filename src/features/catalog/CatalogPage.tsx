@@ -2,6 +2,7 @@ import { Download, RefreshCw, Search, SlidersHorizontal } from 'lucide-react'
 import { useDeferredValue, useEffect, useMemo, useState, type ChangeEvent, type InputHTMLAttributes, type ReactNode } from 'react'
 import { repositories, type Repository, type RepositoryMetadataOverride } from './catalog-model'
 import { getGroupRepositories, technologyGroups } from './catalog-groups'
+import { applyNativeSourceMetadata, type NativeSourceMetadata } from './catalog-source-metadata'
 import { RepositoryCard } from './RepositoryCard'
 import { TechnologyGroupCard } from './TechnologyGroupCard'
 import { defaultDownloadSelection, selectRange, toggleSelection } from './catalog-selection'
@@ -42,6 +43,7 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
   const [downloadState, setDownloadState] = useState<DownloadState>('idle')
   const [detailsRepositoryId, setDetailsRepositoryId] = useState<string | null>(null)
   const [installedIds, setInstalledIds] = useState<Set<string>>(() => new Set())
+  const [nativeSourceMetadata, setNativeSourceMetadata] = useState<Record<string, NativeSourceMetadata>>({})
   const [updateState, setUpdateState] = useState<DownloadState>('idle')
   const [updateReviewOpen, setUpdateReviewOpen] = useState(false)
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -76,9 +78,12 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
   useEffect(() => {
     if (!hasNativeBridge()) return
     let active = true
-    void invokeCommand<Array<{ id: string }>>('list_sources')
+    void invokeCommand<NativeSourceMetadata[]>('list_sources')
       .then((sources) => {
-        if (active) setInstalledIds(new Set(sources.map(({ id }) => id)))
+        if (active) {
+          setInstalledIds(new Set(sources.map(({ id }) => id)))
+          setNativeSourceMetadata(Object.fromEntries(sources.map((source) => [source.id, source])))
+        }
       })
       .catch(() => undefined)
     return () => { active = false }
@@ -136,10 +141,11 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
   const catalogRepositories = useMemo(
     () => [...repositories, ...customRepositories].map((repository) => ({
       ...repository,
+      ...applyNativeSourceMetadata(repository, nativeSourceMetadata[repository.id] ?? { id: repository.id }),
       ...(metadataById[repository.id] ?? {}),
       status: installedIds.has(repository.id) ? 'Ready' as const : repository.status,
     })),
-    [customRepositories, installedIds, metadataById],
+    [customRepositories, installedIds, metadataById, nativeSourceMetadata],
   )
 
   const visibleRepositories = useMemo(

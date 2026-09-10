@@ -43,7 +43,7 @@ artifact, not inferred from a development run.
 | Hosted macOS acceptance workflow | Pending: no Git remote is configured in this checkout |
 | Hosted Ubuntu acceptance workflow | Pending: no Git remote is configured in this checkout |
 | Hosted Windows acceptance workflow | Pending: no Git remote is configured in this checkout |
-| macOS signing | Pending: signing credentials are not available |
+| macOS signing | Pending: locally generated app is ad-hoc/linker-signed; distribution identity is not available |
 | macOS notarization | Pending: notarization credentials are not available |
 
 The workflow is defined in `.github/workflows/desktop-acceptance.yml`. It

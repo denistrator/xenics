@@ -36,6 +36,17 @@ export function closeTab(tabs: ReaderTab[], id: string): { tabs: ReaderTab[]; cl
   }
 }
 
+export function closeOtherTabs(tabs: ReaderTab[], activeId: string): ReaderTab[] {
+  return tabs.filter((tab) => tab.pinned || tab.id === activeId)
+}
+
+export function closeTabsToRight(tabs: ReaderTab[], activeId: string): ReaderTab[] {
+  const activeIndex = tabs.findIndex((tab) => tab.id === activeId)
+  if (activeIndex < 0) return tabs
+
+  return tabs.filter((tab, index) => index <= activeIndex || tab.pinned)
+}
+
 export function duplicateTab(tabs: ReaderTab[], id: string): ReaderTab[] {
   const tab = tabs.find((value) => value.id === id)
   if (!tab) return tabs

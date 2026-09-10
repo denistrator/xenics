@@ -1,7 +1,7 @@
 import { ArrowLeft, ArrowRight, Check, Copy, Pin, RotateCcw, X } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { DocumentView, type ReaderDocument, type ReaderLink } from './DocumentView'
-import { closeTab, duplicateTab, pinTab, type ReaderTab } from './tab-state'
+import { closeOtherTabs, closeTab, closeTabsToRight, duplicateTab, pinTab, type ReaderTab } from './tab-state'
 import { useReaderDocument } from './reader-hooks'
 import { hasNativeBridge, invokeCommand } from '../../lib/tauri'
 
@@ -79,6 +79,16 @@ export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl, onOp
 
   function toggleCurrentTabPin(): void {
     if (currentTab) setTabs((current) => pinTab(current, currentTab.id))
+  }
+
+  function closeOtherTabsFromWorkspace(): void {
+    if (!currentTab) return
+    setTabs((current) => closeOtherTabs(current, currentTab.id))
+  }
+
+  function closeTabsToRightFromWorkspace(): void {
+    if (!currentTab) return
+    setTabs((current) => closeTabsToRight(current, currentTab.id))
   }
 
   function openInternalLink(link: ReaderLink): void {
@@ -206,6 +216,8 @@ export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl, onOp
           <button type="button" aria-label="Pin active tab" onClick={toggleCurrentTabPin} className="rounded-lg p-2 text-x-muted hover:bg-x-panel">
             <Pin aria-hidden="true" size={15} />
           </button>
+          <button type="button" aria-label="Close other tabs" disabled={!currentTab} onClick={closeOtherTabsFromWorkspace} className="rounded-lg px-2 text-xs text-x-muted hover:bg-x-panel disabled:opacity-40">Others</button>
+          <button type="button" aria-label="Close tabs to right" disabled={!currentTab} onClick={closeTabsToRightFromWorkspace} className="rounded-lg px-2 text-xs text-x-muted hover:bg-x-panel disabled:opacity-40">Right</button>
           <button type="button" aria-label={deepLinkCopied ? 'Deep link copied' : 'Copy deep link'} onClick={() => void copyDeepLink()} className="rounded-lg p-2 text-x-muted hover:bg-x-panel">
             {deepLinkCopied ? <Check aria-hidden="true" size={15} /> : <Copy aria-hidden="true" size={15} />}
           </button>

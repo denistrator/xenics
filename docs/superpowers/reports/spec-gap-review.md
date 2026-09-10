@@ -15,7 +15,7 @@ Linux or Windows desktop-launch harness.
 | Replace the line-oriented parser with a safe shared Markdown/MDX model | ✅ Done | `markdown-rs`, AST-backed blocks, safe MDX warnings, image metadata, Rust/React tests |
 | Populate complete search fields and exact block locations | ✅ Done | All FTS fields are populated; per-block match locations drive exact navigation; 67 Rust tests pass |
 | Add local assets and syntax highlighting | ✅ Done | Safe relative assets with offline fallback; `highlight.js` highlighting; 75 frontend tests pass |
-| Connect native notifications to task outcomes | ⬜ Next | Pending implementation and notification tests |
+| Connect native notifications to task outcomes | ✅ Done | Tauri notification plugin, permission flow, focus/setting policy, terminal deduplication; 77 frontend tests pass |
 | Add measured virtualization/lazy loading | ⬜ Pending | Pending performance baseline and UI tests |
 | Expand desktop acceptance coverage | ⬜ Pending | Linux/Windows launcher strategy remains separate |
 

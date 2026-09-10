@@ -23,6 +23,7 @@ pub fn run() {
     builder
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_notification::init())
         .setup(|app| {
             #[cfg(any(target_os = "linux", all(debug_assertions, windows)))]
             app.deep_link()

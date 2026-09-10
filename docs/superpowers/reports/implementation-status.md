@@ -117,6 +117,10 @@ with line-by-line highlighting so source lines and controls remain stable.
 Unrecognized languages remain escaped plain text. Local images accept only safe
 relative paths, load lazily, and show an offline fallback for external or
 traversal targets.
+- Native OS notifications are now connected through Tauri's notification plugin.
+The task feed requests permission only when needed, respects the persisted
+notification setting and app focus, excludes cancellations, deduplicates terminal
+outcomes per task attempt, and leaves task state unaffected when delivery fails.
 
 ## Safety note
 

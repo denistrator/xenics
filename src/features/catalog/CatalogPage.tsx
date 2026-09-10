@@ -14,7 +14,7 @@ type CatalogPageProps = {
   onRemove?: (repositoryId: string) => Promise<void> | void
   onAddLocalSource?: (input: { id: string; displayName: string; path: string }) => Promise<Repository> | Repository
   onOpenFolder?: (repositoryId: string) => Promise<void> | void
-  onOpenWebsite?: (repositoryId: string) => Promise<void> | void
+  onOpenWebsite?: (repository: Repository) => Promise<void> | void
 }
 
 function matchesRepositoryQuery(
@@ -336,7 +336,7 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
               onUpdate={onUpdate ? () => void updateRepositories([repository.id]) : undefined}
               onRemove={onRemove ? () => void removeRepository(repository.id) : undefined}
               onOpenFolder={onOpenFolder ? () => void onOpenFolder(repository.id) : undefined}
-              onOpenWebsite={onOpenWebsite ? () => void onOpenWebsite(repository.id) : undefined}
+              onOpenWebsite={onOpenWebsite ? (source) => void onOpenWebsite(source) : undefined}
               pinned={pinnedIds.has(repository.id)}
               onTogglePin={() => togglePin(repository.id)}
               onHide={() => hideRepository(repository.id)}

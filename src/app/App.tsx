@@ -63,8 +63,13 @@ export function App() {
     await invokeCommand('open_source_folder', { sourceId: repositoryId })
   }
 
-  async function openSourceWebsite(repositoryId: string): Promise<void> {
-    await invokeCommand('open_source_website', { sourceId: repositoryId })
+  async function openSourceWebsite(repository: Repository): Promise<void> {
+    await invokeCommand('open_external_url', { url: repository.sourceUrl })
+  }
+
+  function openReaderSourceWebsite(sourceId: string): void {
+    const repository = repositories.find(({ id }) => id === sourceId)
+    if (repository) void openSourceWebsite(repository)
   }
 
   function openExternalUrl(url: string): void {
@@ -94,7 +99,7 @@ export function App() {
           onOpenExternalUrl={openExternalUrl}
           onOpenSourceFile={openSourceFile}
           onOpenSourceFolder={openSourceFolder}
-          onOpenSourceUrl={openSourceWebsite}
+          onOpenSourceUrl={openReaderSourceWebsite}
         />
       ) : showSettings ? <SettingsPage /> : showOrganization ? <OrganizationPage onOpenBookmark={(bookmark) => setReaderTarget({ ...bookmark, matchIndex: 0, location: { line: 1, column: 1 } })} /> : <CatalogPage onDownload={downloadRepositories} onUpdate={updateRepository} onRemove={removeRepository} onAddLocalSource={addLocalSource} onOpenFolder={openSourceFolder} onOpenWebsite={openSourceWebsite} />}
       {tasks.length > 0 && (

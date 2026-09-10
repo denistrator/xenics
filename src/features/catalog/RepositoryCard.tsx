@@ -11,7 +11,7 @@ type RepositoryCardProps = {
   onUpdate?: () => void
   onRemove?: () => void
   onOpenFolder?: () => void
-  onOpenWebsite?: () => void
+  onOpenWebsite?: (repository: Repository) => void
   pinned?: boolean
   onTogglePin?: () => void
   onHide?: () => void
@@ -134,7 +134,7 @@ export function RepositoryCard({
           )}
           <button
             type="button"
-            onClick={isWebsiteOnly ? onOpenWebsite : isFilesOnly && isInstalled ? onOpenFolder : isInstalled ? onOpen : onDownload}
+            onClick={isWebsiteOnly ? () => onOpenWebsite?.(repo) : isFilesOnly && isInstalled ? onOpenFolder : isInstalled ? onOpen : onDownload}
             disabled={!isInstalled && !isWebsiteOnly && !onDownload}
             className="rounded-lg p-2 text-x-muted hover:bg-x-mint hover:text-x-ink"
             aria-label={`${primaryActionLabel}: ${repo.name}`}

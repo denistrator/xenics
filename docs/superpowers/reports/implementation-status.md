@@ -92,6 +92,7 @@ Updated: 2026-09-10
 - Final local acceptance verification passed for E2E typecheck, packaged-build verification, and all six macOS WebDriver specs, including catalog filtering/details and scheduled-update settings selection.
 - Cross-platform desktop acceptance is now configured in `.github/workflows/desktop-acceptance.yml` for macOS, Ubuntu, and Windows, including real smoke runs, Ubuntu Xvfb setup, and normal release-bundle builds. Those hosted jobs and clean-user installer/deep-link/signing checks remain pending until the workflow executes with the required runner and distribution credentials.
 - The native desktop suite connects directly to the embedded WebDriver server because the published service/plugin pair has an incompatible automatic window-focus hook; the workaround keeps the real Tauri binary and WebDriver protocol in coverage while avoiding that optional hook.
+- A retained [release acceptance checklist](release-acceptance-checklist.md) now records local macOS evidence separately from installed-bundle, hosted CI, and distribution-credential checks that remain pending.
 
 ## Safety note
 

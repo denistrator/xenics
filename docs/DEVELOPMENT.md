@@ -55,7 +55,8 @@ and Windows. It runs the real desktop smoke suite and builds a normal release
 bundle on each runner. The Ubuntu job installs Xvfb for the native WebView test
 session. CI can verify build and runtime behavior, but clean-user installation,
 OS deep-link registration, signing, and notarization still need platform-owner
-checks and credentials.
+checks and credentials. Record those results in the [release acceptance
+checklist](superpowers/reports/release-acceptance-checklist.md).
 
 `verify:packaged` also requires an actual release bundle, confirms the bundled
 SQLite configuration, and checks that the normal Cargo dependency graph does

@@ -15,6 +15,8 @@ pub struct SourceRecord {
     pub clone_mode: Option<String>,
     pub local_path: Option<String>,
     pub remote_url: Option<String>,
+    pub updated_at: String,
+    pub disk_usage_bytes: Option<u64>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
@@ -422,7 +424,7 @@ impl UserDb {
         let connection = self.connection.lock().expect("user database mutex");
         let mut statement = connection
             .prepare(
-                "SELECT id, display_name, capability, selected_ref, clone_mode, local_path, remote_url
+                "SELECT id, display_name, capability, selected_ref, clone_mode, local_path, remote_url, updated_at
                  FROM sources ORDER BY created_at, id",
             )
             .map_err(database_error)?;
@@ -436,6 +438,8 @@ impl UserDb {
                     clone_mode: row.get(4)?,
                     local_path: row.get(5)?,
                     remote_url: row.get(6)?,
+                    updated_at: row.get(7)?,
+                    disk_usage_bytes: None,
                 })
             })
             .map_err(database_error)?;

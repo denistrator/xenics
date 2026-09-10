@@ -52,6 +52,8 @@ Reader headings derive stable, sanitized IDs from their text. A validated deep-l
 
 Search coverage messages expose indexed and total source counts while coverage is incomplete. The UI keeps incomplete coverage separate from a completed empty result set so users do not mistake an in-progress index for a definitive no-results response.
 
+Native source listing enriches persisted source records with their database update timestamp and a symlink-safe recursive size calculation. The frontend displays these values as optional operational metadata and does not use them for identity, deletion, or editable presentation metadata.
+
 Reader navigation is optional document data composed of labeled relative paths and nested children. The workspace routes a selected item through the active tab’s existing history transition; absent navigation data, the sidebar continues to list open tabs.
 
 The catalog’s native hydration boundary accepts source identity, selected ref, local path, and remote URL. It derives only a display-level source type; user-edited names, descriptions, icons, categories, and tags remain applied afterward and never affect source identity or storage paths.

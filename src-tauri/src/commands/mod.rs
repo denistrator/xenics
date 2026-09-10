@@ -55,7 +55,33 @@ pub struct DownloadReport {
 
 #[tauri::command]
 pub fn list_sources(state: State<'_, AppState>) -> Result<Vec<SourceRecord>, String> {
-    state.user_db.list_sources().map_err(|error| error.message)
+    state
+        .user_db
+        .list_sources()
+        .map(|sources| {
+            sources
+                .into_iter()
+                .map(|mut source| {
+                    if let Some(path) = source.local_path.as_deref() {
+                        source.disk_usage_bytes = Some(directory_size(PathBuf::from(path).as_path()));
+                    }
+                    source
+                })
+                .collect()
+        })
+        .map_err(|error| error.message)
+}
+
+fn directory_size(path: &std::path::Path) -> u64 {
+    let Ok(metadata) = fs::symlink_metadata(path) else { return 0 };
+    if metadata.is_file() { return metadata.len() }
+    if !metadata.is_dir() { return 0 }
+    fs::read_dir(path)
+        .into_iter()
+        .flatten()
+        .filter_map(Result::ok)
+        .map(|entry| directory_size(entry.path().as_path()))
+        .sum()
 }
 
 #[tauri::command]

@@ -112,4 +112,13 @@ describe('ReaderWorkspace', () => {
     fireEvent.drop(tabs[0]!.parentElement!)
     expect(screen.getAllByRole('tab')[0]).toHaveTextContent('TypeScript')
   })
+
+  it('supports collapsing and expanding the reader sidebar', () => {
+    render(<ReaderWorkspace initialTabs={[tab]} document={readerDocument} />)
+    expect(screen.getByRole('complementary', { name: 'Reader sidebar' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Collapse reader sidebar' }))
+    expect(screen.queryByRole('complementary', { name: 'Reader sidebar' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Expand reader sidebar' }))
+    expect(screen.getByRole('complementary', { name: 'Reader sidebar' })).toBeInTheDocument()
+  })
 })

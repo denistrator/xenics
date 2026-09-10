@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Check, Copy, Pin, RotateCcw, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Copy, PanelLeft, Pin, RotateCcw, X } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { DocumentView, type ReaderDocument, type ReaderLink } from './DocumentView'
 import { closeOtherTabs, closeTab, closeTabsToRight, duplicateTab, pinTab, reorderTabs, type ReaderTab } from './tab-state'
@@ -21,6 +21,7 @@ export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl, onOp
   const [zoom, setZoom] = useState(100)
   const [deepLinkCopied, setDeepLinkCopied] = useState(false)
   const [draggedTabId, setDraggedTabId] = useState<string | null>(null)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
   const sessionHydrated = useRef(!hasNativeBridge())
   const currentTab = tabs.find((tab) => tab.id === activeTabId) ?? tabs[0]
   const loadedDocument = useReaderDocument(document ? undefined : currentTab)
@@ -227,6 +228,9 @@ export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl, onOp
           <button type="button" aria-label="Pin active tab" onClick={toggleCurrentTabPin} className="rounded-lg p-2 text-x-muted hover:bg-x-panel">
             <Pin aria-hidden="true" size={15} />
           </button>
+          <button type="button" aria-label={sidebarOpen ? 'Collapse reader sidebar' : 'Expand reader sidebar'} onClick={() => setSidebarOpen((open) => !open)} className="rounded-lg p-2 text-x-muted hover:bg-x-panel">
+            <PanelLeft aria-hidden="true" size={15} />
+          </button>
           <button type="button" aria-label="Close other tabs" disabled={!currentTab} onClick={closeOtherTabsFromWorkspace} className="rounded-lg px-2 text-xs text-x-muted hover:bg-x-panel disabled:opacity-40">Others</button>
           <button type="button" aria-label="Close tabs to right" disabled={!currentTab} onClick={closeTabsToRightFromWorkspace} className="rounded-lg px-2 text-xs text-x-muted hover:bg-x-panel disabled:opacity-40">Right</button>
           <button type="button" aria-label={deepLinkCopied ? 'Deep link copied' : 'Copy deep link'} onClick={() => void copyDeepLink()} className="rounded-lg p-2 text-x-muted hover:bg-x-panel">
@@ -242,8 +246,9 @@ export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl, onOp
       </header>
 
       {currentTab && visibleDocument ? (
-        <div id={`panel-${currentTab.id}`} role="tabpanel" aria-labelledby={`tab-${currentTab.id}`} className="p-6 md:p-10">
-          <DocumentView document={visibleDocument} onInternalLink={openInternalLink} onExternalLink={(link) => onOpenExternalUrl?.(link.target)} zoom={zoom} />
+        <div className={sidebarOpen ? 'grid md:grid-cols-[13rem_1fr]' : ''}>
+          {sidebarOpen && <aside aria-label="Reader sidebar" className="border-b border-x-line bg-x-paper p-4 md:border-b-0 md:border-r"><p className="mb-3 text-xs font-bold uppercase tracking-[.16em] text-x-muted">Open documents</p><nav className="space-y-1">{tabs.map((tab) => <button key={tab.id} type="button" onClick={() => setActiveTabId(tab.id)} className={`block w-full truncate rounded-lg px-3 py-2 text-left text-sm ${tab.id === currentTab.id ? 'bg-x-mint font-semibold text-x-ink' : 'text-x-muted hover:bg-x-panel'}`}>{tab.title}</button>)}</nav></aside>}
+          <div id={`panel-${currentTab.id}`} role="tabpanel" aria-labelledby={`tab-${currentTab.id}`} className="p-6 md:p-10"><DocumentView document={visibleDocument} onInternalLink={openInternalLink} onExternalLink={(link) => onOpenExternalUrl?.(link.target)} zoom={zoom} /></div>
         </div>
       ) : loadedDocument.loading ? (
         <p className="p-10 text-x-muted" role="status">Loading document…</p>

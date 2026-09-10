@@ -46,6 +46,8 @@ The reader accepts only the parsed native document model. React renders text nod
 
 Global search is command-backed through a deferred React query boundary. The palette presents loading and native error states, while the Rust service remains responsible for FTS normalization, ranking, and input safety.
 
+Search results provide client-side repository and document-type filters over native result metadata, an exact whole-word match mode, and previous/next controls that move keyboard focus through the filtered result set. Retrieval remains native and unchanged.
+
 Search records store source-relative document paths with normalized `/` separators. This keeps result navigation independent of the machine’s absolute library location and lets the reader enforce one consistent containment boundary.
 
 The derived search database stores one parser-derived location per document and returns it with each hit. Frontend result targets preserve that location so later reader views can focus the corresponding source area without exposing absolute paths.

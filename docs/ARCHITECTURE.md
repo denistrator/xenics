@@ -147,6 +147,12 @@ boundary. Xenics-managed library sources may be updated normally; explicitly
 referenced folders outside that library are refused unless the user has opted
 in, even if a frontend caller attempts the command directly.
 
+Scheduled availability checks are exposed through `check_due_updates`. The
+catalog invokes this at launch and on a one-minute cadence while Xenics is
+open; the native scheduler applies on-launch, daily, weekly, and disabled modes,
+deduplicates sources, fetches remote metadata without changing checked-out
+content, and reports unknown availability after failures.
+
 Each task also emits ordered `TaskEvent` values on `task://<task-id>`. Sequence
 numbers are assigned by the task manager, and the Tauri adapter forwards the
 events without allowing the frontend to infer completion from dispatch alone.

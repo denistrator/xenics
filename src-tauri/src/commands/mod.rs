@@ -2,6 +2,7 @@ pub mod deep_links;
 pub mod organization;
 pub mod tasks;
 
+use crate::core::update_checks::{Availability, UpdateCheckService, UpdateSchedule};
 use crate::{
     documents::{IndexReport, Indexer, SearchService},
     filesystem::ManagedPath,
@@ -18,6 +19,7 @@ pub struct AppState {
     pub search_db: Arc<SearchDb>,
     pub library_root: PathBuf,
     pub task_manager: TaskManager,
+    pub update_checks: Arc<UpdateCheckService>,
 }
 
 impl AppState {
@@ -38,6 +40,7 @@ impl AppState {
                 SearchDb::open(data_dir.join("search.sqlite")).map_err(|error| error.message)?,
             ),
             library_root: data_dir,
+            update_checks: Arc::new(UpdateCheckService::default()),
             task_manager: match event_sink {
                 Some(sink) => TaskManager::new_with_store_and_event_sink(user_db, sink),
                 None => TaskManager::new_with_store(user_db),
@@ -62,6 +65,14 @@ pub struct SearchReport {
     pub complete: bool,
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateAvailabilityReport {
+    pub source_id: String,
+    pub availability: String,
+    pub checked_at: i64,
+}
+
 #[tauri::command]
 pub fn list_sources(state: State<'_, AppState>) -> Result<Vec<SourceRecord>, String> {
     state
@@ -80,6 +91,103 @@ pub fn list_sources(state: State<'_, AppState>) -> Result<Vec<SourceRecord>, Str
                 .collect()
         })
         .map_err(|error| error.message)
+}
+
+#[tauri::command]
+pub fn check_due_updates(
+    state: State<'_, AppState>,
+) -> Result<Vec<UpdateAvailabilityReport>, String> {
+    let settings = state
+        .user_db
+        .get_settings()
+        .map_err(|error| error.message)?;
+    let schedule = parse_update_schedule(settings.get("updateSchedule"));
+    if state.update_checks.schedule() != schedule {
+        state.update_checks.apply_schedule(schedule);
+    }
+
+    let sources = state
+        .user_db
+        .list_sources()
+        .map_err(|error| error.message)?;
+    for source in &sources {
+        if source.remote_url.is_some() && source.local_path.is_some() {
+            state
+                .update_checks
+                .register_source(crate::core::ids::SourceId::from(source.id.as_str()));
+        }
+    }
+
+    let now = chrono_like_now();
+    let due = state.update_checks.on_startup();
+    let due = if due.is_empty() {
+        state.update_checks.check_due(now)
+    } else {
+        due
+    };
+    let mut reports = Vec::new();
+    for source_id in due {
+        let source = sources.iter().find(|source| source.id == source_id.0);
+        let Some(source) = source else { continue };
+        let Some(remote_url) = source.remote_url.clone() else {
+            continue;
+        };
+        let Some(local_path) = source.local_path.clone() else {
+            continue;
+        };
+        let cancellation = CancellationToken::default();
+        let result = GitService::has_remote_updates(
+            &GitRequest {
+                source: remote_url,
+                destination: PathBuf::from(local_path),
+                reference: source.selected_ref.clone(),
+                shallow: source.clone_mode.as_deref() != Some("full"),
+            },
+            &cancellation,
+        );
+        let (success, available) = match result {
+            Ok(available) => (true, available),
+            Err(_) => (false, false),
+        };
+        state
+            .update_checks
+            .finish_check(&source_id, now, success, available);
+        let availability = state
+            .update_checks
+            .snapshot(&source_id)
+            .map(|snapshot| availability_name(snapshot.availability))
+            .unwrap_or("unknown");
+        reports.push(UpdateAvailabilityReport {
+            source_id: source.id.clone(),
+            availability: availability.to_owned(),
+            checked_at: now,
+        });
+    }
+    Ok(reports)
+}
+
+fn parse_update_schedule(value: Option<&serde_json::Value>) -> UpdateSchedule {
+    match value.and_then(serde_json::Value::as_str) {
+        Some("daily") => UpdateSchedule::Daily,
+        Some("weekly") => UpdateSchedule::Weekly,
+        Some("disabled") => UpdateSchedule::Disabled,
+        _ => UpdateSchedule::OnLaunch,
+    }
+}
+
+fn availability_name(availability: Availability) -> &'static str {
+    match availability {
+        Availability::Unknown => "unknown",
+        Availability::Available => "available",
+        Availability::UpToDate => "up-to-date",
+    }
+}
+
+fn chrono_like_now() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs() as i64
 }
 
 fn directory_size(path: &std::path::Path) -> u64 {

@@ -7,6 +7,7 @@ export type NativeSourceMetadata = {
   remoteUrl?: string
   updatedAt?: string
   diskUsageBytes?: number
+  availability?: 'available' | 'up-to-date' | 'unknown'
 }
 
 const nativeCapabilities = new Set<Repository['capability']>([
@@ -42,6 +43,9 @@ export function applyNativeSourceMetadata(repository: Repository, source: Native
     ...(source.localPath === undefined ? {} : { localPath: source.localPath }),
     ...(source.updatedAt === undefined ? {} : { lastSyncedAt: source.updatedAt }),
     ...(source.diskUsageBytes === undefined ? {} : { diskUsageBytes: source.diskUsageBytes }),
+    ...(source.availability === undefined || source.availability === 'unknown'
+      ? {}
+      : { updateAvailable: source.availability === 'available' }),
     sourceType,
   }
 }

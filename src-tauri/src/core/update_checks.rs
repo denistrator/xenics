@@ -97,6 +97,10 @@ impl<C: Clock> UpdateCheckService<C> {
         }
     }
 
+    pub fn schedule(&self) -> UpdateSchedule {
+        *self.schedule.lock().unwrap()
+    }
+
     pub fn on_startup(&self) -> Vec<SourceId> {
         if *self.schedule.lock().unwrap() == UpdateSchedule::OnLaunch {
             let now = self.clock.now();

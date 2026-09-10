@@ -9,6 +9,12 @@ import { defaultDownloadSelection, selectRange, toggleSelection } from './catalo
 import { SourceDetails } from './SourceDetails'
 import { hasNativeBridge, invokeCommand } from '../../lib/tauri'
 
+type UpdateAvailabilityReport = {
+  sourceId: string
+  availability: 'available' | 'up-to-date' | 'unknown'
+  checkedAt: number
+}
+
 type DownloadState = 'idle' | 'loading' | 'success' | 'error'
 
 type CatalogPageProps = {
@@ -91,6 +97,34 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
       })
       .catch(() => undefined)
     return () => { active = false }
+  }, [])
+
+  useEffect(() => {
+    if (!hasNativeBridge()) return
+    let active = true
+    const refreshUpdateAvailability = () => {
+      void invokeCommand<UpdateAvailabilityReport[]>('check_due_updates')
+        .then((reports) => {
+          if (!active) return
+          setNativeSourceMetadata((current) => {
+            const next = { ...current }
+            reports.forEach((report) => {
+              next[report.sourceId] = {
+                ...(next[report.sourceId] ?? { id: report.sourceId }),
+                availability: report.availability,
+              }
+            })
+            return next
+          })
+        })
+        .catch(() => undefined)
+    }
+    refreshUpdateAvailability()
+    const interval = window.setInterval(refreshUpdateAvailability, 60_000)
+    return () => {
+      active = false
+      window.clearInterval(interval)
+    }
   }, [])
 
   useEffect(() => {

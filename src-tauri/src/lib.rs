@@ -46,6 +46,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             commands::list_sources,
+            commands::check_due_updates,
             commands::preview_reset,
             commands::execute_reset,
             commands::add_local_source,

@@ -141,6 +141,26 @@ impl GitService {
         )
     }
 
+    pub fn has_remote_updates(
+        request: &GitRequest,
+        cancellation: &CancellationToken,
+    ) -> Result<bool, XenicsError> {
+        validate_request(request)?;
+        let mut fetch_args = vec!["fetch", "--prune", "origin"];
+        if let Some(reference) = request.reference.as_deref() {
+            validate_ref(reference)?;
+            fetch_args.push(reference);
+        }
+        run_in_repo(&request.destination, &fetch_args, cancellation)?;
+        let head = run_in_repo(&request.destination, &["rev-parse", "HEAD"], cancellation)?;
+        let fetched = run_in_repo(
+            &request.destination,
+            &["rev-parse", "FETCH_HEAD"],
+            cancellation,
+        )?;
+        Ok(head.stdout.trim() != fetched.stdout.trim())
+    }
+
     pub fn fast_forward(
         request: &GitRequest,
         cancellation: &CancellationToken,

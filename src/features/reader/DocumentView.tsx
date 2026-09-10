@@ -3,10 +3,11 @@ import type { ElementType, ReactNode } from 'react'
 import { CodeBlock } from './CodeBlock'
 
 type ReaderBlock = {
-  type: 'heading' | 'paragraph' | 'code' | 'warning'
+  type: 'heading' | 'paragraph' | 'code' | 'warning' | 'embed'
   text: string
   level?: number
   language?: string
+  target?: string
 }
 
 export type ReaderLink = {
@@ -94,6 +95,14 @@ function renderBlock(
         >
           <AlertTriangle aria-hidden="true" className="shrink-0" size={18} />
           <span>{block.text}</span>
+        </aside>
+      )
+    case 'embed':
+      return (
+        <aside key={key} className="rounded-xl border border-dashed border-x-line bg-x-paper p-5" aria-label="Unsupported offline embed">
+          <p className="text-sm font-semibold">{block.text}</p>
+          <p className="mt-1 text-sm text-x-muted">This interactive content is unavailable offline.</p>
+          {block.target && <button type="button" onClick={() => onExternalLink?.({ label: block.text, target: block.target! })} className="mt-3 rounded-lg bg-x-ink px-3 py-2 text-sm font-semibold text-x-paper">Open in browser</button>}
         </aside>
       )
     case 'heading': {

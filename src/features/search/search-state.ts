@@ -38,7 +38,7 @@ export type SearchReaderTarget = {
 
 export function coverageMessage(coverage: SearchCoverage): string | undefined {
   if (coverage.complete) return undefined
-  return `${Math.max(coverage.total - coverage.indexed, 0)} still indexing`
+  return `Searching ${coverage.indexed} of ${coverage.total} sources; ${Math.max(coverage.total - coverage.indexed, 0)} still indexing`
 }
 
 export function openSearchResult(result: SearchResultModel): SearchReaderTarget {

@@ -50,6 +50,8 @@ Native block locations are retained in the reader document model, and search tar
 
 Reader headings derive stable, sanitized IDs from their text. A validated deep-link anchor is retained on the tab and marks the matching heading, keeping anchor navigation inside the safe structured renderer.
 
+Search coverage messages expose indexed and total source counts while coverage is incomplete. The UI keeps incomplete coverage separate from a completed empty result set so users do not mistake an in-progress index for a definitive no-results response.
+
 Reader navigation is optional document data composed of labeled relative paths and nested children. The workspace routes a selected item through the active tab’s existing history transition; absent navigation data, the sidebar continues to list open tabs.
 
 The catalog’s native hydration boundary accepts source identity, selected ref, local path, and remote URL. It derives only a display-level source type; user-edited names, descriptions, icons, categories, and tags remain applied afterward and never affect source identity or storage paths.

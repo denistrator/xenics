@@ -14,7 +14,7 @@ describe('SearchPage', () => {
       />,
     )
 
-    expect(screen.getByText(/2 still indexing/i)).toBeInTheDocument()
+    expect(screen.getByText(/searching 3 of 5 sources; 2 still indexing/i)).toBeInTheDocument()
     expect(screen.queryByText(/no results/i)).not.toBeInTheDocument()
   })
 })

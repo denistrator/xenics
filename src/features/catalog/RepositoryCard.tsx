@@ -57,6 +57,10 @@ export function RepositoryCard({
     : isInstalled
       ? isFilesOnly ? 'Open folder' : 'Read documentation'
       : isFilesOnly ? 'Download repository' : 'Download docs'
+  const sourceType = repo.sourceType ?? (isWebsiteOnly ? 'Website' : repo.localPath ? 'Local folder' : 'Git source')
+  const diskUsage = repo.diskUsageBytes === undefined
+    ? undefined
+    : `${(repo.diskUsageBytes / 1024 / 1024).toFixed(1)} MB`
 
   function handleSelectionChange(event: ChangeEvent<HTMLInputElement>): void {
     onSelect(isShiftPressed(event))
@@ -103,7 +107,7 @@ export function RepositoryCard({
           {repo.name}
         </h2>
         <p className="mt-2 min-h-12 text-sm leading-6 text-x-muted">{repo.description}</p>
-        <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-x-muted">
+      <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-x-muted">
           <span className="rounded-full bg-x-paper px-2.5 py-1">{repo.category}</span>
           <span className="rounded-full bg-x-paper px-2.5 py-1">{repo.capability}</span>
           {repo.tags?.map((tag) => <span key={tag} className="rounded-full bg-x-paper px-2.5 py-1">#{tag}</span>)}
@@ -144,6 +148,14 @@ export function RepositoryCard({
           </button>
         </div>
       </div>
+      <dl className="mt-4 grid grid-cols-2 gap-x-3 gap-y-2 text-xs text-x-muted">
+        <div><dt className="font-semibold uppercase tracking-wide">Source</dt><dd className="mt-1">{sourceType}</dd></div>
+        {repo.selectedRef && <div><dt className="font-semibold uppercase tracking-wide">Version</dt><dd className="mt-1">Ref: {repo.selectedRef}</dd></div>}
+        {repo.localPath && <div className="col-span-2 min-w-0"><dt className="font-semibold uppercase tracking-wide">Location</dt><dd className="mt-1 truncate" title={repo.localPath}>{repo.localPath}</dd></div>}
+        {repo.lastSyncedAt && <div><dt className="font-semibold uppercase tracking-wide">Last sync</dt><dd className="mt-1">{repo.lastSyncedAt}</dd></div>}
+        {diskUsage && <div><dt className="font-semibold uppercase tracking-wide">Disk usage</dt><dd className="mt-1">{diskUsage}</dd></div>}
+        {repo.updateAvailable !== undefined && <div className="col-span-2"><dt className="sr-only">Updates</dt><dd className={repo.updateAvailable ? 'text-x-coral' : ''}>{repo.updateAvailable ? 'Update available' : 'Up to date'}</dd></div>}
+      </dl>
 
       {!isInstalled && isDownloadable && onDownload && (
         <button

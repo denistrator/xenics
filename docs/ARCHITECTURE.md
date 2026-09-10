@@ -38,6 +38,8 @@ Catalog update and removal actions are thin UI adapters over native commands. Bu
 
 Technology groups are a presentation-level aggregation over stable repository IDs. Group actions expand to the same per-source download and update callbacks used by individual cards, so capability and installed-state eligibility remains visible and does not create a second lifecycle path.
 
+Repository cards derive a safe source-type label from the source contract and render optional operational fields only when native state provides them. Paths are shown as summaries in the card and remain separate from editable display metadata.
+
 The global update action opens a review before queueing work. The review identifies every installed source known to the catalog, labels website-only sources as skipped, and leaves final eligibility enforcement to the native update policy.
 
 The local-source dialog requires a display name and folder path, then delegates canonicalization and Git-remote detection to `add_local_source`. The returned source is presented in the same card grid, but remains outside managed-library deletion scope. Catalog pin and hide state is persisted in the user settings scope, with pinned cards sorted first and an explicit show-hidden filter.

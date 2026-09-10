@@ -162,4 +162,12 @@ describe('CatalogPage', () => {
     expect(onUpdate).toHaveBeenCalledWith('typescript')
     expect(onUpdate).toHaveBeenCalledWith('tailwind')
   })
+
+  it('shows operational source metadata on a repository card', () => {
+    render(<CatalogPage />)
+
+    const reactCard = screen.getByRole('article', { name: 'React' })
+    expect(within(reactCard).getByText('Git source')).toBeInTheDocument()
+    expect(within(reactCard).getByText('Ref: main')).toBeInTheDocument()
+  })
 })

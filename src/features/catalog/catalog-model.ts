@@ -1,6 +1,7 @@
 export type RepositoryCapability = 'Readable' | 'Partially readable' | 'Files only' | 'Website only'
 export type RepositoryStatus = 'Ready' | 'Not installed'
 export type RepositoryAccent = 'mint' | 'sky' | 'coral' | 'amber' | 'teal' | 'violet'
+export type RepositorySourceType = 'Git source' | 'Local folder' | 'Website'
 
 export interface Repository {
   id: string
@@ -14,6 +15,11 @@ export interface Repository {
   capability: RepositoryCapability
   sourceUrl: string
   selectedRef: string
+  sourceType?: RepositorySourceType
+  localPath?: string
+  lastSyncedAt?: string
+  updateAvailable?: boolean
+  diskUsageBytes?: number
   tags?: string[]
 }
 

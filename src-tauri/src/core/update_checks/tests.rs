@@ -49,3 +49,17 @@ fn disabled_schedule_never_checks_and_failures_keep_last_success() {
     service.apply_schedule(UpdateSchedule::Disabled);
     assert!(service.on_startup().is_empty());
 }
+
+#[test]
+fn snapshots_can_be_restored_after_restart() {
+    let (_, update_service, source) = service(100);
+    update_service.apply_schedule(UpdateSchedule::Daily);
+    update_service.finish_check(&source, 100, true, true);
+    let snapshot = update_service.snapshot(&source).unwrap();
+
+    let (_, restored, _) = service(100);
+    restored.restore_snapshots([snapshot]);
+    let restored_snapshot = restored.snapshot(&source).unwrap();
+    assert_eq!(restored_snapshot.availability, Availability::Available);
+    assert_eq!(restored_snapshot.last_successful_check, Some(100));
+}

@@ -76,7 +76,7 @@ export function SearchPage({ response, onOpen, query, onQueryChange, categoryByS
       {showResults && (
         <div className="space-y-3">
           {filteredResults.map((result) => (
-            <SearchResult key={result.id} result={result} onOpen={onOpen} />
+            <SearchResult key={result.id} result={result} query={response.query} onOpen={onOpen} />
           ))}
         </div>
       )}

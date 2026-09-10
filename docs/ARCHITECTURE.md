@@ -44,6 +44,8 @@ Bookmark collection assignment remains owned by the organization feature. It kee
 
 Unsupported reader embeds are represented as plain structured blocks. The renderer never evaluates embedded markup; it shows an offline placeholder and routes the optional target through the existing external-link opener.
 
+Search-result highlighting is a presentational transformation over already-sanitized title and excerpt strings. Query terms are regex-escaped before splitting, and the renderer uses text nodes plus `mark` elements without injecting HTML.
+
 Repository cards derive a safe source-type label from the source contract and render optional operational fields only when native state provides them. Paths are shown as summaries in the card and remain separate from editable display metadata.
 
 The global update action opens a review before queueing work. The review identifies every installed source known to the catalog, labels website-only sources as skipped, and leaves final eligibility enforcement to the native update policy.

@@ -5,10 +5,18 @@ import { openSearchResult } from './search-state'
 
 type SearchResultProps = {
   result: SearchResultModel
+  query?: string
   onOpen: (target: SearchReaderTarget) => void
 }
 
-export function SearchResult({ result, onOpen }: SearchResultProps): ReactNode {
+function highlightText(text: string, query: string): ReactNode {
+  const terms = query.trim().split(/\s+/).filter(Boolean)
+  if (terms.length === 0) return text
+  const pattern = new RegExp(`(${terms.map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'i')
+  return text.split(pattern).map((part, index) => pattern.test(part) ? <mark key={`${part}-${index}`} className="rounded bg-x-amber/50 text-x-ink">{part}</mark> : <span key={`${part}-${index}`}>{part}</span>)
+}
+
+export function SearchResult({ result, query = '', onOpen }: SearchResultProps): ReactNode {
   const resultHash = `#reader-${encodeURIComponent(result.id)}`
   const matchLabel = result.matchCount === 1 ? 'match' : 'matches'
 
@@ -30,12 +38,12 @@ export function SearchResult({ result, onOpen }: SearchResultProps): ReactNode {
             onClick={handleOpen}
             className="mt-2 block text-lg font-semibold tracking-tight hover:text-x-mint-strong"
           >
-            {result.title}
+            {highlightText(result.title, query)}
           </a>
         </div>
         <ArrowUpRight aria-hidden="true" className="shrink-0 text-x-muted" size={17} />
       </div>
-      <p className="mt-3 text-sm leading-6 text-x-muted">{result.excerpt}</p>
+      <p className="mt-3 text-sm leading-6 text-x-muted">{highlightText(result.excerpt, query)}</p>
       <p className="mt-4 text-xs font-semibold text-x-muted">
         {result.matchCount} {matchLabel} · line {result.location.line}
       </p>

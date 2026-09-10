@@ -24,4 +24,9 @@ describe('SearchResult', () => {
       expect.objectContaining({ matchIndex: 0, path: 'reference.md' }),
     )
   })
+
+  it('highlights the searched text in the result title and excerpt', () => {
+    render(<SearchResult result={result} query="useState" onOpen={vi.fn()} />)
+    expect(screen.getAllByText('useState', { selector: 'mark' })).toHaveLength(2)
+  })
 })

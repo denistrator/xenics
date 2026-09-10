@@ -1,16 +1,18 @@
 import { AppShell } from '../components/layout/AppShell'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CatalogPage } from '../features/catalog/CatalogPage'
 import { SettingsPage } from '../features/settings/SettingsPage'
 import { repositories } from '../features/catalog/catalog-model'
 import type { Repository } from '../features/catalog/catalog-model'
 import { useLocationHash } from '../lib/use-location-hash'
-import { invokeCommand } from '../lib/tauri'
+import { hasNativeBridge, invokeCommand } from '../lib/tauri'
 import { TaskPanel } from '../features/tasks/TaskPanel'
 import { useTaskFeed } from '../features/tasks/use-task-feed'
 import { ReaderWorkspace } from '../features/reader/ReaderWorkspace'
 import { openSearchResult, type SearchReaderTarget } from '../features/search/search-state'
 import { OrganizationPage } from '../features/organization/OrganizationPage'
+import { getCurrent, onOpenUrl } from '@tauri-apps/plugin-deep-link'
+import { parseXenicsUrl } from '../features/organization/organization-hooks'
 
 export function App() {
   const activeHash = useLocationHash()
@@ -18,6 +20,30 @@ export function App() {
   const showOrganization = activeHash === '#organize'
   const { tasks, cancelTask, retryTask } = useTaskFeed()
   const [readerTarget, setReaderTarget] = useState<SearchReaderTarget | null>(null)
+
+  useEffect(() => {
+    if (!hasNativeBridge()) return
+    let active = true
+    const openUrl = (url: string) => {
+      try {
+        const target = parseXenicsUrl(url)
+        if (active) setReaderTarget({ ...target, title: target.path, matchIndex: 0, location: { line: 1, column: 1 } })
+      } catch {
+        // Invalid external links are ignored after validation at the app boundary.
+      }
+    }
+
+    void getCurrent().then((urls) => urls?.forEach(openUrl)).catch(() => undefined)
+    let unsubscribe: (() => void) | undefined
+    void onOpenUrl((urls) => urls.forEach(openUrl))
+      .then((unlisten) => { unsubscribe = unlisten })
+      .catch(() => undefined)
+
+    return () => {
+      active = false
+      unsubscribe?.()
+    }
+  }, [])
 
   async function downloadRepositories(repositoryIds: string[]): Promise<void> {
     const selectedRepositories = repositories.filter(({ id }) => repositoryIds.includes(id))

@@ -152,7 +152,7 @@ Task recovery is surface-specific: active and recent operations are shown in the
 
 Xenics deep links preserve source, branch/tag ref, document path, and optional anchor. They are parsed and traversal-checked at the Rust command boundary before a reader target is opened.
 
-Native notifications are policy-gated: Xenics only requests completion/failure notifications when the app is unfocused and the user has enabled them. Progress remains in-app, and denied notification permission is not converted into a task failure. The current release verifier checks bundle configuration, an actual release bundle, and that the normal dependency graph excludes the E2E WebDriver plugin; installer, signing, notarization, and clean-profile OS registration remain platform acceptance checks.
+Native notifications are policy-gated: Xenics only requests completion/failure notifications when the app is unfocused and the user has enabled them. Progress remains in-app, and denied notification permission is not converted into a task failure. Xenics registers the `xenics://` desktop scheme through the Tauri deep-link plugin and validates incoming targets before opening them. The current release verifier checks bundle configuration, an actual release bundle, and that the normal dependency graph excludes the E2E WebDriver plugin; installer, signing, notarization, and clean-profile OS registration remain platform acceptance checks.
 
 ## Evolution rule
 

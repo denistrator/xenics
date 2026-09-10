@@ -10,6 +10,8 @@ pub mod tasks;
 
 use std::sync::Arc;
 use tauri::{Emitter, Manager};
+#[cfg(any(target_os = "linux", all(debug_assertions, windows)))]
+use tauri_plugin_deep_link::DeepLinkExt;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -19,8 +21,14 @@ pub fn run() {
     let builder = builder.plugin(tauri_plugin_wdio_webdriver::init());
 
     builder
+        .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
+            #[cfg(any(target_os = "linux", all(debug_assertions, windows)))]
+            app.deep_link()
+                .register_all()
+                .map_err(std::io::Error::other)?;
+
             let data_dir = app
                 .path()
                 .app_data_dir()

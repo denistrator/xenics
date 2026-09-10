@@ -56,7 +56,9 @@ platform-owner checks and credentials.
 SQLite configuration, and checks that the normal Cargo dependency graph does
 not include the E2E WebDriver plugin. The workflow retains each platform
 bundle as a 14-day artifact for the remaining clean-profile and OS-registration
-checks.
+checks. The desktop bundle declares and registers the `xenics://` scheme; verify
+it from a clean installed bundle because macOS does not support runtime scheme
+registration during development.
 
 Native lifecycle commands are registered during Tauri startup. The application
 data scope contains `user.sqlite` for source/task/user records and

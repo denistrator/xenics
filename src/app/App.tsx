@@ -84,7 +84,7 @@ export function App() {
             history: [readerTarget.path],
           }]}
         />
-      ) : showSettings ? <SettingsPage /> : showOrganization ? <OrganizationPage /> : <CatalogPage onDownload={downloadRepositories} onUpdate={updateRepository} onRemove={removeRepository} onAddLocalSource={addLocalSource} onOpenFolder={openSourceFolder} onOpenWebsite={openSourceWebsite} />}
+      ) : showSettings ? <SettingsPage /> : showOrganization ? <OrganizationPage onOpenBookmark={(bookmark) => setReaderTarget({ ...bookmark, matchIndex: 0, location: { line: 1, column: 1 } })} /> : <CatalogPage onDownload={downloadRepositories} onUpdate={updateRepository} onRemove={removeRepository} onAddLocalSource={addLocalSource} onOpenFolder={openSourceFolder} onOpenWebsite={openSourceWebsite} />}
       {tasks.length > 0 && (
         <div className="mx-auto max-w-[1500px] px-5 pb-8 md:px-10">
           <TaskPanel

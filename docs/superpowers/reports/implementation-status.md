@@ -45,6 +45,7 @@ Updated: 2026-09-10
 - Native external URL and folder actions now validate their target before delegating to the Tauri opener plugin, keeping browser and system-explorer launches outside shell interpolation.
 - Full reset is now preview-first and confirmation-bound. It clears durable user records and the derived search index, deletes only canonical managed folders inside the library, preserves external/local-folder sources, and is exposed from Settings with a destructive confirmation dialog.
 - Global Update all now opens a review dialog before queueing installed sources, clearly labels website-only sources as skipped, and keeps native policy enforcement authoritative.
+- Catalog filtering is now functional for category, capability, and installation state; organization bookmark cards now have an explicit open action instead of a no-op handler.
 - Final local acceptance verification passed: E2E typecheck, packaged-build verifier, and all five macOS WebDriver specs. The suite still emits known non-failing Tauri invoke-timeout and mock-store cleanup warnings while the app remains healthy.
 - Cross-platform desktop acceptance is now configured in `.github/workflows/desktop-acceptance.yml` for macOS, Ubuntu, and Windows, including real smoke runs and normal release-bundle builds. Those hosted jobs and clean-user installer/deep-link/signing checks remain pending until the workflow executes with the required runner and distribution credentials.
 

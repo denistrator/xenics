@@ -32,7 +32,7 @@ Source monitoring uses a native recursive watcher for Markdown and MDX files. Gi
 
 Changed files can be consumed incrementally: supported paths are re-parsed and upserted, deleted paths are removed from the derived index, and cancellation or root mismatches stop the operation safely. Full reconciliation remains available after missed events.
 
-The catalog treats the hardcoded technology list as presentation metadata and hydrates installation status from the durable native source catalog. A successful download updates the local view immediately while the database remains authoritative on the next launch.
+The catalog treats the hardcoded technology list as presentation metadata and hydrates installation status from the durable native source catalog. A successful download updates the local view immediately while the database remains authoritative on the next launch. Category, capability, and installation filters are local presentation state and never alter source ownership or persistence.
 
 Catalog update and removal actions are thin UI adapters over native commands. Bulk update operates only on currently installed catalog IDs; destructive managed-file deletion remains an explicit native operation with canonical-root containment checks.
 

@@ -24,6 +24,14 @@ describe('CatalogPage', () => {
     expect(screen.getByText('1 technology')).toBeInTheDocument()
   })
 
+  it('filters repositories by category and capability', () => {
+    render(<CatalogPage />)
+    fireEvent.click(screen.getByRole('button', { name: 'Filter repositories' }))
+    fireEvent.change(screen.getByRole('combobox', { name: 'Filter by category' }), { target: { value: 'Data' } })
+    expect(screen.getByRole('heading', { name: 'SQLite' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'React' })).not.toBeInTheDocument()
+  })
+
   it('delegates bulk downloads and exposes the completed state', async () => {
     const onDownload = vi.fn().mockResolvedValue(undefined)
     render(<CatalogPage onDownload={onDownload} />)

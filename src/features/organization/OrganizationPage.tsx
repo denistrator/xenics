@@ -4,12 +4,18 @@ import { CollectionsPanel } from './CollectionsPanel'
 import { TagPicker } from './TagPicker'
 import type { Collection, Tag } from './organization-model'
 import { useBookmarks, useNamedOrganizationRecords } from './organization-hooks'
+import type { Bookmark } from './organization-model'
 
-export function OrganizationPage(): ReactNode {
+export function OrganizationPage({ onOpenBookmark }: { onOpenBookmark?: (bookmark: Bookmark) => void }): ReactNode {
   const { bookmarks, assignCollection, toggleTag } = useBookmarks()
   const { records: collections, createRecord: createCollection } = useNamedOrganizationRecords<Collection>('list_collections', 'create_collection')
   const { records: tags, createRecord: createTag } = useNamedOrganizationRecords<Tag>('list_tags', 'create_tag')
   const selectedTags = [...new Set(bookmarks.flatMap(({ tagIds }) => tagIds))]
+
+  function openBookmark(bookmark: typeof bookmarks[number]): void {
+    if (!bookmark.available) return
+    onOpenBookmark?.(bookmark)
+  }
 
   function askForName(label: string, create: (name: string) => void): void {
     const name = window.prompt(`Name for the new ${label}`)
@@ -25,7 +31,7 @@ export function OrganizationPage(): ReactNode {
       <div className="grid gap-5 lg:grid-cols-2">
         <BookmarksPanel
           bookmarks={bookmarks}
-          onOpen={() => undefined}
+          onOpen={openBookmark}
           onCreateCollection={() => askForName('collection', createCollection)}
           collections={collections}
           onCollectionChange={assignCollection}

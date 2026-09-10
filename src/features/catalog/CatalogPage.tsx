@@ -41,6 +41,10 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
   const [installedIds, setInstalledIds] = useState<Set<string>>(() => new Set())
   const [updateState, setUpdateState] = useState<DownloadState>('idle')
   const [updateReviewOpen, setUpdateReviewOpen] = useState(false)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const [categoryFilter, setCategoryFilter] = useState('All')
+  const [capabilityFilter, setCapabilityFilter] = useState('All')
+  const [installationFilter, setInstallationFilter] = useState('All')
   const [customRepositories, setCustomRepositories] = useState<Repository[]>([])
   const [addSourceOpen, setAddSourceOpen] = useState(false)
   const [sourceName, setSourceName] = useState('')
@@ -68,9 +72,17 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
   )
 
   const visibleRepositories = useMemo(
-    () => catalogRepositories.filter((repository) => matchesRepositoryQuery(repository, deferredSearchQuery)),
-    [catalogRepositories, deferredSearchQuery],
+    () => catalogRepositories.filter((repository) => (
+      matchesRepositoryQuery(repository, deferredSearchQuery)
+      && (categoryFilter === 'All' || repository.category === categoryFilter)
+      && (capabilityFilter === 'All' || repository.capability === capabilityFilter)
+      && (installationFilter === 'All'
+        || installationFilter === (repository.status === 'Ready' ? 'Installed' : 'Not installed'))
+    )),
+    [catalogRepositories, deferredSearchQuery, categoryFilter, capabilityFilter, installationFilter],
   )
+  const categories = useMemo(() => ['All', ...new Set(catalogRepositories.map(({ category }) => category))], [catalogRepositories])
+  const capabilities = useMemo(() => ['All', ...new Set(catalogRepositories.map(({ capability }) => capability))], [catalogRepositories])
   const selectedRepositoryIds = useMemo(() => new Set(selectedIds), [selectedIds])
   const downloadableRepositoryIds = useMemo(
     () => defaultDownloadSelection(catalogRepositories),
@@ -215,13 +227,18 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
               {updateState === 'loading' ? 'Updating all…' : updateState === 'success' ? 'All sources updated' : updateState === 'error' ? 'Update failed — retry' : 'Update all'}
             </button>
           )}
-          <button
-            type="button"
-            aria-label="Filter repositories"
-            className="grid size-11 place-items-center rounded-xl border border-x-line bg-x-panel text-x-muted hover:bg-x-paper"
-          >
-            <SlidersHorizontal aria-hidden="true" size={17} />
-          </button>
+          <div className="relative">
+            <button type="button" aria-label="Filter repositories" aria-expanded={filtersOpen} onClick={() => setFiltersOpen((open) => !open)} className="grid size-11 place-items-center rounded-xl border border-x-line bg-x-panel text-x-muted hover:bg-x-paper">
+              <SlidersHorizontal aria-hidden="true" size={17} />
+            </button>
+            {filtersOpen && (
+              <div className="absolute right-0 top-14 z-20 w-64 space-y-3 rounded-xl border border-x-line bg-x-panel p-4 shadow-xl">
+                <label className="block text-xs font-semibold">Category<select aria-label="Filter by category" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} className="mt-1 block w-full rounded-md border border-x-line bg-x-paper px-2 py-2 text-sm">{categories.map((category) => <option key={category}>{category}</option>)}</select></label>
+                <label className="block text-xs font-semibold">Capability<select aria-label="Filter by capability" value={capabilityFilter} onChange={(event) => setCapabilityFilter(event.target.value)} className="mt-1 block w-full rounded-md border border-x-line bg-x-paper px-2 py-2 text-sm">{capabilities.map((capability) => <option key={capability}>{capability}</option>)}</select></label>
+                <label className="block text-xs font-semibold">Installation<select aria-label="Filter by installation" value={installationFilter} onChange={(event) => setInstallationFilter(event.target.value)} className="mt-1 block w-full rounded-md border border-x-line bg-x-paper px-2 py-2 text-sm"><option>All</option><option>Installed</option><option>Not installed</option></select></label>
+              </div>
+            )}
+          </div>
         </div>
       </section>
 

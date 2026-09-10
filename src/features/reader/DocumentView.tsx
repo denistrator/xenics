@@ -40,6 +40,7 @@ function renderParagraph(
   text: string,
   links: ReaderLink[] | undefined,
   onInternalLink: ((link: ReaderLink) => void) | undefined,
+  onExternalLink: ((link: ReaderLink) => void) | undefined,
 ): ReactNode {
   if (!links?.length) return text
 
@@ -57,7 +58,11 @@ function renderParagraph(
         href={`#reader-link-${encodeURIComponent(link.target)}`}
         className="text-x-mint-strong underline decoration-x-mint-strong/40 underline-offset-4 hover:decoration-x-mint-strong"
         onClick={(event) => {
-          if (link.target.startsWith('http://') || link.target.startsWith('https://')) return
+          if (link.target.startsWith('http://') || link.target.startsWith('https://')) {
+            event.preventDefault()
+            onExternalLink?.(link)
+            return
+          }
           event.preventDefault()
           onInternalLink?.(link)
         }}
@@ -73,6 +78,7 @@ function renderBlock(
   index: number,
   links: ReaderLink[] | undefined,
   onInternalLink: ((link: ReaderLink) => void) | undefined,
+  onExternalLink: ((link: ReaderLink) => void) | undefined,
 ): ReactNode {
   const key = `${block.type}-${index}`
 
@@ -101,8 +107,8 @@ function renderBlock(
     case 'paragraph':
       // React escapes text nodes, so untrusted repository content is never treated as HTML.
       return (
-        <p key={key} className="text-base leading-8 text-x-muted">
-          {renderParagraph(block.text, links, onInternalLink)}
+      <p key={key} className="text-base leading-8 text-x-muted">
+          {renderParagraph(block.text, links, onInternalLink, onExternalLink)}
         </p>
       )
   }
@@ -111,10 +117,12 @@ function renderBlock(
 export function DocumentView({
   document,
   onInternalLink,
+  onExternalLink,
   zoom = 100,
 }: {
   document: ReaderDocument
   onInternalLink?: (link: ReaderLink) => void
+  onExternalLink?: (link: ReaderLink) => void
   zoom?: number
 }): ReactNode {
   return (
@@ -126,7 +134,7 @@ export function DocumentView({
         <h1 className="mt-3 font-display text-4xl tracking-tight">{document.title}</h1>
       </div>
       <div className="space-y-6" style={{ fontSize: `${zoom}%` }}>
-        {document.blocks.map((block, index) => renderBlock(block, index, document.links, onInternalLink))}
+        {document.blocks.map((block, index) => renderBlock(block, index, document.links, onInternalLink, onExternalLink))}
       </div>
     </article>
   )

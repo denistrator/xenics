@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ReaderWorkspace } from './ReaderWorkspace'
 const tab = { id: 'react:README.md', sourceId: 'react', refName: 'main', path: 'README.md', title: 'React', pinned: false, history: ['README.md'] }
 const readerDocument = {
@@ -67,5 +67,12 @@ describe('ReaderWorkspace', () => {
     expect(screen.getByLabelText('Reader zoom')).toHaveTextContent('110%')
     fireEvent.click(screen.getByRole('button', { name: 'Zoom out' }))
     expect(screen.getByLabelText('Reader zoom')).toHaveTextContent('100%')
+  })
+
+  it('routes external links through the browser callback', () => {
+    const onOpenExternalUrl = vi.fn()
+    render(<ReaderWorkspace initialTabs={[tab]} document={{ ...readerDocument, links: [{ label: 'React site', target: 'https://react.dev' }], blocks: [{ type: 'paragraph' as const, text: '[React site](https://react.dev)' }] }} onOpenExternalUrl={onOpenExternalUrl} />)
+    fireEvent.click(screen.getByRole('link', { name: 'React site' }))
+    expect(onOpenExternalUrl).toHaveBeenCalledWith('https://react.dev')
   })
 })

@@ -8,9 +8,10 @@ import { hasNativeBridge, invokeCommand } from '../../lib/tauri'
 type ReaderWorkspaceProps = {
   initialTabs: ReaderTab[]
   document?: ReaderDocument
+  onOpenExternalUrl?: (url: string) => void
 }
 
-export function ReaderWorkspace({ initialTabs, document }: ReaderWorkspaceProps): ReactNode {
+export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl }: ReaderWorkspaceProps): ReactNode {
   const [tabs, setTabs] = useState<ReaderTab[]>(() => initialTabs)
   const [activeTabId, setActiveTabId] = useState<string | undefined>(() => initialTabs[0]?.id)
   const [closedTabs, setClosedTabs] = useState<ReaderTab[]>([])
@@ -198,7 +199,7 @@ export function ReaderWorkspace({ initialTabs, document }: ReaderWorkspaceProps)
 
       {currentTab && visibleDocument ? (
         <div id={`panel-${currentTab.id}`} role="tabpanel" aria-labelledby={`tab-${currentTab.id}`} className="p-6 md:p-10">
-          <DocumentView document={visibleDocument} onInternalLink={openInternalLink} zoom={zoom} />
+          <DocumentView document={visibleDocument} onInternalLink={openInternalLink} onExternalLink={(link) => onOpenExternalUrl?.(link.target)} zoom={zoom} />
         </div>
       ) : loadedDocument.loading ? (
         <p className="p-10 text-x-muted" role="status">Loading document…</p>

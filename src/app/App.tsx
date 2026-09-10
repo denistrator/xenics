@@ -67,6 +67,10 @@ export function App() {
     await invokeCommand('open_source_website', { sourceId: repositoryId })
   }
 
+  function openExternalUrl(url: string): void {
+    void invokeCommand('open_external_url', { url })
+  }
+
   return (
     <AppShell
       activeHash={activeHash}
@@ -83,6 +87,7 @@ export function App() {
             pinned: false,
             history: [readerTarget.path],
           }]}
+          onOpenExternalUrl={openExternalUrl}
         />
       ) : showSettings ? <SettingsPage /> : showOrganization ? <OrganizationPage onOpenBookmark={(bookmark) => setReaderTarget({ ...bookmark, matchIndex: 0, location: { line: 1, column: 1 } })} /> : <CatalogPage onDownload={downloadRepositories} onUpdate={updateRepository} onRemove={removeRepository} onAddLocalSource={addLocalSource} onOpenFolder={openSourceFolder} onOpenWebsite={openSourceWebsite} />}
       {tasks.length > 0 && (

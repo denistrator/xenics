@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Copy, Pin, RotateCcw, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Copy, Pin, RotateCcw, X } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { DocumentView, type ReaderDocument, type ReaderLink } from './DocumentView'
 import { closeTab, duplicateTab, pinTab, type ReaderTab } from './tab-state'
@@ -16,6 +16,7 @@ export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl }: Re
   const [activeTabId, setActiveTabId] = useState<string | undefined>(() => initialTabs[0]?.id)
   const [closedTabs, setClosedTabs] = useState<ReaderTab[]>([])
   const [zoom, setZoom] = useState(100)
+  const [deepLinkCopied, setDeepLinkCopied] = useState(false)
   const sessionHydrated = useRef(!hasNativeBridge())
   const currentTab = tabs.find((tab) => tab.id === activeTabId) ?? tabs[0]
   const loadedDocument = useReaderDocument(document ? undefined : currentTab)
@@ -122,6 +123,18 @@ export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl }: Re
     setZoom((current) => Math.min(140, Math.max(80, current + delta)))
   }
 
+  async function copyDeepLink(): Promise<void> {
+    if (!currentTab || !navigator.clipboard) return
+    const deepLink = `xenics://docs/${encodeURIComponent(currentTab.sourceId)}?ref=${encodeURIComponent(currentTab.refName)}&path=${encodeURIComponent(currentTab.path)}`
+    try {
+      await navigator.clipboard.writeText(deepLink)
+      setDeepLinkCopied(true)
+      window.setTimeout(() => setDeepLinkCopied(false), 1200)
+    } catch {
+      setDeepLinkCopied(false)
+    }
+  }
+
   return (
     <section className="overflow-hidden rounded-2xl border border-x-line bg-x-panel">
       <header
@@ -190,6 +203,9 @@ export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl }: Re
           </button>
           <button type="button" aria-label="Pin active tab" onClick={toggleCurrentTabPin} className="rounded-lg p-2 text-x-muted hover:bg-x-panel">
             <Pin aria-hidden="true" size={15} />
+          </button>
+          <button type="button" aria-label={deepLinkCopied ? 'Deep link copied' : 'Copy deep link'} onClick={() => void copyDeepLink()} className="rounded-lg p-2 text-x-muted hover:bg-x-panel">
+            {deepLinkCopied ? <Check aria-hidden="true" size={15} /> : <Copy aria-hidden="true" size={15} />}
           </button>
           <button type="button" aria-label="Zoom out" disabled={zoom <= 80} onClick={() => changeZoom(-10)} className="rounded-lg px-2 text-xs text-x-muted hover:bg-x-panel disabled:opacity-40">−</button>
           <span aria-label="Reader zoom" className="self-center px-1 text-xs text-x-muted">{zoom}%</span>

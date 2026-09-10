@@ -36,6 +36,7 @@ Updated: 2026-09-10
 - Reader tabs now expose explicit per-tab back/forward controls, preserve navigable history, and discard stale forward entries when a new internal link is opened.
 - Reader code blocks now expose line numbers and an accessible line-wrapping toggle alongside copy/download actions.
 - Reader workspaces now expose bounded zoom controls and pass zoom state explicitly into document presentation.
+- Reader pages now route external links through the validated browser command and expose a copy-deep-link action for the active source/ref/path.
 - Recovery presentation now has reusable `InlineError` and `RecoveryActions` primitives, and task failures use the same structured retry-action surface.
 - The app shell now exposes a toggleable notification panel fed by the ordered task feed, with an active-task loader, recent phases, and cancel/retry actions while detailed recovery remains in the task panel.
 - Native settings persistence supports allowlisted get/update commands with validation for unknown keys, control characters, and oversized values. The UI is connected, including the ownership-aware full reset flow.

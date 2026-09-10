@@ -25,6 +25,11 @@ pub enum ReaderBlock {
         text: String,
         location: SourceLocation,
     },
+    Image {
+        alt: String,
+        url: String,
+        location: SourceLocation,
+    },
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
@@ -77,6 +82,7 @@ impl ParsedDocument {
                 ReaderBlock::Heading { text, .. }
                 | ReaderBlock::Paragraph { text, .. }
                 | ReaderBlock::Code { text, .. } => text.as_str(),
+                ReaderBlock::Image { alt, .. } => alt.as_str(),
             })
             .collect::<Vec<_>>()
             .join("\n")

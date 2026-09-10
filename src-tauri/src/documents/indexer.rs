@@ -74,7 +74,8 @@ impl<'a> Indexer<'a> {
                 document.blocks.first().map(|block| match block {
                     super::ReaderBlock::Heading { location, .. }
                     | super::ReaderBlock::Paragraph { location, .. }
-                    | super::ReaderBlock::Code { location, .. } => location,
+                    | super::ReaderBlock::Code { location, .. }
+                    | super::ReaderBlock::Image { location, .. } => location,
                 })
             });
         let (line, column) = location.map_or((1, 1), |location| (location.line, location.column));

@@ -94,6 +94,22 @@ Updated: 2026-09-10
 - The native desktop suite connects directly to the embedded WebDriver server because the published service/plugin pair has an incompatible automatic window-focus hook; the workaround keeps the real Tauri binary and WebDriver protocol in coverage while avoiding that optional hook.
 - A retained [release acceptance checklist](release-acceptance-checklist.md) now records local macOS evidence separately from installed-bundle, hosted CI, and distribution-credential checks that remain pending.
 
+## Specification gap review
+
+The current implementation has confirmed follow-up gaps in full Markdown/MDX
+parsing, local assets, syntax highlighting, complete FTS field population and
+per-block search locations, native notification delivery, large-list
+virtualization, and complete cross-platform acceptance coverage. See the
+[specification gap review](spec-gap-review.md) for evidence and the recommended
+implementation order. These items are not being represented as complete merely
+because the surrounding architecture and prototype tests exist.
+- The document pipeline now parses through `markdown-rs` into a shared AST-backed
+model, preserves readable structure and source locations, exposes safe image
+metadata, and reports unsupported MDX/unsafe HTML without executing repository
+code. React renders safe relative image blocks with lazy loading and an offline
+fallback. Complete FTS field population and exact match locations remain the
+next milestone.
+
 ## Safety note
 
 Failed indexing does not automatically delete a partial clone. Cleanup must go

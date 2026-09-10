@@ -3,11 +3,12 @@ import type { ElementType, ReactNode } from 'react'
 import { CodeBlock } from './CodeBlock'
 
 type ReaderBlock = {
-  type: 'heading' | 'paragraph' | 'code' | 'warning' | 'embed'
+  type: 'heading' | 'paragraph' | 'code' | 'image' | 'warning' | 'embed'
   text: string
   level?: number
   language?: string
   target?: string
+  url?: string
   location?: { line: number; column: number }
 }
 
@@ -103,6 +104,15 @@ function renderBlock(
   switch (block.type) {
     case 'code':
       return <div key={key} {...focusProps} className={isFocused ? 'rounded-lg ring-2 ring-x-amber/60 ring-offset-2' : ''}><CodeBlock code={block.text} language={block.language} /></div>
+    case 'image':
+      return block.url && isSafeLocalAsset(block.url) ? (
+        <figure key={key} {...focusProps} className="overflow-hidden rounded-2xl border border-x-line bg-x-paper">
+          <img src={block.url} alt={block.text} loading="lazy" className="mx-auto max-h-[32rem] object-contain" />
+          <figcaption className="border-t border-x-line px-4 py-2 text-sm text-x-muted">{block.text}</figcaption>
+        </figure>
+      ) : (
+        <p key={key} {...focusProps} className="rounded-xl border border-dashed border-x-line p-4 text-sm text-x-muted">Image unavailable offline: {block.text}</p>
+      )
     case 'warning':
       return (
         <aside {...focusProps}
@@ -140,6 +150,13 @@ function renderBlock(
         </p>
       )
   }
+}
+
+function isSafeLocalAsset(url: string): boolean {
+  return !url.startsWith('/')
+    && !url.startsWith('\\')
+    && !/^[a-z][a-z\d+.-]*:/i.test(url)
+    && !url.split('/').includes('..')
 }
 
 export function DocumentView({

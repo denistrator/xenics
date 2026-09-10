@@ -41,3 +41,32 @@ fn discovery_finds_markdown_and_mdx_but_skips_dependency_folders() {
     assert_eq!(preview.documentation_files.len(), 2);
     assert_eq!(preview.start_page, Some(root.path().join("README.md")));
 }
+
+#[test]
+fn markdown_ast_preserves_readable_structure_and_inline_text() {
+    let document = DocumentParser::parse(
+        Path::new("guide.md"),
+        b"# Install **Xenics**\n\n- Download the app\n- Open the reader\n\n> Works offline\n",
+    )
+    .unwrap();
+
+    assert_eq!(document.blocks.len(), 4);
+    assert!(document.reader_text().contains("Install Xenics"));
+    assert!(document.reader_text().contains("Download the app"));
+    assert!(document.reader_text().contains("Works offline"));
+}
+
+#[test]
+fn markdown_ast_exposes_local_images_as_safe_asset_blocks() {
+    let document = DocumentParser::parse(
+        Path::new("guide.md"),
+        b"![Architecture diagram](./assets/architecture.png)\n",
+    )
+    .unwrap();
+
+    assert!(matches!(
+        document.blocks.first(),
+        Some(super::ReaderBlock::Image { alt, url, .. })
+            if alt == "Architecture diagram" && url == "./assets/architecture.png"
+    ));
+}

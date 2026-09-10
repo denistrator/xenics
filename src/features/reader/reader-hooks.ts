@@ -5,10 +5,11 @@ import { invokeCommand } from '../../lib/tauri'
 
 type NativeLocation = { line: number; column: number }
 type NativeBlock = {
-  type: 'heading' | 'paragraph' | 'code'
+  type: 'heading' | 'paragraph' | 'code' | 'image'
   text: string
   level?: number
   language?: string
+  url?: string
   location: NativeLocation
 }
 type NativeDocument = {
@@ -35,6 +36,7 @@ export function toReaderDocument(document: NativeDocument, target: ReaderTarget)
         text: block.text,
         ...(block.level === undefined ? {} : { level: block.level }),
         ...(block.language === undefined ? {} : { language: block.language }),
+        ...(block.url === undefined ? {} : { url: block.url }),
         location: block.location,
       })),
       ...document.warnings.map((warning) => ({ type: 'warning' as const, text: warning.message })),

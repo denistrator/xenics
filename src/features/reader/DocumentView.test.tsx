@@ -11,4 +11,9 @@ describe('DocumentView', () => {
     screen.getByRole('button', { name: 'Open in browser' }).click()
     expect(onExternalLink).toHaveBeenCalledWith({ label: 'Interactive demo', target: 'https://example.com/demo' })
   })
+
+  it('renders local image blocks with escaped alt text', () => {
+    render(<DocumentView document={{ title: 'Guide', source: 'docs', blocks: [{ type: 'image', text: 'Architecture diagram', url: './assets/architecture.png' }] }} />)
+    expect(screen.getByRole('img', { name: 'Architecture diagram' })).toHaveAttribute('src', './assets/architecture.png')
+  })
 })

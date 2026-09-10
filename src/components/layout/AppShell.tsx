@@ -1,8 +1,10 @@
-import { Bell, BookOpen, Command, FolderGit2, LoaderCircle, Settings2, type LucideIcon } from 'lucide-react'
+import { Bell, BookOpen, Command, FolderGit2, LoaderCircle, Search, Settings2, type LucideIcon } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { SearchPalette } from '../../features/search/SearchPalette'
 import { useNativeSearch } from '../../features/search/search-hooks'
 import type { SearchResultModel } from '../../features/search/search-state'
+import type { SearchReaderTarget } from '../../features/search/search-state'
+import { SearchPage } from '../../features/search/SearchPage'
 import type { TaskSnapshot } from '../../features/tasks/task-model'
 import type { TaskId } from '../../lib/contracts'
 
@@ -14,6 +16,7 @@ type NavigationItem = {
 
 const navigationItems = [
   { label: 'Library', href: '#catalog', icon: BookOpen },
+  { label: 'Search', href: '#search', icon: Search },
   { label: 'Sources', href: '#sources', icon: FolderGit2 },
   { label: 'Organize', href: '#organize', icon: FolderGit2 },
   { label: 'Settings', href: '#settings', icon: Settings2 },
@@ -48,12 +51,13 @@ type AppShellProps = {
   children: ReactNode
   activeHash?: string
   onSearchSelect?: (result: SearchResultModel) => void
+  onSearchTarget?: (target: SearchReaderTarget) => void
   notifications?: TaskSnapshot[]
   onCancelTask?: (taskId: TaskId) => void
   onRetryTask?: (taskId: TaskId) => void
 }
 
-export function AppShell({ children, activeHash = '#catalog', onSearchSelect, notifications = [], onCancelTask, onRetryTask }: AppShellProps): ReactNode {
+export function AppShell({ children, activeHash = '#catalog', onSearchSelect, onSearchTarget, notifications = [], onCancelTask, onRetryTask }: AppShellProps): ReactNode {
   const [searchOpen, setSearchOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const { query, setQuery, response, isSearching } = useNativeSearch()
@@ -139,7 +143,7 @@ export function AppShell({ children, activeHash = '#catalog', onSearchSelect, no
           )}
         </header>
 
-        <div className="mx-auto max-w-[1500px] px-5 py-8 md:px-10 md:py-12">{children}</div>
+        <div className="mx-auto max-w-[1500px] px-5 py-8 md:px-10 md:py-12">{activeHash === '#search' ? <SearchPage response={response} query={query} onQueryChange={setQuery} onOpen={(target) => onSearchTarget?.(target)} /> : children}</div>
       </section>
       <SearchPalette
         open={searchOpen}

@@ -100,6 +100,7 @@ export function App() {
       onCancelTask={(taskId) => { void cancelTask(taskId) }}
       onRetryTask={(taskId) => { void retryTask(taskId) }}
       onSearchSelect={(result) => setReaderTarget(openSearchResult(result))}
+      onSearchTarget={setReaderTarget}
     >
       {readerTarget ? (
         <ReaderWorkspace

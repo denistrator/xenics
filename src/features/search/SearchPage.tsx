@@ -9,9 +9,11 @@ import { filterSearchResults, type SearchFilters } from './search-filter'
 type SearchPageProps = {
   response: SearchResponse
   onOpen: (target: SearchReaderTarget) => void
+  query: string
+  onQueryChange: (query: string) => void
 }
 
-export function SearchPage({ response, onOpen }: SearchPageProps): ReactNode {
+export function SearchPage({ response, onOpen, query, onQueryChange }: SearchPageProps): ReactNode {
   const indexingMessage = coverageMessage(response.coverage)
   const hasResults = response.results.length > 0
   const [filters, setFilters] = useState<SearchFilters>({ source: 'All', documentType: 'All', exact: false })
@@ -39,7 +41,7 @@ export function SearchPage({ response, onOpen }: SearchPageProps): ReactNode {
         <label className="mt-6 flex items-center gap-3 rounded-xl border border-x-line bg-x-panel px-4 py-3 text-sm">
           <Search aria-hidden="true" className="text-x-muted" size={17} />
           <span className="sr-only">Search query</span>
-          <input value={response.query} readOnly className="min-w-0 flex-1 bg-transparent outline-none" />
+          <input value={query} onChange={(event) => onQueryChange(event.target.value)} className="min-w-0 flex-1 bg-transparent outline-none" />
         </label>
       </header>
 

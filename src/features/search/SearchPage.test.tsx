@@ -8,6 +8,8 @@ describe('SearchPage', () => {
       <SearchPage
         response={{ query: 'hooks', results: [], coverage: { complete: false, indexed: 3, total: 5 } }}
         onOpen={() => undefined}
+        query="hooks"
+        onQueryChange={() => undefined}
       />,
     )
 

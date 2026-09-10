@@ -208,6 +208,24 @@ pub fn open_source_file(
 }
 
 #[tauri::command]
+pub fn open_source_file_in_editor(
+    state: State<'_, AppState>,
+    source_id: String,
+    path: String,
+) -> Result<(), String> {
+    if !is_safe_document_path(&path) {
+        return Err("document path is outside the source".into());
+    }
+    let source = state.user_db.find_source(&source_id).map_err(|error| error.message)?.ok_or("source is not installed")?;
+    let root = PathBuf::from(source.local_path.ok_or("source has no local folder")?).canonicalize().map_err(|error| error.to_string())?;
+    let file = root.join(&path).canonicalize().map_err(|error| error.to_string())?;
+    if !file.starts_with(&root) || !file.is_file() { return Err("source file does not exist".into()); }
+    let settings = state.user_db.get_settings().map_err(|error| error.message)?;
+    let editor = settings.get("editorCommand").and_then(|value| value.as_str()).ok_or("configure an editor command in Settings first")?;
+    crate::desktop::external_actions::open_configured_editor(editor, &file)
+}
+
+#[tauri::command]
 pub fn download_source(
     state: State<'_, AppState>,
     id: String,

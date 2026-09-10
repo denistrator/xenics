@@ -44,6 +44,7 @@ pub fn run() {
             commands::open_source_folder,
             commands::open_source_website,
             commands::open_source_file,
+            commands::open_source_file_in_editor,
             commands::download_source,
             commands::start_download_source,
             commands::update_source,

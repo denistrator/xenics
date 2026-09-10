@@ -13,9 +13,10 @@ type ReaderWorkspaceProps = {
   onOpenSourceUrl?: (sourceId: string) => void
   onOpenSourceFile?: (sourceId: string, path: string) => void
   onOpenSourceFileInEditor?: (sourceId: string, path: string) => void
+  onOpenSourceTerminal?: (sourceId: string) => void
 }
 
-export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl, onOpenSourceFolder, onOpenSourceUrl, onOpenSourceFile, onOpenSourceFileInEditor }: ReaderWorkspaceProps): ReactNode {
+export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl, onOpenSourceFolder, onOpenSourceUrl, onOpenSourceFile, onOpenSourceFileInEditor, onOpenSourceTerminal }: ReaderWorkspaceProps): ReactNode {
   const [tabs, setTabs] = useState<ReaderTab[]>(() => initialTabs)
   const [activeTabId, setActiveTabId] = useState<string | undefined>(() => initialTabs[0]?.id)
   const [closedTabs, setClosedTabs] = useState<ReaderTab[]>([])
@@ -242,6 +243,7 @@ export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl, onOp
           <button type="button" aria-label="Open source URL" disabled={!currentTab || !onOpenSourceUrl} onClick={() => currentTab && onOpenSourceUrl?.(currentTab.sourceId)} className="rounded-lg px-2 text-xs text-x-muted hover:bg-x-panel disabled:opacity-40">Source</button>
           <button type="button" aria-label="Open source file" disabled={!currentTab || !onOpenSourceFile} onClick={() => currentTab && onOpenSourceFile?.(currentTab.sourceId, currentTab.path)} className="rounded-lg px-2 text-xs text-x-muted hover:bg-x-panel disabled:opacity-40">File</button>
           <button type="button" aria-label="Open source file in editor" disabled={!currentTab || !onOpenSourceFileInEditor} onClick={() => currentTab && onOpenSourceFileInEditor?.(currentTab.sourceId, currentTab.path)} className="rounded-lg px-2 text-xs text-x-muted hover:bg-x-panel disabled:opacity-40">Edit</button>
+          <button type="button" aria-label="Open source terminal" disabled={!currentTab || !onOpenSourceTerminal} onClick={() => currentTab && onOpenSourceTerminal?.(currentTab.sourceId)} className="rounded-lg px-2 text-xs text-x-muted hover:bg-x-panel disabled:opacity-40">Term</button>
           <button type="button" aria-label="Zoom out" disabled={zoom <= 80} onClick={() => changeZoom(-10)} className="rounded-lg px-2 text-xs text-x-muted hover:bg-x-panel disabled:opacity-40">−</button>
           <span aria-label="Reader zoom" className="self-center px-1 text-xs text-x-muted">{zoom}%</span>
           <button type="button" aria-label={`Switch to ${density === 'comfortable' ? 'compact' : 'comfortable'} density`} onClick={() => setDensity((current) => current === 'comfortable' ? 'compact' : 'comfortable')} className="rounded-lg px-2 text-xs text-x-muted hover:bg-x-panel">{density === 'comfortable' ? 'Compact' : 'Comfortable'}</button>

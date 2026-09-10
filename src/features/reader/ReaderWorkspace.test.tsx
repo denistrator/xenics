@@ -111,6 +111,13 @@ describe('ReaderWorkspace', () => {
     expect(onOpenSourceFileInEditor).toHaveBeenCalledWith('react', 'README.md')
   })
 
+  it('exposes the source terminal action for the active source', () => {
+    const onOpenSourceTerminal = vi.fn()
+    render(<ReaderWorkspace initialTabs={[tab]} document={readerDocument} onOpenSourceTerminal={onOpenSourceTerminal} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Open source terminal' }))
+    expect(onOpenSourceTerminal).toHaveBeenCalledWith('react')
+  })
+
   it('supports dragging a tab before another tab', () => {
     const secondTab = { ...tab, id: 'typescript:README.md', sourceId: 'typescript', title: 'TypeScript' }
     render(<ReaderWorkspace initialTabs={[tab, secondTab]} document={readerDocument} />)

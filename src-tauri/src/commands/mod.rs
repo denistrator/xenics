@@ -226,6 +226,13 @@ pub fn open_source_file_in_editor(
 }
 
 #[tauri::command]
+pub fn open_source_terminal(state: State<'_, AppState>, source_id: String) -> Result<(), String> {
+    let source = state.user_db.find_source(&source_id).map_err(|error| error.message)?.ok_or("source is not installed")?;
+    let root = PathBuf::from(source.local_path.ok_or("source has no local folder")?).canonicalize().map_err(|error| error.to_string())?;
+    crate::desktop::external_actions::open_terminal(&root)
+}
+
+#[tauri::command]
 pub fn download_source(
     state: State<'_, AppState>,
     id: String,

@@ -48,6 +48,7 @@ Updated: 2026-09-10
 - Local-source onboarding now supports desktop drag-and-drop into the explicit confirmation dialog.
 - Reader presentation now supports compact and comfortable density modes alongside zoom controls.
 - Reader page actions now include a configured-editor opener with source-root containment and no shell interpolation.
+- Reader page actions now include platform-specific terminal opening for the installed source root without shell interpolation.
 - Recovery presentation now has reusable `InlineError` and `RecoveryActions` primitives, and task failures use the same structured retry-action surface.
 - The app shell now exposes a toggleable notification panel fed by the ordered task feed, with an active-task loader, recent phases, and cancel/retry actions while detailed recovery remains in the task panel.
 - Native settings persistence supports allowlisted get/update commands with validation for unknown keys, control characters, and oversized values. The UI is connected, including the ownership-aware full reset flow.

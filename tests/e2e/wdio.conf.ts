@@ -40,7 +40,6 @@ async function waitForEmbeddedWebDriver() {
 
 const binaryName = process.platform === 'win32' ? 'xenics.exe' : 'xenics'
 const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm'
-const cargoCommand = process.platform === 'win32' ? 'cargo.exe' : 'cargo'
 
 export const config = {
   runner: 'local',
@@ -72,17 +71,18 @@ export const config = {
     const applicationPath = process.env.XENICS_APP_PATH ?? join(process.cwd(), 'src-tauri/target/debug', binaryName)
     await access(applicationPath)
 
-    const useCargoLauncher = process.platform === 'linux' || process.platform === 'win32'
-    const launchCommand = process.platform === 'linux' ? 'xvfb-run' : useCargoLauncher ? cargoCommand : applicationPath
+    const useCargoLauncher = process.platform === 'linux'
+    const launchCommand = process.platform === 'linux' ? 'xvfb-run' : applicationPath
     const cargoArgs = ['run', '--manifest-path', 'src-tauri/Cargo.toml', '--features', 'e2e']
     const launchArgs = process.platform === 'linux'
-      ? ['--auto-servernum', '--server-args=-screen 0 1280x800x24', cargoCommand, ...cargoArgs]
+      ? ['--auto-servernum', '--server-args=-screen 0 1280x800x24', 'cargo', ...cargoArgs]
       : useCargoLauncher
         ? cargoArgs
         : []
     xenicsProcess = spawn(launchCommand, launchArgs, {
       cwd: process.cwd(),
-      stdio: ['ignore', 'pipe', 'pipe'],
+      stdio: process.platform === 'win32' ? 'ignore' : ['ignore', 'pipe', 'pipe'],
+      windowsHide: true,
       env: { ...process.env, TAURI_WEBDRIVER_PORT: '4445' },
     })
     xenicsProcess.stdout?.on('data', (chunk: Buffer) => {

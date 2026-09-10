@@ -18,6 +18,14 @@ CREATE TABLE IF NOT EXISTS document_locations (
     PRIMARY KEY (source_id, path)
 );
 
+CREATE TABLE IF NOT EXISTS document_matches (
+    source_id TEXT NOT NULL,
+    path TEXT NOT NULL,
+    match_text TEXT NOT NULL,
+    line INTEGER NOT NULL,
+    column_number INTEGER NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS schema_migrations (
     id TEXT PRIMARY KEY NOT NULL
 );

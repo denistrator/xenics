@@ -15,7 +15,15 @@ impl<'a> SearchService<'a> {
         if normalized.is_empty() {
             return Ok(Vec::new());
         }
-        self.database.query_documents(&normalized)
+        let location_query = tokenize_query(query)
+            .into_iter()
+            .next()
+            .unwrap_or_default()
+            .trim_matches('"')
+            .trim_end_matches('*')
+            .to_owned();
+        self.database
+            .query_documents_with_location(&normalized, &location_query)
     }
 }
 fn normalize_query(query: &str) -> String {

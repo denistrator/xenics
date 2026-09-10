@@ -97,8 +97,8 @@ Updated: 2026-09-10
 ## Specification gap review
 
 The current implementation has confirmed follow-up gaps in full Markdown/MDX
-parsing, local assets, syntax highlighting, complete FTS field population and
-per-block search locations, native notification delivery, large-list
+rendering fidelity, local assets, syntax highlighting, native notification
+delivery, large-list
 virtualization, and complete cross-platform acceptance coverage. See the
 [specification gap review](spec-gap-review.md) for evidence and the recommended
 implementation order. These items are not being represented as complete merely
@@ -107,8 +107,11 @@ because the surrounding architecture and prototype tests exist.
 model, preserves readable structure and source locations, exposes safe image
 metadata, and reports unsupported MDX/unsafe HTML without executing repository
 code. React renders safe relative image blocks with lazy loading and an offline
-fallback. Complete FTS field population and exact match locations remain the
-next milestone.
+fallback.
+- Search indexing now separates headings, prose, code, metadata, and API-name
+fields, preserves source-relative metadata, and stores disposable per-block
+match locations. Search results use those locations for exact reader navigation;
+Rust search coverage includes code matches and punctuation-bearing identifiers.
 
 ## Safety note
 

@@ -13,8 +13,8 @@ Linux or Windows desktop-launch harness.
 | Review implementation against the approved specifications | ✅ Done | Code, tests, dependencies, and acceptance scenarios reviewed |
 | Record confirmed gaps and implementation order | ✅ Done | This report added and status report updated |
 | Replace the line-oriented parser with a safe shared Markdown/MDX model | ✅ Done | `markdown-rs`, AST-backed blocks, safe MDX warnings, image metadata, Rust/React tests |
-| Populate complete search fields and exact block locations | ⬜ Pending | Pending implementation and search acceptance tests |
-| Add local assets and syntax highlighting | ⬜ Pending | Pending implementation and reader tests |
+| Populate complete search fields and exact block locations | ✅ Done | All FTS fields are populated; per-block match locations drive exact navigation; 67 Rust tests pass |
+| Add local assets and syntax highlighting | ⬜ Next | Pending implementation and reader tests |
 | Connect native notifications to task outcomes | ⬜ Pending | Pending implementation and notification tests |
 | Add measured virtualization/lazy loading | ⬜ Pending | Pending performance baseline and UI tests |
 | Expand desktop acceptance coverage | ⬜ Pending | Linux/Windows launcher strategy remains separate |
@@ -23,11 +23,10 @@ Linux or Windows desktop-launch harness.
 
 ### 1. Document parsing and rendering fidelity
 
-The current Rust parser is a safe line-oriented prototype. It handles headings,
-paragraphs, fenced code, and a narrow Markdown-link form, but it does not yet
-provide the specification's shared Markdown/MDX document model for lists,
-tables, emphasis, block quotes, images, downloadable assets, richer links, or
-curated component mappings.
+The Rust parser now uses a safe `markdown-rs` AST-backed model and handles
+headings, paragraphs, lists, block quotes, fenced code, links, images, and MDX
+warnings. It does not yet provide the full reader model for tables, emphasis,
+downloadable assets, richer links, or curated component mappings.
 
 The reader has no local image or asset block model. Repository content is shown
 as escaped text, so untrusted markup is not executed, but the required local

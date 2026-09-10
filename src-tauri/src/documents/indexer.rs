@@ -57,6 +57,34 @@ impl<'a> Indexer<'a> {
         let Some(document) = DocumentParser::parse(path, &bytes).ok() else {
             return Ok(false);
         };
+        let headings = document
+            .blocks
+            .iter()
+            .filter_map(|block| match block {
+                super::ReaderBlock::Heading { text, .. } => Some(text.as_str()),
+                _ => None,
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        let prose = document
+            .blocks
+            .iter()
+            .filter_map(|block| match block {
+                super::ReaderBlock::Paragraph { text, .. } => Some(text.as_str()),
+                super::ReaderBlock::Image { alt, .. } => Some(alt.as_str()),
+                _ => None,
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        let code = document
+            .blocks
+            .iter()
+            .filter_map(|block| match block {
+                super::ReaderBlock::Code { text, .. } => Some(text.as_str()),
+                _ => None,
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
         let title = document
             .blocks
             .iter()
@@ -65,30 +93,27 @@ impl<'a> Indexer<'a> {
                 _ => None,
             })
             .unwrap_or("");
-        let prose = document.reader_text();
-        let location = document
+        let relative_path = self.relative_path(path);
+        let matches = document
             .search_records
-            .first()
-            .map(|record| &record.location)
-            .or_else(|| {
-                document.blocks.first().map(|block| match block {
-                    super::ReaderBlock::Heading { location, .. }
-                    | super::ReaderBlock::Paragraph { location, .. }
-                    | super::ReaderBlock::Code { location, .. }
-                    | super::ReaderBlock::Image { location, .. } => location,
-                })
-            });
-        let (line, column) = location.map_or((1, 1), |location| (location.line, location.column));
-        self.database.replace_document_with_location(
+            .iter()
+            .map(|record| {
+                (
+                    record.text.clone(),
+                    record.location.line,
+                    record.location.column,
+                )
+            })
+            .collect::<Vec<_>>();
+        self.database.replace_document_with_matches(
             source_id,
-            &self.relative_path(path),
+            &relative_path,
             title,
-            title,
+            &headings,
             &prose,
-            "",
-            "",
-            line,
-            column,
+            &code,
+            &code,
+            &matches,
         )?;
         Ok(true)
     }

@@ -100,3 +100,37 @@ fn search_preserves_quoted_phrases() {
 
     assert_eq!(results.len(), 1);
 }
+
+#[test]
+fn code_matches_use_code_field_and_return_the_matching_block_location() {
+    let root = tempdir().unwrap();
+    fs::write(
+        root.path().join("guide.md"),
+        "# Guide\n\nUse the example below.\n\n```rust\nprintln!(\"ready\");\n```\n",
+    )
+    .unwrap();
+    let db = SearchDb::open_in_memory().unwrap();
+    Indexer::new(&db, root.path())
+        .index_source("rust", &CancellationToken::default())
+        .unwrap();
+
+    let results = SearchService::new(&db).query("println!").unwrap();
+
+    assert_eq!(results.len(), 1);
+    assert_eq!(results[0].line, 5);
+}
+
+#[test]
+fn document_metadata_includes_the_source_relative_path() {
+    let root = tempdir().unwrap();
+    fs::write(root.path().join("guide.md"), "# Guide\nReadable content").unwrap();
+    let db = SearchDb::open_in_memory().unwrap();
+    Indexer::new(&db, root.path())
+        .index_source("docs", &CancellationToken::default())
+        .unwrap();
+
+    let results = SearchService::new(&db).query("guide.md").unwrap();
+
+    assert_eq!(results.len(), 1);
+    assert_eq!(results[0].path, "guide.md");
+}

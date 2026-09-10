@@ -55,6 +55,12 @@ impl SearchDb {
                 params![source_id],
             )
             .map_err(database_error)?;
+        transaction
+            .execute(
+                "DELETE FROM document_matches WHERE source_id = ?1",
+                params![source_id],
+            )
+            .map_err(database_error)?;
         transaction.commit().map_err(database_error)?;
         Ok(RebuildReport {
             source_id: source_id.to_owned(),
@@ -76,6 +82,12 @@ impl SearchDb {
                 params![source_id],
             )
             .map_err(database_error)?;
+        connection
+            .execute(
+                "DELETE FROM document_matches WHERE source_id = ?1",
+                params![source_id],
+            )
+            .map_err(database_error)?;
         Ok(removed_locations as u64)
     }
 
@@ -94,6 +106,13 @@ impl SearchDb {
                 params![source_id, path],
             )
             .map(|count| count > 0)
+            .map_err(database_error)?;
+        connection
+            .execute(
+                "DELETE FROM document_matches WHERE source_id = ?1 AND path = ?2",
+                params![source_id, path],
+            )
+            .map(|count| count > 0)
             .map_err(database_error)
     }
 
@@ -105,6 +124,9 @@ impl SearchDb {
             .map_err(database_error)?;
         transaction
             .execute("DELETE FROM document_locations", [])
+            .map_err(database_error)?;
+        transaction
+            .execute("DELETE FROM document_matches", [])
             .map_err(database_error)?;
         transaction.commit().map_err(database_error)
     }
@@ -143,34 +165,84 @@ impl SearchDb {
         line: usize,
         column: usize,
     ) -> Result<(), XenicsError> {
+        self.replace_document_with_matches(
+            source_id,
+            path,
+            title,
+            headings,
+            prose,
+            code,
+            api_name,
+            &[(prose.to_owned(), line, column)],
+        )
+    }
+
+    pub fn replace_document_with_matches(
+        &self,
+        source_id: &str,
+        path: &str,
+        title: &str,
+        headings: &str,
+        prose: &str,
+        code: &str,
+        api_name: &str,
+        matches: &[(String, usize, usize)],
+    ) -> Result<(), XenicsError> {
         let connection = self.connection.lock().expect("search database mutex");
-        connection
+        let transaction = connection.unchecked_transaction().map_err(database_error)?;
+        transaction
             .execute(
                 "DELETE FROM documents WHERE source_id = ?1 AND path = ?2",
                 params![source_id, path],
             )
             .map_err(database_error)?;
-        connection
+        transaction
             .execute(
-                "INSERT INTO documents(source_id,path,title,headings,prose,code,metadata,api_name) VALUES (?1,?2,?3,?4,?5,?6,'',?7)",
+                "DELETE FROM document_locations WHERE source_id = ?1 AND path = ?2",
+                params![source_id, path],
+            )
+            .map_err(database_error)?;
+        transaction
+            .execute(
+                "INSERT INTO documents(source_id,path,title,headings,prose,code,metadata,api_name) VALUES (?1,?2,?3,?4,?5,?6,?2,?7)",
                 params![source_id, path, title, headings, prose, code, api_name],
             )
             .map_err(database_error)?;
-        connection
+        let (first_line, first_column) = matches
+            .first()
+            .map_or((1, 1), |(_, line, column)| (*line, *column));
+        transaction
             .execute(
                 "INSERT INTO document_locations(source_id,path,line,column_number) VALUES (?1,?2,?3,?4)
                  ON CONFLICT(source_id,path) DO UPDATE SET line=excluded.line,column_number=excluded.column_number",
-                params![source_id, path, line as i64, column as i64],
+                params![source_id, path, first_line as i64, first_column as i64],
             )
             .map_err(database_error)?;
+        for (match_text, line, column) in matches {
+            transaction
+                .execute(
+                    "INSERT INTO document_matches(source_id,path,match_text,line,column_number) VALUES (?1,?2,?3,?4,?5)",
+                    params![source_id, path, match_text, *line as i64, *column as i64],
+                )
+                .map_err(database_error)?;
+        }
+        transaction.commit().map_err(database_error)?;
         Ok(())
     }
 
     pub fn query_documents(&self, query: &str) -> Result<Vec<SearchHit>, XenicsError> {
+        self.query_documents_with_location(query, query)
+    }
+
+    pub fn query_documents_with_location(
+        &self,
+        query: &str,
+        location_query: &str,
+    ) -> Result<Vec<SearchHit>, XenicsError> {
         let connection = self.connection.lock().expect("search database mutex");
-        let mut statement = connection.prepare("SELECT documents.source_id, documents.path, documents.title, snippet(documents, 4, '<mark>', '</mark>', '…', 12), bm25(documents, 10.0, 6.0, 2.0, 1.0, 1.0, 8.0), COALESCE(document_locations.line, 1), COALESCE(document_locations.column_number, 1) FROM documents LEFT JOIN document_locations ON document_locations.source_id = documents.source_id AND document_locations.path = documents.path WHERE documents MATCH ?1 ORDER BY bm25(documents, 10.0, 6.0, 2.0, 1.0, 1.0, 8.0)").map_err(database_error)?;
+        let mut statement = connection.prepare("SELECT documents.source_id, documents.path, documents.title, snippet(documents, 4, '<mark>', '</mark>', '…', 12), bm25(documents, 10.0, 6.0, 2.0, 1.0, 1.0, 8.0), COALESCE((SELECT line FROM document_matches WHERE source_id = documents.source_id AND path = documents.path AND instr(lower(match_text), lower(?2)) > 0 ORDER BY line, column_number LIMIT 1), document_locations.line, 1), COALESCE((SELECT column_number FROM document_matches WHERE source_id = documents.source_id AND path = documents.path AND instr(lower(match_text), lower(?2)) > 0 ORDER BY line, column_number LIMIT 1), document_locations.column_number, 1) FROM documents LEFT JOIN document_locations ON document_locations.source_id = documents.source_id AND document_locations.path = documents.path WHERE documents MATCH ?1 ORDER BY bm25(documents, 10.0, 6.0, 2.0, 1.0, 1.0, 8.0)").map_err(database_error)?;
         let rows = statement
-            .query_map(params![query], |row| {
+            .query_map(params![query, location_query], |row| {
                 Ok(SearchHit {
                     source_id: row.get(0)?,
                     path: row.get(1)?,

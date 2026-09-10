@@ -14,6 +14,7 @@ export function ReaderWorkspace({ initialTabs, document }: ReaderWorkspaceProps)
   const [tabs, setTabs] = useState<ReaderTab[]>(() => initialTabs)
   const [activeTabId, setActiveTabId] = useState<string | undefined>(() => initialTabs[0]?.id)
   const [closedTabs, setClosedTabs] = useState<ReaderTab[]>([])
+  const [zoom, setZoom] = useState(100)
   const sessionHydrated = useRef(!hasNativeBridge())
   const currentTab = tabs.find((tab) => tab.id === activeTabId) ?? tabs[0]
   const loadedDocument = useReaderDocument(document ? undefined : currentTab)
@@ -116,6 +117,10 @@ export function ReaderWorkspace({ initialTabs, document }: ReaderWorkspaceProps)
     window.requestAnimationFrame(() => globalThis.document.getElementById(`tab-${nextTab.id}`)?.focus())
   }
 
+  function changeZoom(delta: number): void {
+    setZoom((current) => Math.min(140, Math.max(80, current + delta)))
+  }
+
   return (
     <section className="overflow-hidden rounded-2xl border border-x-line bg-x-panel">
       <header
@@ -185,12 +190,15 @@ export function ReaderWorkspace({ initialTabs, document }: ReaderWorkspaceProps)
           <button type="button" aria-label="Pin active tab" onClick={toggleCurrentTabPin} className="rounded-lg p-2 text-x-muted hover:bg-x-panel">
             <Pin aria-hidden="true" size={15} />
           </button>
+          <button type="button" aria-label="Zoom out" disabled={zoom <= 80} onClick={() => changeZoom(-10)} className="rounded-lg px-2 text-xs text-x-muted hover:bg-x-panel disabled:opacity-40">−</button>
+          <span aria-label="Reader zoom" className="self-center px-1 text-xs text-x-muted">{zoom}%</span>
+          <button type="button" aria-label="Zoom in" disabled={zoom >= 140} onClick={() => changeZoom(10)} className="rounded-lg px-2 text-xs text-x-muted hover:bg-x-panel disabled:opacity-40">+</button>
         </div>
       </header>
 
       {currentTab && visibleDocument ? (
         <div id={`panel-${currentTab.id}`} role="tabpanel" aria-labelledby={`tab-${currentTab.id}`} className="p-6 md:p-10">
-          <DocumentView document={visibleDocument} onInternalLink={openInternalLink} />
+          <DocumentView document={visibleDocument} onInternalLink={openInternalLink} zoom={zoom} />
         </div>
       ) : loadedDocument.loading ? (
         <p className="p-10 text-x-muted" role="status">Loading document…</p>

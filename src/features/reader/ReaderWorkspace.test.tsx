@@ -60,4 +60,12 @@ describe('ReaderWorkspace', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Go forward' }))
     expect(screen.getByRole('tab', { name: /useEffect/i })).toHaveAttribute('aria-selected', 'true')
   })
+
+  it('keeps reader zoom within accessible bounds', () => {
+    render(<ReaderWorkspace initialTabs={[tab]} document={readerDocument} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Zoom in' }))
+    expect(screen.getByLabelText('Reader zoom')).toHaveTextContent('110%')
+    fireEvent.click(screen.getByRole('button', { name: 'Zoom out' }))
+    expect(screen.getByLabelText('Reader zoom')).toHaveTextContent('100%')
+  })
 })

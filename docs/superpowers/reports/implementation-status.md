@@ -59,6 +59,7 @@ Updated: 2026-09-10
 - Reader documents now support safe unsupported-embed blocks with an offline explanation and an explicit validated browser-opening action.
 - Search results now highlight query terms in titles and excerpts using escaped, plain-text rendering; native ranking and retrieval remain unchanged.
 - Exact search navigation now preserves native block locations through reader tabs and visibly marks the matching reader block.
+- Deep-link anchors now survive in reader tabs and focus stable sanitized heading IDs in the rendered document.
 - Reader documents can now expose nested curated or generic navigation trees; the sidebar renders them with safe path/history navigation and falls back to open tabs when no tree is available.
 - Catalog installation hydration now consumes native source metadata, preserving selected refs and distinguishing local folders from Git sources while leaving editable display metadata independent.
 - Installed Files-only/custom sources now expose individual Update actions; Website-only entries remain excluded from update controls.

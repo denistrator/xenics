@@ -4,6 +4,7 @@ export type ReaderTarget = {
   path: string
   title: string
   location?: { line: number; column: number }
+  anchor?: string
 }
 
 export type ReaderTab = ReaderTarget & {

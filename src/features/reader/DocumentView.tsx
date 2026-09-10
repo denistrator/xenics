@@ -46,6 +46,10 @@ function getHeadingTag(level = 2): ElementType {
   return headingTags[normalizedLevel]
 }
 
+function headingAnchor(text: string): string {
+  return text.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+}
+
 function renderParagraph(
   text: string,
   links: ReaderLink[] | undefined,
@@ -90,6 +94,7 @@ function renderBlock(
   onInternalLink: ((link: ReaderLink) => void) | undefined,
   onExternalLink: ((link: ReaderLink) => void) | undefined,
   focusLocation: { line: number; column: number } | undefined,
+  focusAnchor: string | undefined,
 ): ReactNode {
   const key = `${block.type}-${index}`
   const isFocused = focusLocation !== undefined && block.location?.line === focusLocation.line
@@ -119,8 +124,10 @@ function renderBlock(
       )
     case 'heading': {
       const Heading = getHeadingTag(block.level)
+      const anchor = headingAnchor(block.text)
+      const isAnchorFocused = focusAnchor !== undefined && anchor === headingAnchor(focusAnchor)
       return (
-        <Heading key={key} {...focusProps} className="pt-4 text-2xl font-semibold tracking-tight">
+        <Heading key={key} id={anchor || undefined} {...focusProps} data-reader-focused={isAnchorFocused || isFocused ? 'true' : 'false'} className="pt-4 text-2xl font-semibold tracking-tight">
           {block.text}
         </Heading>
       )
@@ -142,6 +149,7 @@ export function DocumentView({
   zoom = 100,
   density = 'comfortable',
   focusLocation,
+  focusAnchor,
 }: {
   document: ReaderDocument
   onInternalLink?: (link: ReaderLink) => void
@@ -149,6 +157,7 @@ export function DocumentView({
   zoom?: number
   density?: 'comfortable' | 'compact'
   focusLocation?: { line: number; column: number }
+  focusAnchor?: string
 }): ReactNode {
   const densityClass = density === 'compact' ? 'space-y-3' : 'space-y-6'
   return (
@@ -160,7 +169,7 @@ export function DocumentView({
         <h1 className="mt-3 font-display text-4xl tracking-tight">{document.title}</h1>
       </div>
       <div className={densityClass} style={{ fontSize: `${zoom}%` }}>
-        {document.blocks.map((block, index) => renderBlock(block, index, document.links, onInternalLink, onExternalLink, focusLocation))}
+        {document.blocks.map((block, index) => renderBlock(block, index, document.links, onInternalLink, onExternalLink, focusLocation, focusAnchor))}
       </div>
     </article>
   )

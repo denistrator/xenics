@@ -48,6 +48,8 @@ Search-result highlighting is a presentational transformation over already-sanit
 
 Native block locations are retained in the reader document model, and search targets carry their line/column location into the active tab. The reader uses the line as a visual focus marker without executing or injecting source content.
 
+Reader headings derive stable, sanitized IDs from their text. A validated deep-link anchor is retained on the tab and marks the matching heading, keeping anchor navigation inside the safe structured renderer.
+
 Reader navigation is optional document data composed of labeled relative paths and nested children. The workspace routes a selected item through the active tab’s existing history transition; absent navigation data, the sidebar continues to list open tabs.
 
 The catalog’s native hydration boundary accepts source identity, selected ref, local path, and remote URL. It derives only a display-level source type; user-edited names, descriptions, icons, categories, and tags remain applied afterward and never affect source identity or storage paths.

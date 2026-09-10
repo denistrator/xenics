@@ -153,4 +153,10 @@ describe('ReaderWorkspace', () => {
     render(<ReaderWorkspace initialTabs={[{ ...tab, location: { line: 8, column: 1 } }]} document={{ ...readerDocument, blocks: [{ type: 'heading' as const, text: 'Install', level: 2, location: { line: 8, column: 1 } }, { type: 'paragraph' as const, text: 'Other', location: { line: 12, column: 1 } }] }} />)
     expect(screen.getByText('Install').closest('[data-reader-line]')).toHaveAttribute('data-reader-focused', 'true')
   })
+
+  it('renders and focuses a deep-link heading anchor', () => {
+    render(<ReaderWorkspace initialTabs={[{ ...tab, anchor: 'install' }]} document={{ ...readerDocument, blocks: [{ type: 'heading' as const, text: 'Install', level: 2 }] }} />)
+    expect(screen.getByRole('heading', { name: 'Install' })).toHaveAttribute('id', 'install')
+    expect(screen.getByRole('heading', { name: 'Install' })).toHaveAttribute('data-reader-focused', 'true')
+  })
 })

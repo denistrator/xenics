@@ -103,4 +103,13 @@ describe('ReaderWorkspace', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Open source file' }))
     expect(onOpenSourceFile).toHaveBeenCalledWith('react', 'README.md')
   })
+
+  it('supports dragging a tab before another tab', () => {
+    const secondTab = { ...tab, id: 'typescript:README.md', sourceId: 'typescript', title: 'TypeScript' }
+    render(<ReaderWorkspace initialTabs={[tab, secondTab]} document={readerDocument} />)
+    const tabs = screen.getAllByRole('tab')
+    fireEvent.dragStart(tabs[1]!.parentElement!)
+    fireEvent.drop(tabs[0]!.parentElement!)
+    expect(screen.getAllByRole('tab')[0]).toHaveTextContent('TypeScript')
+  })
 })

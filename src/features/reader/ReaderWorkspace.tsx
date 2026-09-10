@@ -1,7 +1,7 @@
 import { ArrowLeft, ArrowRight, Check, Copy, Pin, RotateCcw, X } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { DocumentView, type ReaderDocument, type ReaderLink } from './DocumentView'
-import { closeOtherTabs, closeTab, closeTabsToRight, duplicateTab, pinTab, type ReaderTab } from './tab-state'
+import { closeOtherTabs, closeTab, closeTabsToRight, duplicateTab, pinTab, reorderTabs, type ReaderTab } from './tab-state'
 import { useReaderDocument } from './reader-hooks'
 import { hasNativeBridge, invokeCommand } from '../../lib/tauri'
 
@@ -20,6 +20,7 @@ export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl, onOp
   const [closedTabs, setClosedTabs] = useState<ReaderTab[]>([])
   const [zoom, setZoom] = useState(100)
   const [deepLinkCopied, setDeepLinkCopied] = useState(false)
+  const [draggedTabId, setDraggedTabId] = useState<string | null>(null)
   const sessionHydrated = useRef(!hasNativeBridge())
   const currentTab = tabs.find((tab) => tab.id === activeTabId) ?? tabs[0]
   const loadedDocument = useReaderDocument(document ? undefined : currentTab)
@@ -162,6 +163,15 @@ export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl, onOp
             <div
               key={tab.id}
               role="presentation"
+              draggable
+              onDragStart={() => setDraggedTabId(tab.id)}
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={() => {
+                if (!draggedTabId || draggedTabId === tab.id) return
+                setTabs((current) => reorderTabs(current, [draggedTabId, tab.id]))
+                setDraggedTabId(null)
+              }}
+              onDragEnd={() => setDraggedTabId(null)}
               className={`flex min-w-fit items-center gap-2 rounded-t-xl px-4 py-3 text-sm ${isActive ? 'bg-x-panel font-semibold' : 'text-x-muted'}`}
             >
               <button

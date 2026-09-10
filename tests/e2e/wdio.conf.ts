@@ -33,6 +33,7 @@ async function waitForEmbeddedWebDriver() {
 }
 
 const binaryName = process.platform === 'win32' ? 'xenics.exe' : 'xenics'
+const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm'
 
 export const config = {
   runner: 'local',
@@ -56,20 +57,21 @@ export const config = {
     timeout: 120_000,
   },
   onPrepare: async () => {
-    viteProcess = spawn('npm', ['run', 'dev', '--', '--host', '127.0.0.1'], {
+    viteProcess = spawn(npmCommand, ['run', 'dev', '--', '--host', '127.0.0.1'], {
       cwd: process.cwd(),
       stdio: 'ignore',
     })
     await waitForDevServer()
-    xenicsProcess = spawn(
-      process.env.XENICS_APP_PATH ?? join(process.cwd(), 'src-tauri/target/debug', binaryName),
-      [],
-      {
-        cwd: process.cwd(),
-        stdio: 'ignore',
-        env: { ...process.env, TAURI_WEBDRIVER_PORT: '4445' },
-      },
-    )
+    const applicationPath = process.env.XENICS_APP_PATH ?? join(process.cwd(), 'src-tauri/target/debug', binaryName)
+    const launchCommand = process.platform === 'linux' ? 'xvfb-run' : applicationPath
+    const launchArgs = process.platform === 'linux'
+      ? ['--auto-servernum', '--server-args=-screen 0 1280x800x24', applicationPath]
+      : []
+    xenicsProcess = spawn(launchCommand, launchArgs, {
+      cwd: process.cwd(),
+      stdio: 'ignore',
+      env: { ...process.env, TAURI_WEBDRIVER_PORT: '4445' },
+    })
     await waitForEmbeddedWebDriver()
   },
   onComplete: () => {

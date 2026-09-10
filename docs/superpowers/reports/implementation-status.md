@@ -14,7 +14,7 @@ Updated: 2026-09-10
 - Queueable repository downloads now use cancellable task operations; native task listing, cancellation, and retry commands are registered.
 - Native task events are emitted on `task://<task-id>` with monotonic sequences and are forwarded through the Tauri event bridge.
 - React now hydrates the task panel from native snapshots, subscribes only to active tasks, cleans up listeners, and ignores stale or terminal-reopening events.
-- Local macOS validation: 51 frontend tests, 59 Rust tests, E2E typecheck, production build, packaged-build verification, and 5/5 desktop E2E specs pass.
+- Local macOS validation: 58 frontend tests, 60 Rust tests, E2E typecheck, production build, packaged-build verification, and 5/5 desktop E2E specs pass.
 
 ## Implemented locally
 
@@ -52,6 +52,7 @@ Updated: 2026-09-10
 - Reader page actions now include platform-specific terminal opening for the installed source root without shell interpolation.
 - The full search results page is now reachable from primary navigation and shares live native query state with the command palette.
 - Full search filtering now includes repository, document type, and catalog category.
+- Technology groups now show aggregate installation status and capability summaries, with group-level Download and Update actions that only target applicable sources.
 - Recovery presentation now has reusable `InlineError` and `RecoveryActions` primitives, and task failures use the same structured retry-action surface.
 - The app shell now exposes a toggleable notification panel fed by the ordered task feed, with an active-task loader, recent phases, and cancel/retry actions while detailed recovery remains in the task panel.
 - Native settings persistence supports allowlisted get/update commands with validation for unknown keys, control characters, and oversized values. The UI is connected, including the ownership-aware full reset flow.

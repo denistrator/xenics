@@ -145,4 +145,19 @@ describe('CatalogPage', () => {
     expect(screen.getByRole('dialog', { name: 'Add local source' })).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: 'Folder path' })).toHaveValue('/tmp/team-docs')
   })
+
+  it('shows technology groups with group-level download and update actions', async () => {
+    const onDownload = vi.fn().mockResolvedValue(undefined)
+    const onUpdate = vi.fn().mockResolvedValue(undefined)
+    render(<CatalogPage onDownload={onDownload} onUpdate={onUpdate} />)
+
+    expect(screen.getByRole('heading', { name: 'Web foundations' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Download Web foundations' }))
+    await waitFor(() => expect(onDownload).toHaveBeenCalledWith(['react', 'typescript', 'tailwind']))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Update Web foundations' }))
+    await waitFor(() => expect(onUpdate).toHaveBeenCalledWith('react'))
+    expect(onUpdate).toHaveBeenCalledWith('typescript')
+    expect(onUpdate).toHaveBeenCalledWith('tailwind')
+  })
 })

@@ -1,7 +1,9 @@
 import { Download, RefreshCw, Search, SlidersHorizontal } from 'lucide-react'
 import { useDeferredValue, useEffect, useMemo, useState, type ChangeEvent, type InputHTMLAttributes, type ReactNode } from 'react'
 import { repositories, type Repository, type RepositoryMetadataOverride } from './catalog-model'
+import { getGroupRepositories, technologyGroups } from './catalog-groups'
 import { RepositoryCard } from './RepositoryCard'
+import { TechnologyGroupCard } from './TechnologyGroupCard'
 import { defaultDownloadSelection, selectRange, toggleSelection } from './catalog-selection'
 import { SourceDetails } from './SourceDetails'
 import { hasNativeBridge, invokeCommand } from '../../lib/tauri'
@@ -275,6 +277,9 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
   const detailsRepository = detailsRepositoryId === null
     ? undefined
     : catalogRepositories.find(({ id }) => id === detailsRepositoryId)
+  const visibleGroups = technologyGroups
+    .map((group) => ({ group, repositories: getGroupRepositories(group, visibleRepositories) }))
+    .filter(({ repositories: groupRepositories }) => groupRepositories.length > 1)
 
   return (
     <div id="catalog" className={`space-y-9 ${dropActive ? 'rounded-2xl ring-2 ring-x-mint-strong ring-offset-4' : ''}`} onDragEnter={(event) => { event.preventDefault(); setDropActive(true) }} onDragOver={(event) => event.preventDefault()} onDragLeave={(event) => { if (event.currentTarget === event.target) setDropActive(false) }} onDrop={(event) => { event.preventDefault(); setDropActive(false); const droppedFile = event.dataTransfer.files[0] as (File & { path?: string }) | undefined; if (droppedFile?.path && onAddLocalSource) { setSourcePath(droppedFile.path); setSourceName(droppedFile.name || 'Local source'); setAddSourceOpen(true) } }}>
@@ -358,26 +363,37 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
           No repositories match “{searchQuery}”.
         </p>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {visibleRepositories.map((repository, index) => (
-            <RepositoryCard
-              key={repository.id}
-              repo={repository}
-              featured={index === 0 && deferredSearchQuery === ''}
-              selected={selectedRepositoryIds.has(repository.id)}
-              onSelect={(shiftKey) => handleSelect(repository.id, shiftKey)}
-              onOpen={() => setDetailsRepositoryId(repository.id)}
-              onDownload={() => void startDownload([repository.id])}
-              onUpdate={onUpdate ? () => void updateRepositories([repository.id]) : undefined}
-              onRemove={onRemove ? () => void removeRepository(repository.id) : undefined}
-              onOpenFolder={onOpenFolder ? () => void onOpenFolder(repository.id) : undefined}
-              onOpenWebsite={onOpenWebsite ? (source) => void onOpenWebsite(source) : undefined}
-              pinned={pinnedIds.has(repository.id)}
-              onTogglePin={() => togglePin(repository.id)}
-              onHide={() => hideRepository(repository.id)}
-              hidden={hiddenIds.has(repository.id)}
+        <div className="space-y-5">
+          {visibleGroups.map(({ group, repositories: groupRepositories }) => (
+            <TechnologyGroupCard
+              key={group.id}
+              group={group}
+              repositories={groupRepositories}
+              onDownload={() => void startDownload(groupRepositories.filter(({ capability }) => capability !== 'Website only').map(({ id }) => id))}
+              onUpdate={onUpdate ? () => void updateRepositories(groupRepositories.filter(({ status }) => status === 'Ready').map(({ id }) => id)) : () => undefined}
             />
           ))}
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {visibleRepositories.map((repository, index) => (
+              <RepositoryCard
+                key={repository.id}
+                repo={repository}
+                featured={index === 0 && deferredSearchQuery === ''}
+                selected={selectedRepositoryIds.has(repository.id)}
+                onSelect={(shiftKey) => handleSelect(repository.id, shiftKey)}
+                onOpen={() => setDetailsRepositoryId(repository.id)}
+                onDownload={() => void startDownload([repository.id])}
+                onUpdate={onUpdate ? () => void updateRepositories([repository.id]) : undefined}
+                onRemove={onRemove ? () => void removeRepository(repository.id) : undefined}
+                onOpenFolder={onOpenFolder ? () => void onOpenFolder(repository.id) : undefined}
+                onOpenWebsite={onOpenWebsite ? (source) => void onOpenWebsite(source) : undefined}
+                pinned={pinnedIds.has(repository.id)}
+                onTogglePin={() => togglePin(repository.id)}
+                onHide={() => hideRepository(repository.id)}
+                hidden={hiddenIds.has(repository.id)}
+              />
+            ))}
+          </div>
         </div>
       )}
       {detailsRepository && <SourceDetails repository={detailsRepository} categories={categories} onClose={() => setDetailsRepositoryId(null)} onSaveMetadata={(metadata) => { const next = { ...metadataById, [detailsRepository.id]: metadata }; setMetadataById(next); const nextCategories = metadata.category && !categories.includes(metadata.category) ? [...customCategories, metadata.category] : customCategories; setCustomCategories(nextCategories); persistMetadata(next, nextCategories) }} onResetMetadata={() => { const next = { ...metadataById }; delete next[detailsRepository.id]; setMetadataById(next); persistMetadata(next) }} />}

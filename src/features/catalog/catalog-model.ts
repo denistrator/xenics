@@ -13,7 +13,10 @@ export interface Repository {
   capability: RepositoryCapability
   sourceUrl: string
   selectedRef: string
+  tags?: string[]
 }
+
+export type RepositoryMetadataOverride = Partial<Pick<Repository, 'name' | 'description' | 'category' | 'tags'>>
 
 export const repositories: Repository[] = [
   {

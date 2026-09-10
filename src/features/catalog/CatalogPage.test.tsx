@@ -100,4 +100,17 @@ describe('CatalogPage', () => {
     expect(screen.getByRole('heading', { name: 'React' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Show React' })).toBeInTheDocument()
   })
+
+  it('edits repository metadata and accepts a custom category', () => {
+    render(<CatalogPage />)
+    fireEvent.click(screen.getByRole('button', { name: 'React details' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Edit metadata' }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Edit display name' }), { target: { value: 'React Core' } })
+    fireEvent.change(screen.getByRole('combobox', { name: 'Edit category' }), { target: { value: 'UI libraries' } })
+    fireEvent.change(screen.getByRole('textbox', { name: 'Edit tags' }), { target: { value: 'hooks, ui' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    expect(screen.getAllByRole('heading', { name: 'React Core' })).toHaveLength(2)
+    expect(screen.getAllByText('UI libraries')).toHaveLength(2)
+    expect(screen.getByText('#hooks')).toBeInTheDocument()
+  })
 })

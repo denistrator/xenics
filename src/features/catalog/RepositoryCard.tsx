@@ -106,6 +106,7 @@ export function RepositoryCard({
         <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-x-muted">
           <span className="rounded-full bg-x-paper px-2.5 py-1">{repo.category}</span>
           <span className="rounded-full bg-x-paper px-2.5 py-1">{repo.capability}</span>
+          {repo.tags?.map((tag) => <span key={tag} className="rounded-full bg-x-paper px-2.5 py-1">#{tag}</span>)}
         </div>
       </button>
 

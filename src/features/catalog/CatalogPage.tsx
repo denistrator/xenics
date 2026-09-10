@@ -1,6 +1,6 @@
 import { Download, RefreshCw, Search, SlidersHorizontal } from 'lucide-react'
 import { useDeferredValue, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { repositories, type Repository } from './catalog-model'
+import { repositories, type Repository, type RepositoryMetadataOverride } from './catalog-model'
 import { RepositoryCard } from './RepositoryCard'
 import { defaultDownloadSelection, selectRange, toggleSelection } from './catalog-selection'
 import { SourceDetails } from './SourceDetails'
@@ -49,6 +49,8 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(() => new Set())
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(() => new Set())
   const [showHidden, setShowHidden] = useState(false)
+  const [metadataById, setMetadataById] = useState<Record<string, RepositoryMetadataOverride>>({})
+  const [customCategories, setCustomCategories] = useState<string[]>([])
   const [addSourceOpen, setAddSourceOpen] = useState(false)
   const [sourceName, setSourceName] = useState('')
   const [sourcePath, setSourcePath] = useState('')
@@ -77,11 +79,22 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
         if (Array.isArray(value.hiddenIds)) setHiddenIds(new Set(value.hiddenIds.filter((id): id is string => typeof id === 'string')))
       })
       .catch(() => undefined)
+    void invokeCommand<Record<string, unknown>>('get_settings')
+      .then((settings) => {
+        if (settings.catalogMetadata && typeof settings.catalogMetadata === 'object') setMetadataById(settings.catalogMetadata as Record<string, RepositoryMetadataOverride>)
+        if (Array.isArray(settings.catalogCategories)) setCustomCategories(settings.catalogCategories.filter((category): category is string => typeof category === 'string'))
+      })
+      .catch(() => undefined)
   }, [])
 
   function persistOrganization(nextPinned: Set<string>, nextHidden: Set<string>): void {
     if (!hasNativeBridge()) return
     void invokeCommand('update_settings', { patch: { catalogOrganization: { pinnedIds: [...nextPinned], hiddenIds: [...nextHidden] } } }).catch(() => undefined)
+  }
+
+  function persistMetadata(nextMetadata: Record<string, RepositoryMetadataOverride>, nextCategories: string[] = customCategories): void {
+    if (!hasNativeBridge()) return
+    void invokeCommand('update_settings', { patch: { catalogMetadata: nextMetadata, catalogCategories: nextCategories } }).catch(() => undefined)
   }
 
   function togglePin(repositoryId: string): void {
@@ -107,9 +120,10 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
   const catalogRepositories = useMemo(
     () => [...repositories, ...customRepositories].map((repository) => ({
       ...repository,
+      ...(metadataById[repository.id] ?? {}),
       status: installedIds.has(repository.id) ? 'Ready' as const : repository.status,
     })),
-    [customRepositories, installedIds],
+    [customRepositories, installedIds, metadataById],
   )
 
   const visibleRepositories = useMemo(
@@ -123,7 +137,7 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
     )).sort((left, right) => Number(pinnedIds.has(right.id)) - Number(pinnedIds.has(left.id))),
     [catalogRepositories, deferredSearchQuery, categoryFilter, capabilityFilter, installationFilter, hiddenIds, showHidden, pinnedIds],
   )
-  const categories = useMemo(() => ['All', ...new Set(catalogRepositories.map(({ category }) => category))], [catalogRepositories])
+  const categories = useMemo(() => ['All', ...new Set([...catalogRepositories.map(({ category }) => category), ...customCategories])], [catalogRepositories, customCategories])
   const capabilities = useMemo(() => ['All', ...new Set(catalogRepositories.map(({ capability }) => capability))], [catalogRepositories])
   const selectedRepositoryIds = useMemo(() => new Set(selectedIds), [selectedIds])
   const downloadableRepositoryIds = useMemo(
@@ -331,7 +345,7 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
           ))}
         </div>
       )}
-      {detailsRepository && <SourceDetails repository={detailsRepository} onClose={() => setDetailsRepositoryId(null)} />}
+      {detailsRepository && <SourceDetails repository={detailsRepository} categories={categories} onClose={() => setDetailsRepositoryId(null)} onSaveMetadata={(metadata) => { const next = { ...metadataById, [detailsRepository.id]: metadata }; setMetadataById(next); const nextCategories = metadata.category && !categories.includes(metadata.category) ? [...customCategories, metadata.category] : customCategories; setCustomCategories(nextCategories); persistMetadata(next, nextCategories) }} onResetMetadata={() => { const next = { ...metadataById }; delete next[detailsRepository.id]; setMetadataById(next); persistMetadata(next) }} />}
       {addSourceOpen && onAddLocalSource && (
         <div className="fixed inset-0 z-30 grid place-items-center bg-x-ink/30 p-5" role="presentation">
           <section role="dialog" aria-modal="true" aria-labelledby="add-source-title" className="w-full max-w-lg rounded-2xl border border-x-line bg-x-panel p-6 shadow-2xl">

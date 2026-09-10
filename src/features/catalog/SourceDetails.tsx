@@ -1,13 +1,27 @@
 import { X } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import type { Repository } from './catalog-model'
 
 type SourceDetailsProps = {
   repository: Repository
   onClose: () => void
+  categories: string[]
+  onSaveMetadata: (metadata: { name: string; description: string; category: string; tags: string[] }) => void
+  onResetMetadata: () => void
 }
 
-export function SourceDetails({ repository, onClose }: SourceDetailsProps): ReactNode {
+export function SourceDetails({ repository, onClose, categories, onSaveMetadata, onResetMetadata }: SourceDetailsProps): ReactNode {
+  const [editing, setEditing] = useState(false)
+  const [name, setName] = useState(repository.name)
+  const [description, setDescription] = useState(repository.description)
+  const [category, setCategory] = useState(repository.category)
+  const [tags, setTags] = useState((repository.tags ?? []).join(', '))
+
+  function save(): void {
+    onSaveMetadata({ name: name.trim(), description: description.trim(), category, tags: tags.split(',').map((tag) => tag.trim()).filter(Boolean) })
+    setEditing(false)
+  }
+
   return (
     <div className="fixed inset-0 z-40 grid place-items-center bg-x-ink/30 p-4 backdrop-blur-sm" role="presentation" onClick={(event) => { if (event.target === event.currentTarget) onClose() }}>
       <section role="dialog" aria-modal="true" aria-label={`${repository.name} details`} className="w-full max-w-lg rounded-2xl border border-x-line bg-x-panel p-6 shadow-2xl">
@@ -20,16 +34,18 @@ export function SourceDetails({ repository, onClose }: SourceDetailsProps): Reac
             <X aria-hidden="true" size={18} />
           </button>
         </div>
-        <p className="mt-4 leading-7 text-x-muted">{repository.description}</p>
+        {editing ? <div className="mt-4 space-y-3"><label className="block text-sm font-semibold">Display name<input aria-label="Edit display name" value={name} onChange={(event) => setName(event.target.value)} className="mt-1 block w-full rounded-lg border border-x-line bg-x-paper px-3 py-2 font-normal" /></label><label className="block text-sm font-semibold">Description<textarea aria-label="Edit description" value={description} onChange={(event) => setDescription(event.target.value)} className="mt-1 block w-full rounded-lg border border-x-line bg-x-paper px-3 py-2 font-normal" /></label><label className="block text-sm font-semibold">Category<input aria-label="Edit category" list="repository-categories" value={category} onChange={(event) => setCategory(event.target.value)} className="mt-1 block w-full rounded-lg border border-x-line bg-x-paper px-3 py-2 font-normal" /><datalist id="repository-categories">{categories.filter((value) => value !== 'All').map((value) => <option key={value} value={value} />)}</datalist></label><label className="block text-sm font-semibold">Tags<input aria-label="Edit tags" value={tags} onChange={(event) => setTags(event.target.value)} placeholder="state, hooks" className="mt-1 block w-full rounded-lg border border-x-line bg-x-paper px-3 py-2 font-normal" /></label></div> : <p className="mt-4 leading-7 text-x-muted">{repository.description}</p>}
         <dl className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
           <div><dt className="text-xs font-semibold uppercase tracking-wide text-x-muted">Vendor</dt><dd className="mt-1">{repository.vendor}</dd></div>
           <div><dt className="text-xs font-semibold uppercase tracking-wide text-x-muted">Category</dt><dd className="mt-1">{repository.category}</dd></div>
           <div><dt className="text-xs font-semibold uppercase tracking-wide text-x-muted">Capability</dt><dd className="mt-1">{repository.capability}</dd></div>
           <div><dt className="text-xs font-semibold uppercase tracking-wide text-x-muted">Selected ref</dt><dd className="mt-1">{repository.selectedRef}</dd></div>
+          <div><dt className="text-xs font-semibold uppercase tracking-wide text-x-muted">Tags</dt><dd className="mt-1">{repository.tags?.join(', ') || 'None'}</dd></div>
         </dl>
         <a href={repository.sourceUrl} target="_blank" rel="noreferrer" className="mt-6 block break-all rounded-xl bg-x-paper p-3 text-sm text-x-mint-strong underline underline-offset-4">
           {repository.sourceUrl}
         </a>
+        <div className="mt-6 flex justify-end gap-2"><button type="button" onClick={() => setEditing((open) => !open)} className="rounded-lg border border-x-line px-3 py-2 text-sm font-semibold">{editing ? 'Cancel edit' : 'Edit metadata'}</button>{editing ? <button type="button" onClick={save} disabled={!name.trim() || !description.trim()} className="rounded-lg bg-x-ink px-3 py-2 text-sm font-semibold text-x-paper disabled:opacity-40">Save</button> : <button type="button" onClick={onResetMetadata} className="rounded-lg border border-x-line px-3 py-2 text-sm font-semibold">Reset to default</button>}</div>
       </section>
     </div>
   )

@@ -66,6 +66,7 @@ Updated: 2026-09-10
 - Native release-path formatting is now clean under `cargo fmt --check`; the full local acceptance sequence remains green after source-payload changes.
 - Local macOS release bundle verification passed: `npm run tauri -- build --ci` produced an arm64 `Xenics.app` and `Xenics_0.1.0_aarch64.dmg`; artifact inspection and `verify:packaged` passed. Clean-profile install, deep-link registration, signing/notarization, and Windows/Linux bundles remain platform-owner checks.
 - The cross-platform release workflow now retains each macOS, Ubuntu, and Windows bundle as a 14-day CI artifact, enabling the documented clean-profile installer and deep-link checks after hosted runs.
+- The packaged-release verifier now requires a real release bundle and checks the normal Cargo dependency graph for absence of the E2E WebDriver plugin, preventing test instrumentation from being mistaken for a distributable build.
 - Reader documents can now expose nested curated or generic navigation trees; the sidebar renders them with safe path/history navigation and falls back to open tabs when no tree is available.
 - Catalog installation hydration now consumes native source metadata, preserving selected refs and distinguishing local folders from Git sources while leaving editable display metadata independent.
 - Installed Files-only/custom sources now expose individual Update actions; Website-only entries remain excluded from update controls.

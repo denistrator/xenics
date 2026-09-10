@@ -1,4 +1,4 @@
-import { ArrowUpRight, Check, Download, FolderOpen, RefreshCw, Trash2 } from 'lucide-react'
+import { ArrowUpRight, Check, Download, EyeOff, FolderOpen, Pin, RefreshCw, Trash2 } from 'lucide-react'
 import type { ChangeEvent, ReactNode } from 'react'
 import type { Repository, RepositoryAccent } from './catalog-model'
 
@@ -12,6 +12,10 @@ type RepositoryCardProps = {
   onRemove?: () => void
   onOpenFolder?: () => void
   onOpenWebsite?: () => void
+  pinned?: boolean
+  onTogglePin?: () => void
+  onHide?: () => void
+  hidden?: boolean
   featured?: boolean
 }
 
@@ -38,6 +42,10 @@ export function RepositoryCard({
   onRemove,
   onOpenFolder,
   onOpenWebsite,
+  pinned = false,
+  onTogglePin,
+  onHide,
+  hidden = false,
   featured = false,
 }: RepositoryCardProps): ReactNode {
   const isInstalled = repo.status === 'Ready'
@@ -76,6 +84,10 @@ export function RepositoryCard({
             />
           </label>
         )}
+        <div className="absolute right-3 top-3 flex gap-1">
+          {onTogglePin && <button type="button" aria-label={`${pinned ? 'Unpin' : 'Pin'} ${repo.name}`} onClick={onTogglePin} className="rounded-lg p-2 text-x-muted hover:bg-x-paper"><Pin aria-hidden="true" size={15} fill={pinned ? 'currentColor' : 'none'} /></button>}
+          {onHide && <button type="button" aria-label={`${hidden ? 'Show' : 'Hide'} ${repo.name}`} onClick={onHide} className="rounded-lg p-2 text-x-muted hover:bg-x-paper"><EyeOff aria-hidden="true" size={15} /></button>}
+        </div>
       </div>
 
       <button

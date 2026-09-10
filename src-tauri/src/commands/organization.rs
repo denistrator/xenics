@@ -136,6 +136,7 @@ pub fn update_settings(state: State<'_, AppState>, patch: Value) -> Result<(), S
                 | "allowLocalFolderUpdates"
                 | "notificationsEnabled"
                 | "libraryPath"
+                | "catalogOrganization"
         ) {
             return Err("settings key is not supported".into());
         }

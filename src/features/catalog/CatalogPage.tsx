@@ -46,6 +46,9 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
   const [capabilityFilter, setCapabilityFilter] = useState('All')
   const [installationFilter, setInstallationFilter] = useState('All')
   const [customRepositories, setCustomRepositories] = useState<Repository[]>([])
+  const [pinnedIds, setPinnedIds] = useState<Set<string>>(() => new Set())
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(() => new Set())
+  const [showHidden, setShowHidden] = useState(false)
   const [addSourceOpen, setAddSourceOpen] = useState(false)
   const [sourceName, setSourceName] = useState('')
   const [sourcePath, setSourcePath] = useState('')
@@ -63,6 +66,44 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
     return () => { active = false }
   }, [])
 
+  useEffect(() => {
+    if (!hasNativeBridge()) return
+    void invokeCommand<Record<string, unknown>>('get_settings')
+      .then((settings) => {
+        const organization = settings.catalogOrganization
+        if (!organization || typeof organization !== 'object') return
+        const value = organization as { pinnedIds?: unknown; hiddenIds?: unknown }
+        if (Array.isArray(value.pinnedIds)) setPinnedIds(new Set(value.pinnedIds.filter((id): id is string => typeof id === 'string')))
+        if (Array.isArray(value.hiddenIds)) setHiddenIds(new Set(value.hiddenIds.filter((id): id is string => typeof id === 'string')))
+      })
+      .catch(() => undefined)
+  }, [])
+
+  function persistOrganization(nextPinned: Set<string>, nextHidden: Set<string>): void {
+    if (!hasNativeBridge()) return
+    void invokeCommand('update_settings', { patch: { catalogOrganization: { pinnedIds: [...nextPinned], hiddenIds: [...nextHidden] } } }).catch(() => undefined)
+  }
+
+  function togglePin(repositoryId: string): void {
+    setPinnedIds((current) => {
+      const next = new Set(current)
+      if (next.has(repositoryId)) next.delete(repositoryId)
+      else next.add(repositoryId)
+      persistOrganization(next, hiddenIds)
+      return next
+    })
+  }
+
+  function hideRepository(repositoryId: string): void {
+    setHiddenIds((current) => {
+      const next = new Set(current)
+      if (next.has(repositoryId)) next.delete(repositoryId)
+      else next.add(repositoryId)
+      persistOrganization(pinnedIds, next)
+      return next
+    })
+  }
+
   const catalogRepositories = useMemo(
     () => [...repositories, ...customRepositories].map((repository) => ({
       ...repository,
@@ -73,13 +114,14 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
 
   const visibleRepositories = useMemo(
     () => catalogRepositories.filter((repository) => (
-      matchesRepositoryQuery(repository, deferredSearchQuery)
+      (showHidden || !hiddenIds.has(repository.id))
+      && matchesRepositoryQuery(repository, deferredSearchQuery)
       && (categoryFilter === 'All' || repository.category === categoryFilter)
       && (capabilityFilter === 'All' || repository.capability === capabilityFilter)
       && (installationFilter === 'All'
         || installationFilter === (repository.status === 'Ready' ? 'Installed' : 'Not installed'))
-    )),
-    [catalogRepositories, deferredSearchQuery, categoryFilter, capabilityFilter, installationFilter],
+    )).sort((left, right) => Number(pinnedIds.has(right.id)) - Number(pinnedIds.has(left.id))),
+    [catalogRepositories, deferredSearchQuery, categoryFilter, capabilityFilter, installationFilter, hiddenIds, showHidden, pinnedIds],
   )
   const categories = useMemo(() => ['All', ...new Set(catalogRepositories.map(({ category }) => category))], [catalogRepositories])
   const capabilities = useMemo(() => ['All', ...new Set(catalogRepositories.map(({ capability }) => capability))], [catalogRepositories])
@@ -233,6 +275,7 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
             </button>
             {filtersOpen && (
               <div className="absolute right-0 top-14 z-20 w-64 space-y-3 rounded-xl border border-x-line bg-x-panel p-4 shadow-xl">
+                <label className="flex items-center gap-2 text-xs font-semibold"><input type="checkbox" checked={showHidden} onChange={(event) => setShowHidden(event.target.checked)} />Show hidden sources</label>
                 <label className="block text-xs font-semibold">Category<select aria-label="Filter by category" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} className="mt-1 block w-full rounded-md border border-x-line bg-x-paper px-2 py-2 text-sm">{categories.map((category) => <option key={category}>{category}</option>)}</select></label>
                 <label className="block text-xs font-semibold">Capability<select aria-label="Filter by capability" value={capabilityFilter} onChange={(event) => setCapabilityFilter(event.target.value)} className="mt-1 block w-full rounded-md border border-x-line bg-x-paper px-2 py-2 text-sm">{capabilities.map((capability) => <option key={capability}>{capability}</option>)}</select></label>
                 <label className="block text-xs font-semibold">Installation<select aria-label="Filter by installation" value={installationFilter} onChange={(event) => setInstallationFilter(event.target.value)} className="mt-1 block w-full rounded-md border border-x-line bg-x-paper px-2 py-2 text-sm"><option>All</option><option>Installed</option><option>Not installed</option></select></label>
@@ -280,6 +323,10 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
               onRemove={onRemove ? () => void removeRepository(repository.id) : undefined}
               onOpenFolder={onOpenFolder ? () => void onOpenFolder(repository.id) : undefined}
               onOpenWebsite={onOpenWebsite ? () => void onOpenWebsite(repository.id) : undefined}
+              pinned={pinnedIds.has(repository.id)}
+              onTogglePin={() => togglePin(repository.id)}
+              onHide={() => hideRepository(repository.id)}
+              hidden={hiddenIds.has(repository.id)}
             />
           ))}
         </div>

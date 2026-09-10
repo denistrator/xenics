@@ -38,6 +38,7 @@ Updated: 2026-09-10
 - Reader workspaces now expose bounded zoom controls and pass zoom state explicitly into document presentation.
 - Reader pages now route external links through the validated browser command and expose a copy-deep-link action for the active source/ref/path.
 - Reader pages now expose source-folder and source-URL actions for the active tab through the existing native opener boundary, plus close-other and close-to-right actions that preserve pinned tabs.
+- Catalog cards now support user-scoped pin/hide organization, pinned-first ordering, and an explicit show-hidden filter.
 - Recovery presentation now has reusable `InlineError` and `RecoveryActions` primitives, and task failures use the same structured retry-action surface.
 - The app shell now exposes a toggleable notification panel fed by the ordered task feed, with an active-task loader, recent phases, and cancel/retry actions while detailed recovery remains in the task panel.
 - Native settings persistence supports allowlisted get/update commands with validation for unknown keys, control characters, and oversized values. The UI is connected, including the ownership-aware full reset flow.

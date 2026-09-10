@@ -85,4 +85,19 @@ describe('CatalogPage', () => {
     }))
     expect(await screen.findByRole('heading', { name: 'Team docs' })).toBeInTheDocument()
   })
+
+  it('supports pinning and hiding catalog cards', () => {
+    render(<CatalogPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Pin React' }))
+    expect(screen.getByRole('button', { name: 'Unpin React' })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Hide React' }))
+    expect(screen.queryByRole('heading', { name: 'React' })).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Filter repositories' }))
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Show hidden sources' }))
+    expect(screen.getByRole('heading', { name: 'React' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Show React' })).toBeInTheDocument()
+  })
 })

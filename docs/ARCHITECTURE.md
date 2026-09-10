@@ -38,7 +38,7 @@ Catalog update and removal actions are thin UI adapters over native commands. Bu
 
 The global update action opens a review before queueing work. The review identifies every installed source known to the catalog, labels website-only sources as skipped, and leaves final eligibility enforcement to the native update policy.
 
-The local-source dialog requires a display name and folder path, then delegates canonicalization and Git-remote detection to `add_local_source`. The returned source is presented in the same card grid, but remains outside managed-library deletion scope.
+The local-source dialog requires a display name and folder path, then delegates canonicalization and Git-remote detection to `add_local_source`. The returned source is presented in the same card grid, but remains outside managed-library deletion scope. Catalog pin and hide state is persisted in the user settings scope, with pinned cards sorted first and an explicit show-hidden filter.
 
 Card primary actions remain capability-specific: readable sources open the reader, Files-only sources invoke `open_source_folder`, and Website-only sources invoke `open_source_website`. The native commands resolve persisted source metadata and apply the same URL/path validation as all other desktop actions.
 

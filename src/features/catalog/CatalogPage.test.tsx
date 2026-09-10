@@ -135,4 +135,14 @@ describe('CatalogPage', () => {
     expect(screen.getByRole('dialog', { name: 'Add local source' })).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: 'Folder path' })).toHaveValue('/tmp/team-docs')
   })
+
+  it('opens the local-source dialog from the folder picker', () => {
+    render(<CatalogPage onAddLocalSource={vi.fn()} />)
+    const folderPicker = screen.getByLabelText('Choose local folder') as HTMLInputElement
+    const selectedFile = new File([], 'team-docs') as File & { path?: string }
+    Object.defineProperty(selectedFile, 'path', { value: '/tmp/team-docs/README.md' })
+    fireEvent.change(folderPicker, { target: { files: [selectedFile] } })
+    expect(screen.getByRole('dialog', { name: 'Add local source' })).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Folder path' })).toHaveValue('/tmp/team-docs')
+  })
 })

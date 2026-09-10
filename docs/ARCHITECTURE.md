@@ -44,6 +44,8 @@ The catalog also accepts custom HTTPS and SSH Git URLs. These sources are downlo
 
 Local-source onboarding also accepts a dropped folder when the desktop runtime exposes its path, then requires the same explicit confirmation form before registration. External folders remain outside managed-library deletion scope.
 
+The local-folder picker uses the desktop file path only to derive the selected folder, then routes through the same explicit source-registration validation.
+
 The reader’s configured-editor action resolves the active document under the installed source root and launches the configured executable with the file as one argument; it never invokes a shell or accepts arbitrary document paths.
 
 The reader can also open the installed source root in a terminal using platform-specific process arguments, with no shell interpolation.

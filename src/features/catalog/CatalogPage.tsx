@@ -1,5 +1,5 @@
 import { Download, RefreshCw, Search, SlidersHorizontal } from 'lucide-react'
-import { useDeferredValue, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState, type ChangeEvent, type InputHTMLAttributes, type ReactNode } from 'react'
 import { repositories, type Repository, type RepositoryMetadataOverride } from './catalog-model'
 import { RepositoryCard } from './RepositoryCard'
 import { defaultDownloadSelection, selectRange, toggleSelection } from './catalog-selection'
@@ -62,6 +62,14 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
   const [remoteSourceName, setRemoteSourceName] = useState('')
   const [remoteSourceRef, setRemoteSourceRef] = useState('main')
   const deferredSearchQuery = useDeferredValue(searchQuery.trim().toLowerCase())
+
+  function handleFolderSelection(event: ChangeEvent<HTMLInputElement>): void {
+    const selected = event.target.files?.[0] as (File & { path?: string }) | undefined
+    if (!selected?.path || !onAddLocalSource) return
+    setSourcePath(selected.path.replace(/[\\/]([^\\/]+)$/, ''))
+    setSourceName(selected.name || 'Local source')
+    setAddSourceOpen(true)
+  }
 
   useEffect(() => {
     if (!hasNativeBridge()) return
@@ -296,11 +304,7 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
             <Download aria-hidden="true" className="mr-2 inline" size={16} />
             {downloadButtonLabel}
           </button>
-          {onAddLocalSource && (
-            <button type="button" onClick={() => setAddSourceOpen(true)} className="rounded-xl border border-x-line bg-x-panel px-4 py-3 text-sm font-semibold hover:bg-x-paper">
-              Add local source
-            </button>
-          )}
+          {onAddLocalSource && <><button type="button" onClick={() => setAddSourceOpen(true)} className="rounded-xl border border-x-line bg-x-panel px-4 py-3 text-sm font-semibold hover:bg-x-paper">Add local source</button><label className="cursor-pointer rounded-xl border border-x-line bg-x-panel px-4 py-3 text-sm font-semibold hover:bg-x-paper">Choose folder<input aria-label="Choose local folder" type="file" {...({ webkitdirectory: 'true', directory: 'true' } as InputHTMLAttributes<HTMLInputElement>)} onChange={handleFolderSelection} className="sr-only" /></label></>}
           {onAddRemoteSource && <button type="button" onClick={() => setRemoteSourceOpen(true)} className="rounded-xl border border-x-line bg-x-panel px-4 py-3 text-sm font-semibold hover:bg-x-paper">Add Git repository</button>}
           {installedIds.size > 0 && onUpdate && (
             <button

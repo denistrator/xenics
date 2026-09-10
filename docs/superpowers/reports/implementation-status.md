@@ -46,6 +46,7 @@ Updated: 2026-09-10
 - The built-in catalog now includes the full planned technology candidate list as curated entries or safe Website-only discovery cards; Website-only cards open validated public URLs directly and remain excluded from bulk downloads.
 - The catalog now accepts unsupported HTTPS/SSH Git repositories with a selected branch/tag and manages them as Files-only custom sources.
 - Local-source onboarding now supports desktop drag-and-drop into the explicit confirmation dialog.
+- Local-source onboarding now also provides a desktop folder-picker affordance before confirmation.
 - Reader presentation now supports compact and comfortable density modes alongside zoom controls.
 - Reader page actions now include a configured-editor opener with source-root containment and no shell interpolation.
 - Reader page actions now include platform-specific terminal opening for the installed source root without shell interpolation.

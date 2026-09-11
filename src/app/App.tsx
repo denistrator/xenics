@@ -9,6 +9,7 @@ import { hasNativeBridge, invokeCommand } from '../lib/tauri'
 import { TaskPanel } from '../features/tasks/TaskPanel'
 import { useTaskFeed } from '../features/tasks/use-task-feed'
 import { ReaderWorkspace } from '../features/reader/ReaderWorkspace'
+import type { ReaderDocument } from '../features/reader/DocumentView'
 import { openSearchResult, type SearchReaderTarget } from '../features/search/search-state'
 import { OrganizationPage } from '../features/organization/OrganizationPage'
 import { getCurrent, onOpenUrl } from '@tauri-apps/plugin-deep-link'
@@ -19,6 +20,19 @@ type ReaderStartPage = {
   refName: string
   path: string
   title: string
+}
+
+function browserPreviewDocument(target: SearchReaderTarget): ReaderDocument {
+  const repository = repositories.find(({ id }) => id === target.sourceId)
+  return {
+    title: target.title,
+    source: `${repository?.name ?? target.sourceId} · ${target.refName}`,
+    blocks: [
+      { type: 'heading', text: target.title, level: 1 },
+      { type: 'paragraph', text: repository?.description ?? 'Documentation preview.' },
+      { type: 'warning', text: 'This is a browser preview. The desktop app reads the downloaded source files from your local library.' },
+    ],
+  }
 }
 
 export function App() {
@@ -127,6 +141,17 @@ export function App() {
   }
 
   async function openCatalogReader(repository: Repository): Promise<void> {
+    if (!hasNativeBridge()) {
+      setReaderTarget({
+        sourceId: repository.id,
+        refName: repository.selectedRef,
+        path: 'README.md',
+        title: repository.name,
+        matchIndex: 0,
+        location: { line: 1, column: 1 },
+      })
+      return
+    }
     const startPage = await invokeCommand<ReaderStartPage>('get_source_start_page', { sourceId: repository.id })
     setReaderTarget({
       ...startPage,
@@ -152,6 +177,7 @@ export function App() {
             pinned: false,
             history: [readerTarget.path],
           }]}
+          document={hasNativeBridge() ? undefined : browserPreviewDocument(readerTarget)}
           onOpenExternalUrl={openExternalUrl}
           onOpenSourceFile={openSourceFile}
           onOpenSourceFileInEditor={openSourceFileInEditor}

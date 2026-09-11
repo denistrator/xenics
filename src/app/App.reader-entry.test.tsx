@@ -1,12 +1,13 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
   invokeCommand: vi.fn(),
+  nativeBridge: true,
 }))
 
 vi.mock('../lib/tauri', () => ({
-  hasNativeBridge: () => false,
+  hasNativeBridge: () => mocks.nativeBridge,
   invokeCommand: mocks.invokeCommand,
 }))
 
@@ -26,14 +27,19 @@ vi.mock('../features/catalog/CatalogPage', () => ({
 }))
 
 vi.mock('../features/reader/ReaderWorkspace', () => ({
-  ReaderWorkspace: ({ initialTabs }: { initialTabs: Array<{ path: string; title: string }> }) => (
-    <p>{`${initialTabs[0]?.title}: ${initialTabs[0]?.path}`}</p>
+  ReaderWorkspace: ({ initialTabs, document }: { initialTabs: Array<{ path: string; title: string }>; document?: { blocks: Array<{ text: string }> } }) => (
+    <p>{`${initialTabs[0]?.title}: ${initialTabs[0]?.path}: ${document?.blocks[2]?.text ?? 'Native reader'}`}</p>
   ),
 }))
 
 import { App } from './App'
 
 describe('App reader entry', () => {
+  afterEach(() => {
+    mocks.invokeCommand.mockReset()
+    mocks.nativeBridge = true
+  })
+
   it('resolves an installed catalog source start page before opening the reader', async () => {
     mocks.invokeCommand.mockResolvedValueOnce({
       sourceId: 'react',
@@ -45,7 +51,16 @@ describe('App reader entry', () => {
     render(<App />)
     fireEvent.click(screen.getByRole('button', { name: 'Open React reader' }))
 
-    expect(await screen.findByText('React: README.md')).toBeInTheDocument()
+    expect(await screen.findByText('React: README.md: Native reader')).toBeInTheDocument()
     expect(mocks.invokeCommand).toHaveBeenCalledWith('get_source_start_page', { sourceId: 'react' })
+  })
+
+  it('opens a visible reader preview when running outside the desktop bridge', async () => {
+    mocks.nativeBridge = false
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Open React reader' }))
+
+    expect(await screen.findByText(/React: README.md: This is a browser preview/)).toBeInTheDocument()
+    expect(mocks.invokeCommand).not.toHaveBeenCalled()
   })
 })

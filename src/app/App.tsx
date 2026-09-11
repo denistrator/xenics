@@ -28,6 +28,10 @@ function createReaderTarget(target: Omit<SearchReaderTarget, 'matchIndex' | 'loc
   return { ...target, matchIndex: 0, location: initialReaderLocation }
 }
 
+function readerWorkspaceKey(target: SearchReaderTarget): string {
+  return `${target.sourceId}:${target.refName}:${target.path}`
+}
+
 function browserPreviewDocument(target: SearchReaderTarget): ReaderDocument {
   const repository = repositories.find(({ id }) => id === target.sourceId)
   return {
@@ -175,6 +179,7 @@ export function App() {
     >
       {readerTarget ? (
         <ReaderWorkspace
+          key={readerWorkspaceKey(readerTarget)}
           initialTabs={[{
             ...readerTarget,
             id: `${readerTarget.sourceId}:${readerTarget.path}`,

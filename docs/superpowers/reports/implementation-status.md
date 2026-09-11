@@ -1,6 +1,6 @@
 # Xenics implementation status
 
-Updated: 2026-09-10
+Updated: 2026-09-11
 
 ## Verified foundation
 
@@ -122,6 +122,11 @@ traversal targets.
 The task feed requests permission only when needed, respects the persisted
 notification setting and app focus, excludes cancellations, deduplicates terminal
 outcomes per task attempt, and leaves task state unaffected when delivery fails.
+- Reader entry is now connected from catalog cards. After native source hydration,
+only installed Readable or Partially readable sources present the reader action;
+the app asks the native layer for a discovered, containment-checked start page
+before creating a reader tab. Failed resolution remains an inline catalog error
+and cannot create a tab for an arbitrary client-provided path.
 
 ## Safety note
 

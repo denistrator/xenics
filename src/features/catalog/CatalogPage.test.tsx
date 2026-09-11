@@ -70,6 +70,15 @@ describe('CatalogPage', () => {
     }))
   })
 
+  it('keeps a start-page resolution failure local to the catalog action', async () => {
+    const onOpenReader = vi.fn().mockRejectedValue(new Error('No start page'))
+    render(<CatalogPage onOpenReader={onOpenReader} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Read documentation: React' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('The reader could not be opened for React.')
+  })
+
   it('adds a local source through the explicit source dialog', async () => {
     const localSource: Repository = {
       id: 'local-team-docs',

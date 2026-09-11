@@ -14,6 +14,13 @@ import { OrganizationPage } from '../features/organization/OrganizationPage'
 import { getCurrent, onOpenUrl } from '@tauri-apps/plugin-deep-link'
 import { parseXenicsUrl } from '../features/organization/organization-hooks'
 
+type ReaderStartPage = {
+  sourceId: string
+  refName: string
+  path: string
+  title: string
+}
+
 export function App() {
   const activeHash = useLocationHash()
   const showSettings = activeHash === '#settings'
@@ -119,6 +126,15 @@ export function App() {
     void invokeCommand('open_source_terminal', { sourceId })
   }
 
+  async function openCatalogReader(repository: Repository): Promise<void> {
+    const startPage = await invokeCommand<ReaderStartPage>('get_source_start_page', { sourceId: repository.id })
+    setReaderTarget({
+      ...startPage,
+      matchIndex: 0,
+      location: { line: 1, column: 1 },
+    })
+  }
+
   return (
     <AppShell
       activeHash={activeHash}
@@ -143,7 +159,28 @@ export function App() {
           onOpenSourceFolder={openSourceFolder}
           onOpenSourceUrl={openReaderSourceWebsite}
         />
-      ) : showSettings ? <SettingsPage /> : showOrganization ? <OrganizationPage onOpenBookmark={(bookmark) => setReaderTarget({ ...bookmark, matchIndex: 0, location: { line: 1, column: 1 } })} /> : <CatalogPage onDownload={downloadRepositories} onUpdate={updateRepository} onRemove={removeRepository} onAddLocalSource={addLocalSource} onAddRemoteSource={addRemoteSource} onOpenFolder={openSourceFolder} onOpenWebsite={openSourceWebsite} />}
+      ) : showSettings ? (
+        <SettingsPage />
+      ) : showOrganization ? (
+        <OrganizationPage
+          onOpenBookmark={(bookmark) => setReaderTarget({
+            ...bookmark,
+            matchIndex: 0,
+            location: { line: 1, column: 1 },
+          })}
+        />
+      ) : (
+        <CatalogPage
+          onDownload={downloadRepositories}
+          onUpdate={updateRepository}
+          onRemove={removeRepository}
+          onAddLocalSource={addLocalSource}
+          onAddRemoteSource={addRemoteSource}
+          onOpenFolder={openSourceFolder}
+          onOpenWebsite={openSourceWebsite}
+          onOpenReader={openCatalogReader}
+        />
+      )}
       {tasks.length > 0 && (
         <div className="mx-auto max-w-[1500px] px-5 pb-8 md:px-10">
           <TaskPanel

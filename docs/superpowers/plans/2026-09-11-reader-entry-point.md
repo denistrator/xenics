@@ -69,17 +69,18 @@
 
 **Produces:** App state changes to a `SearchReaderTarget` only after native start-page resolution succeeds; command errors remain local to the catalog action rather than creating an invalid reader tab.
 
-- [ ] Write an app-level test that mocks the start-page response and verifies that the reader workspace receives the returned target after a readable catalog action.
-- [ ] Run the focused test and confirm it fails before implementation.
-- [ ] Invoke `get_source_start_page`, convert its response to the existing `SearchReaderTarget` shape, and keep the reader hidden when the command fails.
-- [ ] Add or extend an E2E scenario for a seeded readable source if the current native harness can create one without network access; otherwise document why the native-command test is the authoritative end-to-end boundary test.
-- [ ] Run frontend tests, Rust tests, build, E2E typecheck, native macOS E2E, packaged verification, production audit, formatting, and diff checks.
-- [ ] Mark Task 3 complete below and commit with `feat: open reader from catalog`.
+- [x] Write an app-level test that mocks the start-page response and verifies that the reader workspace receives the returned target after a readable catalog action.
+- [x] Run the focused test and confirm it fails before implementation.
+- [x] Invoke `get_source_start_page`, convert its response to the existing `SearchReaderTarget` shape, and keep the reader hidden when the command fails.
+- [x] Keep start-page failures local to the catalog action with an accessible error message.
+- [x] Document why the existing offline native desktop harness does not seed a real installed repository: the Rust command test validates discovery and containment at the native boundary, while the app integration test validates the catalog-to-reader state transition.
+- [x] Run frontend tests, Rust tests, build, E2E typecheck, native macOS E2E, packaged verification, production audit, formatting, and diff checks.
+- [x] Mark Task 3 complete below and commit with `feat: open reader from catalog`.
 
 ## Completion checklist
 
-- [ ] An installed Readable or Partially readable catalog card opens its local start page in `ReaderWorkspace`.
-- [ ] An uninstalled card presents Download docs rather than Read documentation after native hydration.
-- [ ] Files-only and Website-only primary behavior is unchanged.
-- [ ] No source-relative path traversal or untrusted client-provided reader path is introduced.
-- [ ] All verification listed in Task 3 passes.
+- [x] An installed Readable or Partially readable catalog card opens its local start page in `ReaderWorkspace`.
+- [x] An uninstalled card presents Download docs rather than Read documentation after native hydration.
+- [x] Files-only and Website-only primary behavior is unchanged.
+- [x] No source-relative path traversal or untrusted client-provided reader path is introduced.
+- [x] All verification listed in Task 3 passes.

@@ -26,7 +26,7 @@ type CatalogPageProps = {
   onAddRemoteSource?: (input: { id: string; displayName: string; source: string; selectedRef: string }) => Promise<Repository> | Repository
   onOpenFolder?: (repositoryId: string) => Promise<void> | void
   onOpenWebsite?: (repository: Repository) => Promise<void> | void
-  onOpenReader?: (repository: Repository) => void
+  onOpenReader?: (repository: Repository) => Promise<void> | void
 }
 
 function matchesRepositoryQuery(
@@ -69,6 +69,7 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
   const [sourceName, setSourceName] = useState('')
   const [sourcePath, setSourcePath] = useState('')
   const [sourceError, setSourceError] = useState<string | null>(null)
+  const [readerError, setReaderError] = useState<string | null>(null)
   const [dropActive, setDropActive] = useState(false)
   const [remoteSourceOpen, setRemoteSourceOpen] = useState(false)
   const [remoteSourceUrl, setRemoteSourceUrl] = useState('')
@@ -268,6 +269,17 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
     }
   }
 
+  async function openReader(repository: Repository): Promise<void> {
+    if (!onOpenReader) return
+
+    setReaderError(null)
+    try {
+      await onOpenReader(repository)
+    } catch {
+      setReaderError(`The reader could not be opened for ${repository.name}.`)
+    }
+  }
+
   async function updateSelectedRepositories(): Promise<void> {
     const installedSelection = catalogRepositories
       .filter(({ id, status }) => selectedIds.includes(id) && status === 'Ready')
@@ -436,6 +448,12 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
         </div>
       </section>
 
+      {readerError && (
+        <p role="alert" className="rounded-xl border border-x-coral/40 bg-x-coral/10 p-4 text-sm text-x-danger">
+          {readerError}
+        </p>
+      )}
+
       {visibleRepositories.length === 0 ? (
         <p className="rounded-2xl border border-dashed border-x-line bg-x-panel p-10 text-center text-sm text-x-muted">
           No repositories match “{searchQuery}”.
@@ -461,7 +479,7 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
                 selected={selectedRepositoryIds.has(repository.id)}
                 onSelect={(shiftKey) => handleSelect(repository.id, shiftKey)}
                 onOpen={() => setDetailsRepositoryId(repository.id)}
-                onRead={onOpenReader ? () => onOpenReader(repository) : undefined}
+                onRead={onOpenReader ? () => void openReader(repository) : undefined}
                 onDownload={() => void startDownload([repository.id])}
                 onUpdate={onUpdate ? () => void updateRepositories([repository.id]) : undefined}
                 onRemove={onRemove ? () => void removeRepository(repository.id) : undefined}

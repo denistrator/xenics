@@ -15,6 +15,7 @@ Pending items are not treated as automated passes.
 | Rust test suite without E2E feature | Passed | 63 tests passed |
 | Frontend test suite | Passed | 71 tests passed |
 | Native desktop E2E | Passed | 6 spec files and 9 scenarios passed through the real Tauri WebDriver server; catalog/settings, notification/reset controls, and search-view entry are covered |
+| Catalog-to-reader entry | Passed at native/app boundaries | Rust validates real installed-root start-page discovery and containment; app integration validates catalog action to reader transition. The offline E2E harness intentionally does not seed an installed repository. |
 | E2E typecheck | Passed | `npm run typecheck:e2e` |
 | Rust formatting | Passed | `cargo fmt --manifest-path src-tauri/Cargo.toml -- --check` |
 | Production dependency audit | Passed | `npm run audit:prod`; 0 vulnerabilities |

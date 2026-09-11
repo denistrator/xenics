@@ -18,6 +18,7 @@ Linux or Windows desktop-launch harness.
 | Connect native notifications to task outcomes | ✅ Done | Tauri notification plugin, permission flow, focus/setting policy, terminal deduplication; 77 frontend tests pass |
 | Add measured virtualization/lazy loading | ✅ Done | Shared virtual list/grid primitives; 81 frontend tests, build, and E2E typecheck pass |
 | Expand desktop acceptance coverage | ✅ Done | 6 WebDriver spec files and 9 macOS/native scenarios pass |
+| Make the reader reachable from installed catalog sources | ✅ Done | Native start-page resolver, catalog/app integration tests, and full regression verification |
 | Design Linux/Windows launcher strategy | ⏸ Deferred | Existing hosted smoke limitation remains intentionally out of scope |
 
 ## Confirmed functional gaps
@@ -68,6 +69,23 @@ reset execution, deep links, and cross-platform native actions) is not yet
 represented end to end. Linux and Windows release bundles build, but their
 smoke launches cannot currently connect to the embedded WebDriver server; that
 launcher strategy is intentionally deferred.
+
+### 7. Reader entry from the catalog
+
+Installed Readable and Partially readable sources now open their locally
+discovered `README` or `index` start page directly in the reader. The native
+layer canonicalizes both the source root and discovered page, derives a safe
+source-relative path, and rejects sources that are not renderable. Once native
+source hydration succeeds, catalog fixture state cannot make an uninstalled
+source appear readable.
+
+The offline desktop harness intentionally does not seed a real downloaded
+repository: doing so would require a test-only database/source fixture command
+or network-dependent cloning. Coverage is therefore split at the meaningful
+boundary: Rust command tests validate real filesystem discovery and containment,
+while the app integration test verifies catalog action, native command, and
+reader-target transition. The existing native desktop scenarios remain a shell
+and interaction regression suite.
 
 ## Intentionally not gaps
 

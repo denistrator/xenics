@@ -127,6 +127,11 @@ only installed Readable or Partially readable sources present the reader action;
 the app asks the native layer for a discovered, containment-checked start page
 before creating a reader tab. Failed resolution remains an inline catalog error
 and cannot create a tab for an arbitrary client-provided path.
+- Standard Markdown reader fidelity now includes typed inline emphasis, strong
+text, inline code, and links plus GFM tables. Rust serializes only Xenics-owned
+span/table data, React renders it with ordinary escaped semantic elements, and
+all links continue through the existing internal-navigation or native external
+URL boundary. Unsupported MDX and raw HTML retain their non-executable warnings.
 
 ## Safety note
 

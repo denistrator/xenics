@@ -19,6 +19,7 @@ Linux or Windows desktop-launch harness.
 | Add measured virtualization/lazy loading | ✅ Done | Shared virtual list/grid primitives; 81 frontend tests, build, and E2E typecheck pass |
 | Expand desktop acceptance coverage | ✅ Done | 6 WebDriver spec files and 9 macOS/native scenarios pass |
 | Make the reader reachable from installed catalog sources | ✅ Done | Native start-page resolver, catalog/app integration tests, and full regression verification |
+| Render standard Markdown tables and inline formatting | ✅ Done | Typed native spans/tables, semantic React rendering, safe link routing, parser and reader regression coverage |
 | Design Linux/Windows launcher strategy | ⏸ Deferred | Existing hosted smoke limitation remains intentionally out of scope |
 
 ## Confirmed functional gaps
@@ -26,9 +27,9 @@ Linux or Windows desktop-launch harness.
 ### 1. Document parsing and rendering fidelity
 
 The Rust parser now uses a safe `markdown-rs` AST-backed model and handles
-headings, paragraphs, lists, block quotes, fenced code, links, images, and MDX
-warnings. It does not yet provide the full reader model for tables, emphasis,
-downloadable assets, richer links, or curated component mappings.
+headings, paragraphs, lists, block quotes, fenced code, links, images, GFM
+tables, inline emphasis, strong text, and inline code alongside MDX warnings.
+The reader renders these through an allowlisted typed model rather than HTML.
 
 Local image blocks are now represented safely, resolve only within the source
 root, and fall back to an offline placeholder when an asset cannot be loaded.

@@ -72,14 +72,14 @@
 
 **Produces:** Updated tracker and gap report distinguishing completed standard Markdown support from deferred curated MDX mappings.
 
-- [ ] Update the plan checkboxes and reports with exact standard Markdown scope and the remaining curated-MDX limitation.
-- [ ] Run frontend tests, Rust tests, build, E2E typecheck, native macOS E2E, packaged verification, production audit, formatting, and diff checks.
-- [ ] Commit with `docs: record markdown fidelity coverage`.
+- [x] Update the plan checkboxes and reports with exact standard Markdown scope and the remaining curated-MDX limitation.
+- [x] Run frontend tests, Rust tests, build, E2E typecheck, native macOS E2E, packaged verification, production audit, formatting, and diff checks.
+- [x] Commit with `docs: record markdown fidelity coverage`.
 
 ## Completion checklist
 
-- [ ] Headings and paragraphs preserve visible emphasis, strong text, inline code, and links without raw HTML rendering.
-- [ ] Tables are semantic, readable on narrow panes, and included in search/index text.
-- [ ] Reader navigation and native link validation remain unchanged.
-- [ ] Unsupported MDX/HTML remains non-executable and visibly warned.
-- [ ] Full regression validation passes.
+- [x] Headings and paragraphs preserve visible emphasis, strong text, inline code, and links without raw HTML rendering.
+- [x] Tables are semantic, readable on narrow panes, and included in search/index text.
+- [x] Reader navigation and native link validation remain unchanged.
+- [x] Unsupported MDX/HTML remains non-executable and visibly warned.
+- [x] Full regression validation passes.

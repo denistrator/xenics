@@ -48,11 +48,11 @@
 
 **Produces:** Accessible ordered/unordered lists and block quotes with the existing focus/highlight behavior.
 
-- [ ] Add failing reader tests for `ul`, `ol`, `li`, `blockquote`, safe inline spans in these blocks, and location highlighting.
-- [ ] Run focused tests and confirm they fail before implementation.
-- [ ] Extend native-to-reader mapping with list/quote fields while retaining browser fixture fallback behavior.
-- [ ] Render semantic list and quote elements with standard React text escaping and the established inline-span renderer.
-- [ ] Run focused/full frontend tests, build, E2E typecheck, and diff checks.
+- [x] Add failing reader tests for `ul`, `ol`, `li`, `blockquote`, safe inline spans in these blocks, and location highlighting.
+- [x] Run focused tests and confirm they fail before implementation.
+- [x] Extend native-to-reader mapping with list/quote fields while retaining browser fixture fallback behavior.
+- [x] Render semantic list and quote elements with standard React text escaping and the established inline-span renderer.
+- [x] Run focused/full frontend tests, build, E2E typecheck, and diff checks.
 - [ ] Commit with `feat: render reader structural markdown`.
 
 ### Task 3: Record coverage and complete validation

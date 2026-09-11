@@ -77,4 +77,26 @@ describe('DocumentView', () => {
     expect(onInternalLink).toHaveBeenCalledWith({ label: 'read more', target: './guide.md' })
     expect(onExternalLink).toHaveBeenCalledWith({ label: 'visit Xenics', target: 'https://xenics.dev' })
   })
+
+  it('renders ordered lists, unordered lists, and block quotes semantically', () => {
+    render(
+      <DocumentView
+        document={{
+          title: 'Guide',
+          source: 'docs',
+          blocks: [
+            { type: 'list', text: 'Download Xenics Run init', ordered: false, items: [[{ type: 'strong', children: [{ type: 'text', text: 'Download Xenics' }] }], [{ type: 'text', text: 'Run ' }, { type: 'inlineCode', text: 'init' }]], location: { line: 1, column: 1 } },
+            { type: 'list', text: 'Open Read', ordered: true, items: [[{ type: 'text', text: 'Open' }], [{ type: 'text', text: 'Read' }]] },
+            { type: 'blockQuote', text: 'Works offline', inline: [{ type: 'emphasis', children: [{ type: 'text', text: 'Works' }] }, { type: 'text', text: ' offline' }] },
+          ],
+        }}
+      />,
+    )
+
+    expect(screen.getAllByRole('list')[0]).toHaveAttribute('data-reader-line', '1')
+    expect(screen.getAllByRole('listitem')).toHaveLength(4)
+    expect(screen.getByText('Download Xenics').closest('strong')).not.toBeNull()
+    expect(screen.getByText('init').closest('code')).not.toBeNull()
+    expect(screen.getByText('Works').closest('blockquote')).not.toBeNull()
+  })
 })

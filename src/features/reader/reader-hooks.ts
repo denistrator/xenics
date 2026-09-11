@@ -6,7 +6,7 @@ import { invokeCommand } from '../../lib/tauri'
 type NativeLocation = { line: number; column: number }
 type NativeInlineSpan = ReaderInlineSpan
 type NativeBlock = {
-  type: 'heading' | 'paragraph' | 'code' | 'image' | 'table'
+  type: 'heading' | 'paragraph' | 'code' | 'image' | 'table' | 'list' | 'blockQuote'
   text: string
   level?: number
   language?: string
@@ -14,6 +14,8 @@ type NativeBlock = {
   inline?: NativeInlineSpan[]
   headers?: NativeInlineSpan[][]
   rows?: NativeInlineSpan[][][]
+  ordered?: boolean
+  items?: NativeInlineSpan[][]
   location: NativeLocation
 }
 type NativeDocument = {
@@ -44,6 +46,8 @@ export function toReaderDocument(document: NativeDocument, target: ReaderTarget)
         ...(block.inline === undefined ? {} : { inline: block.inline }),
         ...(block.headers === undefined ? {} : { headers: block.headers }),
         ...(block.rows === undefined ? {} : { rows: block.rows }),
+        ...(block.ordered === undefined ? {} : { ordered: block.ordered }),
+        ...(block.items === undefined ? {} : { items: block.items }),
         location: block.location,
       })),
       ...document.warnings.map((warning) => ({ type: 'warning' as const, text: warning.message })),

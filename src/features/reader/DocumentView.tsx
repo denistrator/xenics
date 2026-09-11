@@ -10,7 +10,7 @@ export type ReaderInlineSpan = {
 }
 
 export type ReaderBlock = {
-  type: 'heading' | 'paragraph' | 'code' | 'image' | 'table' | 'warning' | 'embed'
+  type: 'heading' | 'paragraph' | 'code' | 'image' | 'table' | 'list' | 'blockQuote' | 'warning' | 'embed'
   text: string
   level?: number
   language?: string
@@ -19,6 +19,8 @@ export type ReaderBlock = {
   inline?: ReaderInlineSpan[]
   headers?: ReaderInlineSpan[][]
   rows?: ReaderInlineSpan[][][]
+  ordered?: boolean
+  items?: ReaderInlineSpan[][]
   location?: { line: number; column: number }
 }
 
@@ -233,6 +235,22 @@ function renderBlock(
             </tbody>
           </table>
         </div>
+      )
+    case 'list': {
+      const List = block.ordered ? 'ol' : 'ul'
+      return (
+        <List key={key} {...focusProps} className={`space-y-2 pl-6 text-base leading-8 text-x-muted ${block.ordered ? 'list-decimal' : 'list-disc'}`}>
+          {(block.items ?? []).map((item, itemIndex) => (
+            <li key={`item-${itemIndex}`}>{renderInlineSpans(item, onInternalLink, onExternalLink)}</li>
+          ))}
+        </List>
+      )
+    }
+    case 'blockQuote':
+      return (
+        <blockquote key={key} {...focusProps} className="border-l-4 border-x-mint/60 bg-x-panel px-5 py-3 text-base leading-8 text-x-muted">
+          {block.inline ? renderInlineSpans(block.inline, onInternalLink, onExternalLink) : block.text}
+        </blockquote>
       )
   }
 }

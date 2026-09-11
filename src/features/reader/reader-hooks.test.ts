@@ -56,4 +56,19 @@ describe('toReaderDocument', () => {
     expect(table?.headers?.[0]?.[0]).toMatchObject({ text: 'Feature' })
     expect(table?.rows?.[0]?.[0]?.[0]).toMatchObject({ text: 'Tables' })
   })
+
+  it('preserves structural list and block-quote data from native documents', () => {
+    const document = toReaderDocument({
+      path: 'README.md',
+      blocks: [
+        { type: 'list', text: 'Download Xenics', ordered: false, items: [[{ type: 'strong', children: [{ type: 'text', text: 'Download Xenics' }] }]], location: { line: 1, column: 1 } },
+        { type: 'blockQuote', text: 'Works offline', inline: [{ type: 'text', text: 'Works offline' }], location: { line: 3, column: 1 } },
+      ],
+      links: [],
+      warnings: [],
+    }, { sourceId: 'react', refName: 'main', path: 'README.md', title: 'React' })
+
+    expect(document.blocks[0]).toMatchObject({ type: 'list', ordered: false, items: [[{ type: 'strong' }]] })
+    expect(document.blocks[1]).toMatchObject({ type: 'blockQuote', inline: [{ text: 'Works offline' }] })
+  })
 })

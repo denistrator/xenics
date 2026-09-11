@@ -20,6 +20,7 @@ Linux or Windows desktop-launch harness.
 | Expand desktop acceptance coverage | ✅ Done | 6 WebDriver spec files and 9 macOS/native scenarios pass |
 | Make the reader reachable from installed catalog sources | ✅ Done | Native start-page resolver, catalog/app integration tests, and full regression verification |
 | Render standard Markdown tables and inline formatting | ✅ Done | Typed native spans/tables, semantic React rendering, safe link routing, parser and reader regression coverage |
+| Render standard Markdown lists and block quotes | ✅ Done | Typed native blocks, semantic React rendering, reader/search regression coverage |
 | Design Linux/Windows launcher strategy | ⏸ Deferred | Existing hosted smoke limitation remains intentionally out of scope |
 
 ## Confirmed functional gaps

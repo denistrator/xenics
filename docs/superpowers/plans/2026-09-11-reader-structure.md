@@ -63,13 +63,13 @@
 - Modify: `docs/superpowers/reports/spec-gap-review.md`
 - Modify: `docs/superpowers/reports/implementation-status.md`
 
-- [ ] Update reports with exact structural Markdown scope and remaining curated MDX limitations.
-- [ ] Run frontend tests, Rust tests, build, E2E typecheck, native macOS E2E, packaged verification, production audit, formatting, and diff checks.
-- [ ] Commit with `docs: record reader structural coverage`.
+- [x] Update reports with exact structural Markdown scope and remaining curated MDX limitations.
+- [x] Run frontend tests, Rust tests, build, E2E typecheck, native macOS E2E, packaged verification, production audit, formatting, and diff checks.
+- [x] Commit with `docs: record reader structural coverage`.
 
 ## Completion checklist
 
-- [ ] Ordered/unordered lists and block quotes render semantically in the reader.
-- [ ] Their content is searchable and retains exact block locations.
-- [ ] No raw HTML or executable MDX route is introduced.
-- [ ] Full release verification passes.
+- [x] Ordered/unordered lists and block quotes render semantically in the reader.
+- [x] Their content is searchable and retains exact block locations.
+- [x] No raw HTML or executable MDX route is introduced.
+- [x] Full release verification passes.

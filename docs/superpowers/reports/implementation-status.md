@@ -132,6 +132,9 @@ text, inline code, and links plus GFM tables. Rust serializes only Xenics-owned
 span/table data, React renders it with ordinary escaped semantic elements, and
 all links continue through the existing internal-navigation or native external
 URL boundary. Unsupported MDX and raw HTML retain their non-executable warnings.
+- Reader lists and block quotes now retain semantic structure and exact locations,
+while preserving their readable text for search. Complex nested item content is
+flattened safely into its owning item for this milestone rather than discarded.
 
 ## Safety note
 

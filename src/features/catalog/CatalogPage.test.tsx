@@ -57,6 +57,19 @@ describe('CatalogPage', () => {
     expect(screen.getByText('https://github.com/facebook/react.git')).toBeInTheDocument()
   })
 
+  it('opens an installed readable source in the reader from its primary action', () => {
+    const onOpenReader = vi.fn()
+    render(<CatalogPage onOpenReader={onOpenReader} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Read documentation: React' }))
+
+    expect(onOpenReader).toHaveBeenCalledWith(expect.objectContaining({
+      id: 'react',
+      capability: 'Readable',
+      selectedRef: 'main',
+    }))
+  })
+
   it('adds a local source through the explicit source dialog', async () => {
     const localSource: Repository = {
       id: 'local-team-docs',
@@ -156,6 +169,7 @@ describe('CatalogPage', () => {
     expect(screen.getByRole('heading', { name: 'Web foundations' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Download Web foundations' }))
     await waitFor(() => expect(onDownload).toHaveBeenCalledWith(['react', 'typescript', 'tailwind']))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Update Tailwind CSS' })).toBeInTheDocument())
 
     fireEvent.click(screen.getByRole('button', { name: 'Update Web foundations' }))
     await waitFor(() => expect(onUpdate).toHaveBeenCalledWith('react'))

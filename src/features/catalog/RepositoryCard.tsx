@@ -7,6 +7,7 @@ type RepositoryCardProps = {
   selected: boolean
   onSelect: (shiftKey: boolean) => void
   onOpen: () => void
+  onRead?: () => void
   onDownload?: () => void
   onUpdate?: () => void
   onRemove?: () => void
@@ -37,6 +38,7 @@ export function RepositoryCard({
   selected,
   onSelect,
   onOpen,
+  onRead,
   onDownload,
   onUpdate,
   onRemove,
@@ -138,8 +140,8 @@ export function RepositoryCard({
           )}
           <button
             type="button"
-            onClick={isWebsiteOnly ? () => onOpenWebsite?.(repo) : isFilesOnly && isInstalled ? onOpenFolder : isInstalled ? onOpen : onDownload}
-            disabled={!isInstalled && !isWebsiteOnly && !onDownload}
+            onClick={isWebsiteOnly ? () => onOpenWebsite?.(repo) : isFilesOnly && isInstalled ? onOpenFolder : isInstalled ? onRead : onDownload}
+            disabled={(!isInstalled && !isWebsiteOnly && !onDownload) || (isInstalled && !isFilesOnly && !isWebsiteOnly && !onRead)}
             className="rounded-lg p-2 text-x-muted hover:bg-x-mint hover:text-x-ink"
             aria-label={`${primaryActionLabel}: ${repo.name}`}
             title={primaryActionLabel}

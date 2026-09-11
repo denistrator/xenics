@@ -10,6 +10,17 @@ export type NativeSourceMetadata = {
   availability?: 'available' | 'up-to-date' | 'unknown'
 }
 
+export function resolveCatalogStatus(
+  fixtureStatus: Repository['status'],
+  repositoryId: string,
+  installedIds: ReadonlySet<string>,
+  nativeSourcesHydrated: boolean,
+): Repository['status'] {
+  if (installedIds.has(repositoryId)) return 'Ready'
+  if (!nativeSourcesHydrated) return fixtureStatus
+  return 'Not installed'
+}
+
 const nativeCapabilities = new Set<Repository['capability']>([
   'Readable',
   'Partially readable',

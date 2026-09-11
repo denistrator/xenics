@@ -2,7 +2,7 @@ import { Download, RefreshCw, Search, SlidersHorizontal } from 'lucide-react'
 import { useDeferredValue, useEffect, useMemo, useState, type ChangeEvent, type InputHTMLAttributes, type ReactNode } from 'react'
 import { repositories, type Repository, type RepositoryMetadataOverride } from './catalog-model'
 import { getGroupRepositories, technologyGroups } from './catalog-groups'
-import { applyNativeSourceMetadata, nativeSourceToRepository, type NativeSourceMetadata } from './catalog-source-metadata'
+import { applyNativeSourceMetadata, nativeSourceToRepository, resolveCatalogStatus, type NativeSourceMetadata } from './catalog-source-metadata'
 import { RepositoryCard } from './RepositoryCard'
 import { TechnologyGroupCard } from './TechnologyGroupCard'
 import { defaultDownloadSelection, selectRange, toggleSelection } from './catalog-selection'
@@ -26,6 +26,7 @@ type CatalogPageProps = {
   onAddRemoteSource?: (input: { id: string; displayName: string; source: string; selectedRef: string }) => Promise<Repository> | Repository
   onOpenFolder?: (repositoryId: string) => Promise<void> | void
   onOpenWebsite?: (repository: Repository) => Promise<void> | void
+  onOpenReader?: (repository: Repository) => void
 }
 
 function matchesRepositoryQuery(
@@ -43,7 +44,7 @@ function matchesRepositoryQuery(
   return searchableText.toLowerCase().includes(query)
 }
 
-export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, onAddRemoteSource, onOpenFolder, onOpenWebsite }: CatalogPageProps): ReactNode {
+export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, onAddRemoteSource, onOpenFolder, onOpenWebsite, onOpenReader }: CatalogPageProps): ReactNode {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [selectionAnchorId, setSelectionAnchorId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -51,6 +52,7 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
   const [detailsRepositoryId, setDetailsRepositoryId] = useState<string | null>(null)
   const [installedIds, setInstalledIds] = useState<Set<string>>(() => new Set())
   const [nativeSourceMetadata, setNativeSourceMetadata] = useState<Record<string, NativeSourceMetadata>>({})
+  const [nativeSourcesHydrated, setNativeSourcesHydrated] = useState(false)
   const [updateState, setUpdateState] = useState<DownloadState>('idle')
   const [updateReviewOpen, setUpdateReviewOpen] = useState(false)
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -90,6 +92,7 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
         if (active) {
           setInstalledIds(new Set(sources.map(({ id }) => id)))
           setNativeSourceMetadata(Object.fromEntries(sources.map((source) => [source.id, source])))
+          setNativeSourcesHydrated(true)
           const builtInIds = new Set(repositories.map(({ id }) => id))
           setCustomRepositories(sources
             .filter(({ id }) => !builtInIds.has(id))
@@ -182,9 +185,9 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
       ...repository,
       ...applyNativeSourceMetadata(repository, nativeSourceMetadata[repository.id] ?? { id: repository.id }),
       ...(metadataById[repository.id] ?? {}),
-      status: installedIds.has(repository.id) ? 'Ready' as const : repository.status,
+      status: resolveCatalogStatus(repository.status, repository.id, installedIds, nativeSourcesHydrated),
     })),
-    [customRepositories, installedIds, metadataById, nativeSourceMetadata],
+    [customRepositories, installedIds, metadataById, nativeSourceMetadata, nativeSourcesHydrated],
   )
 
   const visibleRepositories = useMemo(
@@ -458,6 +461,7 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
                 selected={selectedRepositoryIds.has(repository.id)}
                 onSelect={(shiftKey) => handleSelect(repository.id, shiftKey)}
                 onOpen={() => setDetailsRepositoryId(repository.id)}
+                onRead={onOpenReader ? () => onOpenReader(repository) : undefined}
                 onDownload={() => void startDownload([repository.id])}
                 onUpdate={onUpdate ? () => void updateRepositories([repository.id]) : undefined}
                 onRemove={onRemove ? () => void removeRepository(repository.id) : undefined}

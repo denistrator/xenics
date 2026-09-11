@@ -48,11 +48,11 @@
 
 **Produces:** A readable installed card invokes `onOpenReader`; native hydration demotes fixture-only Ready status to Not installed when `list_sources` returns no matching record.
 
-- [ ] Write frontend tests proving the readable primary action delegates to `onOpenReader`, Files-only actions retain folder behavior, and hydrated native state supersedes built-in fixture status.
-- [ ] Run focused Vitest tests and confirm they fail before implementation.
-- [ ] Add a focused catalog callback for readable source entry and a successful native-hydration flag that makes native installation state authoritative without changing browser fixtures.
-- [ ] Run focused tests and the full frontend suite.
-- [ ] Mark Task 2 complete below and commit with `fix: connect catalog reader entry`.
+- [x] Write frontend tests proving the readable primary action delegates to `onOpenReader`, Files-only actions retain folder behavior, and hydrated native state supersedes built-in fixture status.
+- [x] Run focused Vitest tests and confirm they fail before implementation.
+- [x] Add a focused catalog callback for readable source entry and a successful native-hydration flag that makes native installation state authoritative without changing browser fixtures.
+- [x] Run focused tests and the full frontend suite.
+- [x] Mark Task 2 complete below and commit with `fix: connect catalog reader entry`.
 
 ### Task 3: Open the reader through the application boundary and validate the desktop path
 

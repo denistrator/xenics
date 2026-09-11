@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { applyNativeSourceMetadata, nativeSourceToRepository } from './catalog-source-metadata'
+import { applyNativeSourceMetadata, nativeSourceToRepository, resolveCatalogStatus } from './catalog-source-metadata'
 
 describe('applyNativeSourceMetadata', () => {
   it('maps native source details without changing editable catalog identity', () => {
@@ -20,5 +20,12 @@ describe('applyNativeSourceMetadata', () => {
       status: 'Ready',
       capability: 'Files only',
     })
+  })
+
+  it('uses hydrated native source IDs as the installed-status authority', () => {
+    expect(resolveCatalogStatus('Ready', 'react', new Set(), true)).toBe('Not installed')
+    expect(resolveCatalogStatus('Not installed', 'react', new Set(['react']), true)).toBe('Ready')
+    expect(resolveCatalogStatus('Not installed', 'react', new Set(['react']), false)).toBe('Ready')
+    expect(resolveCatalogStatus('Ready', 'react', new Set(), false)).toBe('Ready')
   })
 })

@@ -73,6 +73,8 @@ impl<'a> Indexer<'a> {
                 super::ReaderBlock::Paragraph { text, .. } => Some(text.as_str()),
                 super::ReaderBlock::Image { alt, .. } => Some(alt.as_str()),
                 super::ReaderBlock::Table { text, .. } => Some(text.as_str()),
+                super::ReaderBlock::List { text, .. } => Some(text.as_str()),
+                super::ReaderBlock::BlockQuote { text, .. } => Some(text.as_str()),
                 _ => None,
             })
             .collect::<Vec<_>>()

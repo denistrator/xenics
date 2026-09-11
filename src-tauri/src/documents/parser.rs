@@ -124,18 +124,53 @@ fn visit_block(node: &Node, document: &mut ParsedDocument) {
             }
         }
         Node::Blockquote(quote) => {
-            for child in &quote.children {
-                visit_block(child, document);
+            let inline = structural_spans(&quote.children);
+            let text = inline_span_text(&inline);
+            if !text.is_empty() {
+                document.blocks.push(ReaderBlock::BlockQuote {
+                    text: text.clone(),
+                    inline,
+                    location: location.clone(),
+                });
+                document.search_records.push(SearchRecord {
+                    text,
+                    location: location.clone(),
+                });
             }
+            visit_structural_children(&quote.children, document, &location);
         }
         Node::List(list) => {
-            for item in &list.children {
-                visit_block(item, document);
+            let items = list
+                .children
+                .iter()
+                .filter_map(|item| match item {
+                    Node::ListItem(item) => Some(structural_spans(&item.children)),
+                    _ => None,
+                })
+                .filter(|item| !item.is_empty())
+                .collect::<Vec<_>>();
+            let text = items
+                .iter()
+                .map(|item| inline_span_text(item))
+                .filter(|item| !item.is_empty())
+                .collect::<Vec<_>>()
+                .join(" ");
+            if !text.is_empty() {
+                document.blocks.push(ReaderBlock::List {
+                    ordered: list.ordered,
+                    items,
+                    text: text.clone(),
+                    location: location.clone(),
+                });
+                document.search_records.push(SearchRecord {
+                    text,
+                    location: location.clone(),
+                });
             }
-        }
-        Node::ListItem(item) => {
-            for child in &item.children {
-                visit_block(child, document);
+            for item in &list.children {
+                if let Node::ListItem(item) = item {
+                    visit_structural_children(&item.children, document, &location);
+                }
             }
         }
         Node::MdxJsxFlowElement(_) | Node::MdxFlowExpression(_) | Node::MdxjsEsm(_) => {
@@ -156,6 +191,68 @@ fn visit_block(node: &Node, document: &mut ParsedDocument) {
             if let Some(children) = node.children() {
                 for child in children {
                     visit_block(child, document);
+                }
+            }
+        }
+    }
+}
+
+fn structural_spans(nodes: &[Node]) -> Vec<InlineSpan> {
+    let mut spans = Vec::new();
+    for node in nodes {
+        let mut next = match node {
+            Node::Paragraph(markdown::mdast::Paragraph { children, .. })
+            | Node::Heading(markdown::mdast::Heading { children, .. }) => inline_spans(children),
+            Node::Code(code) => vec![InlineSpan::InlineCode {
+                text: code.value.clone(),
+            }],
+            Node::List(list) => list
+                .children
+                .iter()
+                .filter_map(|item| match item {
+                    Node::ListItem(item) => Some(structural_spans(&item.children)),
+                    _ => None,
+                })
+                .flatten()
+                .collect(),
+            Node::ListItem(markdown::mdast::ListItem { children, .. })
+            | Node::Blockquote(markdown::mdast::Blockquote { children, .. }) => {
+                structural_spans(children)
+            }
+            _ => node
+                .children()
+                .map(|children| structural_spans(children))
+                .unwrap_or_else(|| inline_spans(std::slice::from_ref(node))),
+        };
+        if !spans.is_empty() && !next.is_empty() {
+            spans.push(InlineSpan::Text { text: " ".into() });
+        }
+        spans.append(&mut next);
+    }
+    spans
+}
+
+fn visit_structural_children(
+    nodes: &[Node],
+    document: &mut ParsedDocument,
+    parent_location: &SourceLocation,
+) {
+    for node in nodes {
+        match node {
+            Node::Paragraph(markdown::mdast::Paragraph { children, .. })
+            | Node::Heading(markdown::mdast::Heading { children, .. }) => {
+                visit_inline_nodes(children, document, parent_location)
+            }
+            Node::MdxJsxFlowElement(_) | Node::MdxFlowExpression(_) | Node::MdxjsEsm(_) => {
+                document.warnings.push(Warning {
+                    code: WarningCode::UnsupportedComponent,
+                    message: "unsupported MDX component rendered as text fallback".into(),
+                    location: Some(source_location(node)),
+                });
+            }
+            _ => {
+                if let Some(children) = node.children() {
+                    visit_structural_children(children, document, parent_location);
                 }
             }
         }

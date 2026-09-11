@@ -50,7 +50,7 @@ fn markdown_ast_preserves_readable_structure_and_inline_text() {
     )
     .unwrap();
 
-    assert_eq!(document.blocks.len(), 4);
+    assert_eq!(document.blocks.len(), 3);
     assert!(document.reader_text().contains("Install Xenics"));
     assert!(document.reader_text().contains("Download the app"));
     assert!(document.reader_text().contains("Works offline"));
@@ -121,4 +121,44 @@ fn markdown_ast_preserves_table_cells_and_makes_them_searchable() {
         .search_records
         .iter()
         .any(|record| record.text == "Feature Support Tables Ready"));
+}
+
+#[test]
+fn markdown_ast_preserves_semantic_lists_and_block_quotes() {
+    let document = DocumentParser::parse(
+        Path::new("guide.md"),
+        b"- **Download** Xenics\n- Run `xenics init`\n\n1. Open the reader\n2. Read the guide\n\n> *Works* offline\n",
+    )
+    .unwrap();
+
+    let super::ReaderBlock::List {
+        ordered,
+        items,
+        text,
+        ..
+    } = &document.blocks[0]
+    else {
+        panic!("expected unordered list block");
+    };
+    assert!(!ordered);
+    assert_eq!(items.len(), 2);
+    assert_eq!(text, "Download Xenics Run xenics init");
+    assert!(matches!(items[0][0], super::InlineSpan::Strong { .. }));
+
+    let super::ReaderBlock::List { ordered, items, .. } = &document.blocks[1] else {
+        panic!("expected ordered list block");
+    };
+    assert!(*ordered);
+    assert_eq!(items.len(), 2);
+
+    let super::ReaderBlock::BlockQuote { inline, text, .. } = &document.blocks[2] else {
+        panic!("expected block quote block");
+    };
+    assert_eq!(text, "Works offline");
+    assert!(matches!(inline[0], super::InlineSpan::Emphasis { .. }));
+    assert!(document.reader_text().contains("Download Xenics"));
+    assert!(document
+        .search_records
+        .iter()
+        .any(|record| record.text == "Works offline"));
 }

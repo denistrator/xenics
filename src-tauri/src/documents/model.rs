@@ -72,6 +72,17 @@ pub enum ReaderBlock {
         text: String,
         location: SourceLocation,
     },
+    List {
+        ordered: bool,
+        items: Vec<Vec<InlineSpan>>,
+        text: String,
+        location: SourceLocation,
+    },
+    BlockQuote {
+        text: String,
+        inline: Vec<InlineSpan>,
+        location: SourceLocation,
+    },
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
@@ -124,7 +135,9 @@ impl ParsedDocument {
                 ReaderBlock::Heading { text, .. }
                 | ReaderBlock::Paragraph { text, .. }
                 | ReaderBlock::Code { text, .. }
-                | ReaderBlock::Table { text, .. } => text.as_str(),
+                | ReaderBlock::Table { text, .. }
+                | ReaderBlock::List { text, .. }
+                | ReaderBlock::BlockQuote { text, .. } => text.as_str(),
                 ReaderBlock::Image { alt, .. } => alt.as_str(),
             })
             .collect::<Vec<_>>()

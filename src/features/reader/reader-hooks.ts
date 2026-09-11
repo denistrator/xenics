@@ -1,15 +1,19 @@
 import { useEffect, useState } from 'react'
-import type { ReaderDocument, ReaderLink } from './DocumentView'
+import type { ReaderDocument, ReaderInlineSpan, ReaderLink } from './DocumentView'
 import type { ReaderTarget } from './tab-state'
 import { invokeCommand } from '../../lib/tauri'
 
 type NativeLocation = { line: number; column: number }
+type NativeInlineSpan = ReaderInlineSpan
 type NativeBlock = {
-  type: 'heading' | 'paragraph' | 'code' | 'image'
+  type: 'heading' | 'paragraph' | 'code' | 'image' | 'table'
   text: string
   level?: number
   language?: string
   url?: string
+  inline?: NativeInlineSpan[]
+  headers?: NativeInlineSpan[][]
+  rows?: NativeInlineSpan[][][]
   location: NativeLocation
 }
 type NativeDocument = {
@@ -37,6 +41,9 @@ export function toReaderDocument(document: NativeDocument, target: ReaderTarget)
         ...(block.level === undefined ? {} : { level: block.level }),
         ...(block.language === undefined ? {} : { language: block.language }),
         ...(block.url === undefined ? {} : { url: block.url }),
+        ...(block.inline === undefined ? {} : { inline: block.inline }),
+        ...(block.headers === undefined ? {} : { headers: block.headers }),
+        ...(block.rows === undefined ? {} : { rows: block.rows }),
         location: block.location,
       })),
       ...document.warnings.map((warning) => ({ type: 'warning' as const, text: warning.message })),

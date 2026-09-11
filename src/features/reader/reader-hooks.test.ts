@@ -24,4 +24,36 @@ describe('toReaderDocument', () => {
     const document = toReaderDocument({ path: 'README.md', blocks: [{ type: 'heading', text: 'Install', level: 2, location: { line: 8, column: 1 } }], links: [], warnings: [] }, { sourceId: 'react', refName: 'main', path: 'README.md', title: 'React' })
     expect(document.blocks[0]).toMatchObject({ location: { line: 8, column: 1 } })
   })
+
+  it('preserves inline spans and tables from the safe native document model', () => {
+    const document = toReaderDocument({
+      path: 'README.md',
+      blocks: [
+        {
+          type: 'paragraph',
+          text: 'Read more',
+          inline: [{ type: 'link', target: './guide.md', children: [{ type: 'text', text: 'Read more' }] }],
+          location: { line: 1, column: 1 },
+        },
+        {
+          type: 'table',
+          text: 'Feature Support Tables Ready',
+          headers: [[{ type: 'text', text: 'Feature' }], [{ type: 'text', text: 'Support' }]],
+          rows: [[[{ type: 'text', text: 'Tables' }], [{ type: 'strong', children: [{ type: 'text', text: 'Ready' }] }]]],
+          location: { line: 3, column: 1 },
+        },
+      ],
+      links: [],
+      warnings: [],
+    }, { sourceId: 'react', refName: 'main', path: 'README.md', title: 'React' })
+
+    expect(document.blocks[0]).toMatchObject({
+      type: 'paragraph',
+      inline: [{ type: 'link', target: './guide.md' }],
+    })
+    expect(document.blocks[1]).toMatchObject({ type: 'table' })
+    const table = document.blocks[1]
+    expect(table?.headers?.[0]?.[0]).toMatchObject({ text: 'Feature' })
+    expect(table?.rows?.[0]?.[0]?.[0]).toMatchObject({ text: 'Tables' })
+  })
 })

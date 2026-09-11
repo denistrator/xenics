@@ -53,14 +53,14 @@
 
 **Produces:** Semantic inline reader content and responsive accessible tables; links retain the existing internal/external callbacks.
 
-- [ ] Add failing Vitest cases for semantic strong/emphasis/inline-code rendering, safely rendered table headers/cells, and callbacks for span-based internal/external links.
-- [ ] Run focused tests and confirm they fail before implementation.
-- [ ] Extend frontend document types and native-document mapping with optional inline spans and table rows, preserving browser fixtures that only provide plain text.
-- [ ] Render inline spans recursively with React elements, never `dangerouslySetInnerHTML`; use the existing callbacks for link span targets.
-- [ ] Render tables with `table`, `thead`, `tbody`, `th`, and `td`, inside a horizontally scrollable labelled region for narrow reader panes.
-- [ ] Preserve exact location highlighting on table blocks and keep plain-text paragraph fallback behavior unchanged.
-- [ ] Run focused and full frontend tests, production build, and E2E typecheck.
-- [ ] Commit with `feat: render standard markdown fidelity`.
+- [x] Add failing Vitest cases for semantic strong/emphasis/inline-code rendering, safely rendered table headers/cells, and callbacks for span-based internal/external links.
+- [x] Run focused tests and confirm they fail before implementation.
+- [x] Extend frontend document types and native-document mapping with optional inline spans and table rows, preserving browser fixtures that only provide plain text.
+- [x] Render inline spans recursively with React elements, never `dangerouslySetInnerHTML`; use the existing callbacks for link span targets.
+- [x] Render tables with `table`, `thead`, `tbody`, `th`, and `td`, inside a horizontally scrollable labelled region for narrow reader panes.
+- [x] Preserve exact location highlighting on table blocks and keep plain-text paragraph fallback behavior unchanged.
+- [x] Run focused and full frontend tests, production build, and E2E typecheck.
+- [x] Commit with `feat: render standard markdown fidelity`.
 
 ### Task 3: Record verified coverage and complete regression validation
 

@@ -2,13 +2,23 @@ import { AlertTriangle } from 'lucide-react'
 import type { ElementType, ReactNode } from 'react'
 import { CodeBlock } from './CodeBlock'
 
-type ReaderBlock = {
-  type: 'heading' | 'paragraph' | 'code' | 'image' | 'warning' | 'embed'
+export type ReaderInlineSpan = {
+  type: 'text' | 'emphasis' | 'strong' | 'inlineCode' | 'link'
+  text?: string
+  target?: string
+  children?: ReaderInlineSpan[]
+}
+
+export type ReaderBlock = {
+  type: 'heading' | 'paragraph' | 'code' | 'image' | 'table' | 'warning' | 'embed'
   text: string
   level?: number
   language?: string
   target?: string
   url?: string
+  inline?: ReaderInlineSpan[]
+  headers?: ReaderInlineSpan[][]
+  rows?: ReaderInlineSpan[][][]
   location?: { line: number; column: number }
 }
 
@@ -88,6 +98,52 @@ function renderParagraph(
   })
 }
 
+function inlineText(spans: ReaderInlineSpan[]): string {
+  return spans.map((span) => span.text ?? inlineText(span.children ?? [])).join('')
+}
+
+function renderInlineSpans(
+  spans: ReaderInlineSpan[],
+  onInternalLink: ((link: ReaderLink) => void) | undefined,
+  onExternalLink: ((link: ReaderLink) => void) | undefined,
+): ReactNode {
+  return spans.map((span, index) => {
+    const key = `${span.type}-${index}`
+    const children = renderInlineSpans(span.children ?? [], onInternalLink, onExternalLink)
+
+    switch (span.type) {
+      case 'text':
+        return <span key={key}>{span.text}</span>
+      case 'emphasis':
+        return <em key={key}>{children}</em>
+      case 'strong':
+        return <strong key={key}>{children}</strong>
+      case 'inlineCode':
+        return <code key={key} className="rounded bg-x-panel px-1.5 py-0.5 font-mono text-[0.9em] text-x-ink">{span.text}</code>
+      case 'link': {
+        const link = { label: inlineText(span.children ?? []), target: span.target ?? '' }
+        return (
+          <a
+            key={key}
+            href={`#reader-link-${encodeURIComponent(link.target)}`}
+            className="text-x-mint-strong underline decoration-x-mint-strong/40 underline-offset-4 hover:decoration-x-mint-strong"
+            onClick={(event) => {
+              event.preventDefault()
+              if (link.target.startsWith('http://') || link.target.startsWith('https://')) {
+                onExternalLink?.(link)
+                return
+              }
+              onInternalLink?.(link)
+            }}
+          >
+            {children}
+          </a>
+        )
+      }
+    }
+  })
+}
+
 function renderBlock(
   block: ReaderBlock,
   index: number,
@@ -138,7 +194,7 @@ function renderBlock(
       const isAnchorFocused = focusAnchor !== undefined && anchor === headingAnchor(focusAnchor)
       return (
         <Heading key={key} id={anchor || undefined} {...focusProps} data-reader-focused={isAnchorFocused || isFocused ? 'true' : 'false'} className="pt-4 text-2xl font-semibold tracking-tight">
-          {block.text}
+          {block.inline ? renderInlineSpans(block.inline, onInternalLink, onExternalLink) : block.text}
         </Heading>
       )
     }
@@ -146,8 +202,37 @@ function renderBlock(
       // React escapes text nodes, so untrusted repository content is never treated as HTML.
       return (
         <p key={key} {...focusProps} className="text-base leading-8 text-x-muted">
-          {renderParagraph(block.text, links, onInternalLink, onExternalLink)}
+          {block.inline
+            ? renderInlineSpans(block.inline, onInternalLink, onExternalLink)
+            : renderParagraph(block.text, links, onInternalLink, onExternalLink)}
         </p>
+      )
+    case 'table':
+      return (
+        <div key={key} {...focusProps} className="overflow-x-auto rounded-xl border border-x-line">
+          <table aria-label="Documentation table" className="w-full min-w-max border-collapse text-left text-sm">
+            <thead className="bg-x-panel text-x-ink">
+              <tr>
+                {(block.headers ?? []).map((cell, cellIndex) => (
+                  <th key={`header-${cellIndex}`} scope="col" className="border-b border-x-line px-4 py-3 font-semibold">
+                    {renderInlineSpans(cell, onInternalLink, onExternalLink)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="text-x-muted">
+              {(block.rows ?? []).map((row, rowIndex) => (
+                <tr key={`row-${rowIndex}`} className="border-b border-x-line last:border-b-0">
+                  {row.map((cell, cellIndex) => (
+                    <td key={`cell-${rowIndex}-${cellIndex}`} className="px-4 py-3 align-top">
+                      {renderInlineSpans(cell, onInternalLink, onExternalLink)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )
   }
 }

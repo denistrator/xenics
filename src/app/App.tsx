@@ -22,6 +22,12 @@ type ReaderStartPage = {
   title: string
 }
 
+const initialReaderLocation = { line: 1, column: 1 }
+
+function createReaderTarget(target: Omit<SearchReaderTarget, 'matchIndex' | 'location'>): SearchReaderTarget {
+  return { ...target, matchIndex: 0, location: initialReaderLocation }
+}
+
 function browserPreviewDocument(target: SearchReaderTarget): ReaderDocument {
   const repository = repositories.find(({ id }) => id === target.sourceId)
   return {
@@ -36,19 +42,23 @@ function browserPreviewDocument(target: SearchReaderTarget): ReaderDocument {
 }
 
 export function App() {
+  const nativeBridgeAvailable = hasNativeBridge()
   const activeHash = useLocationHash()
   const showSettings = activeHash === '#settings'
   const showOrganization = activeHash === '#organize'
   const { tasks, cancelTask, retryTask } = useTaskFeed()
   const [readerTarget, setReaderTarget] = useState<SearchReaderTarget | null>(null)
+  const previewDocument = readerTarget && !nativeBridgeAvailable
+    ? browserPreviewDocument(readerTarget)
+    : undefined
 
   useEffect(() => {
-    if (!hasNativeBridge()) return
+    if (!nativeBridgeAvailable) return
     let active = true
     const openUrl = (url: string) => {
       try {
         const target = parseXenicsUrl(url)
-        if (active) setReaderTarget({ ...target, title: target.path, matchIndex: 0, location: { line: 1, column: 1 } })
+        if (active) setReaderTarget(createReaderTarget({ ...target, title: target.path }))
       } catch {
         // Invalid external links are ignored after validation at the app boundary.
       }
@@ -64,7 +74,7 @@ export function App() {
       active = false
       unsubscribe?.()
     }
-  }, [])
+  }, [nativeBridgeAvailable])
 
   async function downloadRepositories(repositoryIds: string[]): Promise<void> {
     const selectedRepositories = repositories.filter(({ id }) => repositoryIds.includes(id))
@@ -141,23 +151,17 @@ export function App() {
   }
 
   async function openCatalogReader(repository: Repository): Promise<void> {
-    if (!hasNativeBridge()) {
-      setReaderTarget({
+    if (!nativeBridgeAvailable) {
+      setReaderTarget(createReaderTarget({
         sourceId: repository.id,
         refName: repository.selectedRef,
         path: 'README.md',
         title: repository.name,
-        matchIndex: 0,
-        location: { line: 1, column: 1 },
-      })
+      }))
       return
     }
     const startPage = await invokeCommand<ReaderStartPage>('get_source_start_page', { sourceId: repository.id })
-    setReaderTarget({
-      ...startPage,
-      matchIndex: 0,
-      location: { line: 1, column: 1 },
-    })
+    setReaderTarget(createReaderTarget(startPage))
   }
 
   return (
@@ -177,23 +181,21 @@ export function App() {
             pinned: false,
             history: [readerTarget.path],
           }]}
-          document={hasNativeBridge() ? undefined : browserPreviewDocument(readerTarget)}
-          onOpenExternalUrl={openExternalUrl}
-          onOpenSourceFile={openSourceFile}
-          onOpenSourceFileInEditor={openSourceFileInEditor}
-          onOpenSourceTerminal={openSourceTerminal}
-          onOpenSourceFolder={openSourceFolder}
-          onOpenSourceUrl={openReaderSourceWebsite}
+          document={previewDocument}
+          {...(nativeBridgeAvailable ? {
+            onOpenExternalUrl: openExternalUrl,
+            onOpenSourceFile: openSourceFile,
+            onOpenSourceFileInEditor: openSourceFileInEditor,
+            onOpenSourceTerminal: openSourceTerminal,
+            onOpenSourceFolder: openSourceFolder,
+            onOpenSourceUrl: openReaderSourceWebsite,
+          } : {})}
         />
       ) : showSettings ? (
         <SettingsPage />
       ) : showOrganization ? (
         <OrganizationPage
-          onOpenBookmark={(bookmark) => setReaderTarget({
-            ...bookmark,
-            matchIndex: 0,
-            location: { line: 1, column: 1 },
-          })}
+          onOpenBookmark={(bookmark) => setReaderTarget(createReaderTarget(bookmark))}
         />
       ) : (
         <CatalogPage

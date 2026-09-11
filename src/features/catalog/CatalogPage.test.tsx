@@ -76,7 +76,7 @@ describe('CatalogPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Read documentation: React' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('The reader could not be opened for React.')
+    expect(await screen.findByRole('alert')).toHaveTextContent('The reader could not be opened for React: No start page')
   })
 
   it('adds a local source through the explicit source dialog', async () => {

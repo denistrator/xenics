@@ -275,8 +275,9 @@ export function CatalogPage({ onDownload, onUpdate, onRemove, onAddLocalSource, 
     setReaderError(null)
     try {
       await onOpenReader(repository)
-    } catch {
-      setReaderError(`The reader could not be opened for ${repository.name}.`)
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error)
+      setReaderError(`The reader could not be opened for ${repository.name}: ${detail}`)
     }
   }
 

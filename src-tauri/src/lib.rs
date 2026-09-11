@@ -63,6 +63,7 @@ pub fn run() {
             commands::remove_source,
             commands::search_documents,
             commands::read_document,
+            commands::get_source_start_page,
             commands::deep_links::parse_deep_link,
             commands::organization::list_bookmarks,
             commands::organization::save_bookmark,

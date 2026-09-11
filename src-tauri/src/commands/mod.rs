@@ -4,7 +4,7 @@ pub mod tasks;
 
 use crate::core::update_checks::{Availability, UpdateCheckService, UpdateSchedule};
 use crate::{
-    documents::{IndexReport, Indexer, SearchService},
+    documents::{DocumentDiscovery, IndexReport, Indexer, SearchService},
     filesystem::ManagedPath,
     git::{CancellationToken, GitRequest, GitService},
     persistence::{SearchDb, SourceRecord, UserDb},
@@ -63,6 +63,15 @@ pub struct SearchReport {
     pub indexed: u64,
     pub total: u64,
     pub complete: bool,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReaderStartPage {
+    pub source_id: String,
+    pub ref_name: String,
+    pub path: String,
+    pub title: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -723,6 +732,61 @@ pub fn read_document(
         .map_err(|error| error.to_string())
 }
 
+#[tauri::command]
+pub fn get_source_start_page(
+    state: State<'_, AppState>,
+    source_id: String,
+) -> Result<ReaderStartPage, String> {
+    let source = state
+        .user_db
+        .find_source(&source_id)
+        .map_err(|error| error.message)?
+        .ok_or("source is not installed")?;
+    resolve_source_start_page(&source)
+}
+
+fn resolve_source_start_page(source: &SourceRecord) -> Result<ReaderStartPage, String> {
+    if !matches!(
+        source.capability.as_str(),
+        "Readable" | "Partially readable"
+    ) {
+        return Err("source is not readable".into());
+    }
+
+    let root = source
+        .local_path
+        .as_deref()
+        .ok_or("source has no local path")?;
+    let root = PathBuf::from(root)
+        .canonicalize()
+        .map_err(|error| error.to_string())?;
+    let start_page = DocumentDiscovery::preview(&root)
+        .start_page
+        .ok_or("source has no supported Markdown/MDX start page")?
+        .canonicalize()
+        .map_err(|error| error.to_string())?;
+    let relative_path = start_page
+        .strip_prefix(&root)
+        .map_err(|_| "document path is outside the source".to_owned())?;
+    let path = relative_path
+        .to_str()
+        .ok_or("document path is not valid UTF-8")?
+        .replace('\\', "/");
+    if !is_safe_document_path(&path) {
+        return Err("document path is outside the source".into());
+    }
+
+    Ok(ReaderStartPage {
+        source_id: source.id.clone(),
+        ref_name: source
+            .selected_ref
+            .clone()
+            .unwrap_or_else(|| "default".into()),
+        path,
+        title: source.display_name.clone(),
+    })
+}
+
 fn is_safe_document_path(path: &str) -> bool {
     !path.is_empty()
         && !PathBuf::from(path).is_absolute()
@@ -765,9 +829,26 @@ fn ensure_local_update_allowed(state: &AppState, local_path: &str) -> Result<(),
 #[cfg(test)]
 mod tests {
     use super::{
-        ensure_local_update_allowed, is_safe_document_path, is_safe_source_value, AppState,
+        ensure_local_update_allowed, is_safe_document_path, is_safe_source_value,
+        resolve_source_start_page, AppState,
     };
+    use crate::persistence::SourceRecord;
+    use std::fs;
     use tempfile::tempdir;
+
+    fn source_record(capability: &str, local_path: Option<String>) -> SourceRecord {
+        SourceRecord {
+            id: "react".into(),
+            display_name: "React".into(),
+            capability: capability.into(),
+            selected_ref: Some("main".into()),
+            clone_mode: Some("shallow".into()),
+            local_path,
+            remote_url: Some("https://github.com/facebook/react.git".into()),
+            updated_at: "2026-09-11T00:00:00Z".into(),
+            disk_usage_bytes: None,
+        }
+    }
 
     #[test]
     fn document_paths_reject_absolute_and_cross_platform_traversal() {
@@ -800,5 +881,56 @@ mod tests {
             .update_settings(serde_json::json!({ "allowLocalFolderUpdates": true }))
             .unwrap();
         assert!(ensure_local_update_allowed(&state, external.to_str().unwrap()).is_ok());
+    }
+
+    #[test]
+    fn readable_source_start_page_uses_a_safe_source_relative_path() {
+        let root = tempdir().unwrap();
+        fs::write(root.path().join("README.md"), "# React").unwrap();
+
+        let start_page = resolve_source_start_page(&source_record(
+            "Readable",
+            Some(root.path().display().to_string()),
+        ))
+        .unwrap();
+
+        assert_eq!(start_page.source_id, "react");
+        assert_eq!(start_page.ref_name, "main");
+        assert_eq!(start_page.path, "README.md");
+        assert_eq!(start_page.title, "React");
+        assert!(!start_page.path.contains(".."));
+    }
+
+    #[test]
+    fn partially_readable_sources_accept_mdx_index_pages() {
+        let root = tempdir().unwrap();
+        fs::write(root.path().join("index.mdx"), "# Tauri").unwrap();
+
+        let start_page = resolve_source_start_page(&source_record(
+            "Partially readable",
+            Some(root.path().display().to_string()),
+        ))
+        .unwrap();
+
+        assert_eq!(start_page.path, "index.mdx");
+    }
+
+    #[test]
+    fn source_start_page_rejects_files_only_sources_and_missing_documents() {
+        let root = tempdir().unwrap();
+
+        let files_only = resolve_source_start_page(&source_record(
+            "Files only",
+            Some(root.path().display().to_string()),
+        ))
+        .unwrap_err();
+        assert!(files_only.contains("not readable"));
+
+        let missing = resolve_source_start_page(&source_record(
+            "Readable",
+            Some(root.path().display().to_string()),
+        ))
+        .unwrap_err();
+        assert!(missing.contains("start page"));
     }
 }

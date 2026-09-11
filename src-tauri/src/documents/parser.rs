@@ -9,7 +9,11 @@ impl DocumentParser {
         let path = path.as_ref().to_path_buf();
         let text = String::from_utf8(bytes.to_vec())
             .map_err(|_| "document is not valid UTF-8".to_owned())?;
-        let tree = to_mdast(&text, &ParseOptions::mdx()).map_err(|error| error.to_string())?;
+        let mut options = ParseOptions::mdx();
+        // MDX disables GFM extensions by default; Xenics supports tables while
+        // retaining MDX node detection for its non-executable warning path.
+        options.constructs.gfm_table = true;
+        let tree = to_mdast(&text, &options).map_err(|error| error.to_string())?;
         let mut document = ParsedDocument {
             path,
             blocks: Vec::new(),
@@ -40,6 +44,7 @@ fn visit_block(node: &Node, document: &mut ParsedDocument) {
             document.blocks.push(ReaderBlock::Heading {
                 level: heading.depth,
                 text: text.clone(),
+                inline: inline_spans(&heading.children),
                 location: location.clone(),
             });
             document.search_records.push(SearchRecord {
@@ -67,6 +72,7 @@ fn visit_block(node: &Node, document: &mut ParsedDocument) {
                 });
                 document.blocks.push(ReaderBlock::Paragraph {
                     text,
+                    inline: inline_spans(&paragraph.children),
                     location: location.clone(),
                 });
             }
@@ -82,6 +88,40 @@ fn visit_block(node: &Node, document: &mut ParsedDocument) {
                 text: code.value.clone(),
                 location,
             });
+        }
+        Node::Table(table) => {
+            let table_rows = table
+                .children
+                .iter()
+                .filter_map(|row| match row {
+                    Node::TableRow(row) => Some(table_row_cells(&row.children)),
+                    _ => None,
+                })
+                .collect::<Vec<_>>();
+            let headers = table_rows.first().cloned().unwrap_or_default();
+            let rows = table_rows.into_iter().skip(1).collect::<Vec<_>>();
+            let text = table_text(&headers, &rows);
+            if !text.is_empty() {
+                document.blocks.push(ReaderBlock::Table {
+                    headers,
+                    rows,
+                    text: text.clone(),
+                    location: location.clone(),
+                });
+                document.search_records.push(SearchRecord {
+                    text,
+                    location: location.clone(),
+                });
+            }
+            for row in &table.children {
+                if let Node::TableRow(row) = row {
+                    for cell in &row.children {
+                        if let Node::TableCell(cell) = cell {
+                            visit_inline_nodes(&cell.children, document, &location);
+                        }
+                    }
+                }
+            }
         }
         Node::Blockquote(quote) => {
             for child in &quote.children {
@@ -120,6 +160,26 @@ fn visit_block(node: &Node, document: &mut ParsedDocument) {
             }
         }
     }
+}
+
+fn table_row_cells(nodes: &[Node]) -> Vec<Vec<InlineSpan>> {
+    nodes
+        .iter()
+        .filter_map(|cell| match cell {
+            Node::TableCell(cell) => Some(inline_spans(&cell.children)),
+            _ => None,
+        })
+        .collect()
+}
+
+fn table_text(headers: &[Vec<InlineSpan>], rows: &[Vec<Vec<InlineSpan>>]) -> String {
+    headers
+        .iter()
+        .chain(rows.iter().flatten())
+        .map(|cell| inline_span_text(cell))
+        .filter(|cell| !cell.is_empty())
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 fn visit_inline_nodes(
@@ -164,17 +224,50 @@ fn visit_inline_nodes(
 }
 
 fn inline_text(nodes: &[Node]) -> String {
+    inline_span_text(&inline_spans(nodes))
+}
+
+fn inline_spans(nodes: &[Node]) -> Vec<InlineSpan> {
     nodes
         .iter()
         .filter_map(|node| match node {
-            Node::Text(text) => Some(text.value.clone()),
-            Node::InlineCode(code) => Some(code.value.clone()),
-            Node::Image(image) => Some(image.alt.clone()),
-            Node::Break(_) => Some("\n".into()),
-            Node::MdxTextExpression(expression) => Some(expression.value.clone()),
-            Node::MdxJsxTextElement(element) => Some(inline_text(&element.children)),
-            _ => node.children().map(|children| inline_text(children)),
+            Node::Text(text) => Some(InlineSpan::Text {
+                text: text.value.clone(),
+            }),
+            Node::InlineCode(code) => Some(InlineSpan::InlineCode {
+                text: code.value.clone(),
+            }),
+            Node::Emphasis(emphasis) => Some(InlineSpan::Emphasis {
+                children: inline_spans(&emphasis.children),
+            }),
+            Node::Strong(strong) => Some(InlineSpan::Strong {
+                children: inline_spans(&strong.children),
+            }),
+            Node::Link(link) => Some(InlineSpan::Link {
+                target: link.url.clone(),
+                children: inline_spans(&link.children),
+            }),
+            Node::Image(image) => Some(InlineSpan::Text {
+                text: image.alt.clone(),
+            }),
+            Node::Break(_) => Some(InlineSpan::Text { text: "\n".into() }),
+            Node::MdxTextExpression(expression) => Some(InlineSpan::Text {
+                text: expression.value.clone(),
+            }),
+            Node::MdxJsxTextElement(element) => Some(InlineSpan::Text {
+                text: inline_text(&element.children),
+            }),
+            _ => node.children().map(|children| InlineSpan::Text {
+                text: inline_text(children),
+            }),
         })
+        .collect::<Vec<_>>()
+}
+
+fn inline_span_text(spans: &[InlineSpan]) -> String {
+    spans
+        .iter()
+        .map(InlineSpan::text)
         .collect::<Vec<_>>()
         .join("")
 }

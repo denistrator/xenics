@@ -72,6 +72,7 @@ impl<'a> Indexer<'a> {
             .filter_map(|block| match block {
                 super::ReaderBlock::Paragraph { text, .. } => Some(text.as_str()),
                 super::ReaderBlock::Image { alt, .. } => Some(alt.as_str()),
+                super::ReaderBlock::Table { text, .. } => Some(text.as_str()),
                 _ => None,
             })
             .collect::<Vec<_>>()

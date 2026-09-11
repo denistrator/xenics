@@ -10,14 +10,50 @@ pub struct SourceLocation {
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub enum InlineSpan {
+    Text {
+        text: String,
+    },
+    Emphasis {
+        children: Vec<InlineSpan>,
+    },
+    Strong {
+        children: Vec<InlineSpan>,
+    },
+    InlineCode {
+        text: String,
+    },
+    Link {
+        target: String,
+        children: Vec<InlineSpan>,
+    },
+}
+
+impl InlineSpan {
+    pub fn text(&self) -> String {
+        match self {
+            Self::Text { text } | Self::InlineCode { text } => text.clone(),
+            Self::Emphasis { children }
+            | Self::Strong { children }
+            | Self::Link { children, .. } => {
+                children.iter().map(Self::text).collect::<Vec<_>>().join("")
+            }
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub enum ReaderBlock {
     Heading {
         level: u8,
         text: String,
+        inline: Vec<InlineSpan>,
         location: SourceLocation,
     },
     Paragraph {
         text: String,
+        inline: Vec<InlineSpan>,
         location: SourceLocation,
     },
     Code {
@@ -28,6 +64,12 @@ pub enum ReaderBlock {
     Image {
         alt: String,
         url: String,
+        location: SourceLocation,
+    },
+    Table {
+        headers: Vec<Vec<InlineSpan>>,
+        rows: Vec<Vec<Vec<InlineSpan>>>,
+        text: String,
         location: SourceLocation,
     },
 }
@@ -81,7 +123,8 @@ impl ParsedDocument {
             .map(|block| match block {
                 ReaderBlock::Heading { text, .. }
                 | ReaderBlock::Paragraph { text, .. }
-                | ReaderBlock::Code { text, .. } => text.as_str(),
+                | ReaderBlock::Code { text, .. }
+                | ReaderBlock::Table { text, .. } => text.as_str(),
                 ReaderBlock::Image { alt, .. } => alt.as_str(),
             })
             .collect::<Vec<_>>()

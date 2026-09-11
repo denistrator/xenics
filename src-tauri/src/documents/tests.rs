@@ -70,3 +70,55 @@ fn markdown_ast_exposes_local_images_as_safe_asset_blocks() {
             if alt == "Architecture diagram" && url == "./assets/architecture.png"
     ));
 }
+
+#[test]
+fn markdown_ast_preserves_typed_inline_formatting_and_links() {
+    let document = DocumentParser::parse(
+        Path::new("guide.md"),
+        b"# Install **Xenics**\n\nUse *carefully*, `xenics init`, and [the guide](./guide.md).\n",
+    )
+    .unwrap();
+
+    let super::ReaderBlock::Paragraph { inline, .. } = &document.blocks[1] else {
+        panic!("expected paragraph block");
+    };
+    assert!(inline
+        .iter()
+        .any(|span| matches!(span, super::InlineSpan::Emphasis { .. })));
+    assert!(inline.iter().any(
+        |span| matches!(span, super::InlineSpan::InlineCode { text } if text == "xenics init")
+    ));
+    assert!(inline.iter().any(
+        |span| matches!(span, super::InlineSpan::Link { target, .. } if target == "./guide.md")
+    ));
+    assert_eq!(
+        document.reader_link("./guide.md").unwrap().label,
+        "the guide"
+    );
+}
+
+#[test]
+fn markdown_ast_preserves_table_cells_and_makes_them_searchable() {
+    let document = DocumentParser::parse(
+        Path::new("compatibility.md"),
+        b"| Feature | Support |\n| --- | --- |\n| Tables | **Ready** |\n",
+    )
+    .unwrap();
+
+    let super::ReaderBlock::Table {
+        headers,
+        rows,
+        text,
+        ..
+    } = &document.blocks[0]
+    else {
+        panic!("expected table block");
+    };
+    assert_eq!(headers.len(), 2);
+    assert_eq!(rows.len(), 1);
+    assert_eq!(text, "Feature Support Tables Ready");
+    assert!(document
+        .search_records
+        .iter()
+        .any(|record| record.text == "Feature Support Tables Ready"));
+}

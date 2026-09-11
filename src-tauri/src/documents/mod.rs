@@ -9,7 +9,8 @@ pub use capabilities::{CapabilityProfile, CapabilityReport};
 pub use discovery::{DiscoveryPreview, DocumentDiscovery};
 pub use indexer::{IndexReport, Indexer};
 pub use model::{
-    DocumentLink, ParsedDocument, ReaderBlock, SearchRecord, SourceLocation, Warning, WarningCode,
+    DocumentLink, InlineSpan, ParsedDocument, ReaderBlock, SearchRecord, SourceLocation, Warning,
+    WarningCode,
 };
 pub use parser::DocumentParser;
 pub use search::SearchService;

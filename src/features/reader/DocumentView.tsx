@@ -63,6 +63,34 @@ function headingAnchor(text: string): string {
   return text.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 }
 
+function isExternalLink(target: string): boolean {
+  return /^https?:\/\//i.test(target)
+}
+
+function isInternalLink(target: string): boolean {
+  return target.length > 0
+    && !target.startsWith('/')
+    && !target.startsWith('\\')
+    && !target.includes('\\')
+    && !/^[a-z][a-z\d+.-]*:/i.test(target)
+}
+
+function handleReaderLink(
+  event: { preventDefault: () => void },
+  link: ReaderLink,
+  onInternalLink: ((link: ReaderLink) => void) | undefined,
+  onExternalLink: ((link: ReaderLink) => void) | undefined,
+): void {
+  event.preventDefault()
+
+  if (isExternalLink(link.target)) {
+    onExternalLink?.(link)
+    return
+  }
+
+  if (isInternalLink(link.target)) onInternalLink?.(link)
+}
+
 function renderParagraph(
   text: string,
   links: ReaderLink[] | undefined,
@@ -84,15 +112,7 @@ function renderParagraph(
         key={`link-${index}`}
         href={`#reader-link-${encodeURIComponent(link.target)}`}
         className="text-x-mint-strong underline decoration-x-mint-strong/40 underline-offset-4 hover:decoration-x-mint-strong"
-        onClick={(event) => {
-          if (link.target.startsWith('http://') || link.target.startsWith('https://')) {
-            event.preventDefault()
-            onExternalLink?.(link)
-            return
-          }
-          event.preventDefault()
-          onInternalLink?.(link)
-        }}
+        onClick={(event) => handleReaderLink(event, link, onInternalLink, onExternalLink)}
       >
         {link.label}
       </a>
@@ -129,14 +149,7 @@ function renderInlineSpans(
             key={key}
             href={`#reader-link-${encodeURIComponent(link.target)}`}
             className="text-x-mint-strong underline decoration-x-mint-strong/40 underline-offset-4 hover:decoration-x-mint-strong"
-            onClick={(event) => {
-              event.preventDefault()
-              if (link.target.startsWith('http://') || link.target.startsWith('https://')) {
-                onExternalLink?.(link)
-                return
-              }
-              onInternalLink?.(link)
-            }}
+            onClick={(event) => handleReaderLink(event, link, onInternalLink, onExternalLink)}
           >
             {children}
           </a>

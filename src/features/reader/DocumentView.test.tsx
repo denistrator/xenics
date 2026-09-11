@@ -78,6 +78,35 @@ describe('DocumentView', () => {
     expect(onExternalLink).toHaveBeenCalledWith({ label: 'visit Xenics', target: 'https://xenics.dev' })
   })
 
+  it('keeps unsupported link protocols inert', () => {
+    const onInternalLink = vi.fn()
+    const onExternalLink = vi.fn()
+    render(
+      <DocumentView
+        document={{
+          title: 'Guide',
+          source: 'docs',
+          blocks: [{
+            type: 'paragraph',
+            text: 'Unsafe link',
+            inline: [{
+              type: 'link',
+              target: 'javascript:alert(1)',
+              children: [{ type: 'text', text: 'Unsafe link' }],
+            }],
+          }],
+        }}
+        onInternalLink={onInternalLink}
+        onExternalLink={onExternalLink}
+      />,
+    )
+
+    screen.getByRole('link', { name: 'Unsafe link' }).click()
+
+    expect(onInternalLink).not.toHaveBeenCalled()
+    expect(onExternalLink).not.toHaveBeenCalled()
+  })
+
   it('renders ordered lists, unordered lists, and block quotes semantically', () => {
     render(
       <DocumentView

@@ -50,7 +50,7 @@ export function VirtualizedGrid<Item>({
           <div
             key={virtualRow.key}
             ref={virtualizer.measureElement}
-            className="absolute left-0 top-0 grid w-full gap-4 sm:grid-cols-2 xl:grid-cols-3"
+            className="grid w-full gap-4 sm:grid-cols-2 xl:grid-cols-3"
             style={{ transform: `translateY(${virtualRow.start}px)` }}
           >
             {rows[virtualRow.index].map((item, offset) => (

@@ -26,6 +26,7 @@ export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl, onOp
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [density, setDensity] = useState<'comfortable' | 'compact'>('comfortable')
   const sessionHydrated = useRef(!hasNativeBridge())
+  const deepLinkCopyTimer = useRef<number | undefined>(undefined)
   const currentTab = tabs.find((tab) => tab.id === activeTabId) ?? tabs[0]
   const loadedDocument = useReaderDocument(document ? undefined : currentTab)
   const visibleDocument = document ?? loadedDocument.document
@@ -52,6 +53,12 @@ export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl, onOp
     if (!sessionHydrated.current || !hasNativeBridge()) return
     void invokeCommand('save_reader_session', { session: { tabs, activeTabId } }).catch(() => undefined)
   }, [activeTabId, tabs])
+
+  useEffect(() => () => {
+    if (deepLinkCopyTimer.current !== undefined) {
+      window.clearTimeout(deepLinkCopyTimer.current)
+    }
+  }, [])
 
   function handleCloseTab(tabId: string): void {
     const closedIndex = tabs.findIndex((tab) => tab.id === tabId)
@@ -154,7 +161,13 @@ export function ReaderWorkspace({ initialTabs, document, onOpenExternalUrl, onOp
     try {
       await navigator.clipboard.writeText(deepLink)
       setDeepLinkCopied(true)
-      window.setTimeout(() => setDeepLinkCopied(false), 1200)
+      if (deepLinkCopyTimer.current !== undefined) {
+        window.clearTimeout(deepLinkCopyTimer.current)
+      }
+      deepLinkCopyTimer.current = window.setTimeout(() => {
+        deepLinkCopyTimer.current = undefined
+        setDeepLinkCopied(false)
+      }, 1200)
     } catch {
       setDeepLinkCopied(false)
     }

@@ -87,6 +87,21 @@ describe('ReaderWorkspace', () => {
     await vi.waitFor(() => expect(writeText).toHaveBeenCalledWith('xenics://docs/react?ref=main&path=README.md'))
   })
 
+  it('returns copy feedback to its idle state after the timeout', async () => {
+    vi.useFakeTimers()
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.assign(navigator, { clipboard: { writeText } })
+    render(<ReaderWorkspace initialTabs={[tab]} document={readerDocument} />)
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Copy deep link' }))
+      await vi.runAllTimersAsync()
+    })
+
+    expect(screen.getByRole('button', { name: 'Copy deep link' })).toBeInTheDocument()
+    vi.useRealTimers()
+  })
+
   it('exposes source folder and source URL actions for the active tab', () => {
     const onOpenSourceFolder = vi.fn()
     const onOpenSourceUrl = vi.fn()
